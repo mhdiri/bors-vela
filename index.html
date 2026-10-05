@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<title>Vela - Bors Ratio</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:100%;height:100%;overflow:hidden;background:#131722;color:#d1d4dc;font-family:Tahoma}
+  #chart{width:100%;height:100vh}
+  #log{position:fixed;top:10px;left:10px;background:rgba(0,0,0,.9);padding:10px;border-radius:6px;
+    font-size:11px;font-family:monospace;max-width:400px;z-index:99;white-space:pre-wrap;
+    color:#aed581;direction:ltr}
+</style>
+</head>
+<body>
+<div id="chart"></div>
+<div id="log">loading...</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@luxalgo/vela@latest/dist/vela.global.min.js"></script>
+
+<script>
+(function(){
+  var log = function(m){ document.getElementById('log').innerHTML += '\n' + m; };
+  var API = 'https://cdn.tsetmc.com';
+
+  function dateToTs(s){
+    s = String(s);
+    if (s.length !== 8) return null;
+    var y = +s.slice(0,4), m = +s.slice(4,6), d = +s.slice(6,8);
+    if (y<1990||y>2100||m<1||m>12||d<1||d>31) return null;
+    return Math.floor(new Date(y, m-1, d).getTime() / 1000);
+  }
+
+  function fetchJSON(url){
+    return fetch(url).then(function(r){
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    });
+  }
+
+  function getInsCode(s){
+    log('searching: ' + s);
+    return fetchJSON(API + '/api/Instrument/GetInstrumentSearch/' + encodeURIComponent(s))
+      .then(function(d){ return d.instrumentSearch && d.instrumentSearch[0] ? d.instrumentSearch[0].insCode : null; });
+  }
+
+  function getHistory(code){
+    return fetchJSON(API + '/api/ClosingPrice/GetClosingPriceDailyList/' + code + '/0')
+      .then(function(d){ return d.closingPriceDaily || d.closingPrice || []; });
+  }
+
+  function buildRatio(s1, s2){
+    log('ratio: ' + s1 + '/' + s2);
+    var c1, c2;
+    return getInsCode(s1).then(function(x){ c1 = x; return getInsCode(s2); })
+      .then(function(x){
+        c2 = x;
+        log('c1: ' + c1 + ' c2: ' + c2);
+        if (!c1 || !c2) throw new Error('not found');
+        return Promise.all([getHistory(c1), getHistory(c2)]);
+      })
+      .then(function(hs){
+        var h1 = hs[0], h2 = hs[1];
+        log('h1: ' + h1.length + ' h2: ' + h2.length);
+        var m1 = {}, m2 = {};
+        h1.forEach(function(x){ var c = x.pClosing || x.pDrCotVal; if (c>0) m1[String(x.dEven)] = c; });
+        h2.forEach(function(x){ var c = x.pClosing || x.pDrCotVal; if (c>0) m2[String(x.dEven)] = c; });
+        var dates = Object.keys(m1).filter(function(d){ return m2[d]; }).sort();
+        log('dates: ' + dates.length);
+        var bars = [], pc = null;
+        for (var i=0; i<dates.length; i++){
+          var d = dates[i], ts = dateToTs(d);
+          if (ts === null) continue;
+          var rc = m1[d]/m2[d];
+          var ro = pc !== null ? pc : rc;
+          bars.push({ time: ts*1000, open: ro, high: Math.max(ro,rc), low: Math.min(ro,rc), close: rc, volume: 0 });
+          pc = rc;
+        }
+        log('bars: ' + bars.length);
+        return bars;
+      });
+  }
+
+  window.addEventListener('DOMContentLoaded', function(){
+    if (typeof window.Vela === 'undefined'){ log('NO VELA'); return; }
+    var VC = window.Vela.Vela || window.Vela;
+    buildRatio('شیراز', 'شپدیس').then(function(bars){
+      if (!bars.length){ log('NO DATA'); return; }
+      new VC('#chart', { data: bars, timeframe: '1D', theme: 'dark', priceStyle: 'candles' });
+      log('OK');
+    }).catch(function(e){
+      log('ERR: ' + e.message);
+    });
+  });
+})();
+</script>
+</body>
+</html>
