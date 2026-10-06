@@ -40,7 +40,7 @@
   .app {
     display: grid;
     grid-template-rows: 40px 1fr 28px;
-    grid-template-columns: 56px 280px 1fr;
+    grid-template-columns: 56px 220px 1fr;
     height: 100vh;
     gap: 0;
   }
@@ -198,7 +198,6 @@
     transition: all 0.2s ease;
     flex-shrink: 0;
     position: relative;
-    tooltip: "";
   }
   .tool-btn:hover {
     background: rgba(59,130,246,0.1);
@@ -234,155 +233,119 @@
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+    padding: 12px;
+    gap: 12px;
     z-index: 35;
   }
   .sidebar::-webkit-scrollbar { width: 4px; }
   .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-  .sidebar-section {
-    padding: 12px;
-    border-bottom: 1px solid var(--border);
+  .sidebar-block {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
   }
-  .sidebar-section:last-child { border-bottom: none; }
 
-  .section-title {
+  .block-title {
     font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
     color: var(--text-muted);
-    letter-spacing: 1px;
-    margin-bottom: 4px;
+    letter-spacing: 0.5px;
   }
 
-  .input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .input-label {
-    font-size: 10px;
-    color: var(--text-muted);
-    font-weight: 600;
-  }
-
-  .select-input, .toggle-btn {
+  .select-input, .toggle-btn, .indicator-btn {
     background: var(--bg-input);
     border: 1px solid var(--border);
     color: var(--text-primary);
-    padding: 8px 10px;
+    padding: 6px 8px;
     border-radius: 4px;
     font-size: 11px;
     cursor: pointer;
     transition: all 0.2s ease;
+    text-align: center;
   }
-  .select-input:hover, .toggle-btn:hover {
+  
+  .indicator-btn {
+    text-align: left;
+    color: var(--text-secondary);
+    font-size: 10px;
+  }
+
+  .select-input:hover, .toggle-btn:hover, .indicator-btn:hover {
     border-color: var(--blue);
     background: rgba(59,130,246,0.05);
+    color: var(--text-primary);
   }
+
   .select-input:focus {
     outline: none;
     border-color: var(--blue);
     box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
   }
+
   .toggle-btn.active {
     background: var(--blue);
     color: #fff;
     border-color: var(--blue);
   }
 
-  .indicator-btn {
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    color: var(--text-secondary);
-    padding: 8px 10px;
-    border-radius: 4px;
-    font-size: 11px;
-    cursor: pointer;
-    text-align: left;
-    transition: all 0.2s ease;
-  }
-  .indicator-btn:hover {
-    background: rgba(59,130,246,0.1);
-    color: var(--text-primary);
-    border-color: var(--blue);
-  }
-
   .indicators-list {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    margin-top: 6px;
+    gap: 4px;
+    max-height: 150px;
+    overflow-y: auto;
   }
 
   .indicator-item {
     background: rgba(59,130,246,0.1);
     border: 1px solid rgba(59,130,246,0.3);
-    border-radius: 4px;
-    padding: 6px 8px;
+    border-radius: 3px;
+    padding: 4px 6px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 10px;
+    font-size: 9px;
     animation: slideIn 0.3s ease;
   }
   @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
 
-  .indicator-name { color: var(--text-secondary); flex: 1; }
-  .indicator-value {
-    color: var(--blue);
-    font-weight: 600;
-    margin: 0 6px;
-    font-variant-numeric: tabular-nums;
-  }
-  .indicator-remove {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 14px;
-    padding: 0;
-    transition: color 0.2s;
-  }
+  .indicator-name { flex: 1; color: var(--text-secondary); }
+  .indicator-value { color: var(--blue); font-weight: 600; font-size: 10px; margin: 0 4px; font-variant-numeric: tabular-nums; }
+  .indicator-remove { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 12px; padding: 0; transition: color 0.2s; }
   .indicator-remove:hover { color: var(--red); }
 
   .range-group {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 6px;
+    gap: 4px;
   }
+
   .range-btn {
     background: var(--bg-input);
     border: 1px solid var(--border);
     color: var(--text-secondary);
-    padding: 6px;
-    border-radius: 4px;
+    padding: 4px;
+    border-radius: 3px;
     font-size: 10px;
     cursor: pointer;
     font-weight: 600;
     transition: all 0.2s ease;
   }
+
   .range-btn:hover {
     border-color: var(--blue);
     background: rgba(59,130,246,0.05);
   }
+
   .range-btn.active {
     background: var(--blue);
     color: #fff;
     border-color: var(--blue);
   }
 
-  .info-box {
-    background: rgba(59,130,246,0.1);
-    border: 1px solid rgba(59,130,246,0.3);
-    border-radius: 4px;
-    padding: 8px;
-    font-size: 10px;
-    color: var(--text-secondary);
-    line-height: 1.4;
-  }
+  .divider { width: 100%; height: 1px; background: var(--border); }
 
   /* ===== CHART AREA ===== */
   .chart-wrapper {
@@ -405,9 +368,9 @@
     background: var(--bg-panel);
     border: 1px solid var(--border);
     border-radius: 6px;
-    padding: 8px;
+    padding: 6px;
     display: flex;
-    gap: 6px;
+    gap: 4px;
     z-index: 20;
   }
 
@@ -415,8 +378,8 @@
     background: var(--bg-input);
     border: 1px solid var(--border);
     color: var(--text-secondary);
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     border-radius: 4px;
     cursor: pointer;
     display: flex;
@@ -429,30 +392,6 @@
     background: rgba(59,130,246,0.1);
     color: var(--blue);
   }
-
-  .crosshair-display {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: var(--bg-panel);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px 12px;
-    z-index: 20;
-    font-size: 11px;
-    min-width: 200px;
-    display: none;
-  }
-  .crosshair-display.active { display: block; }
-
-  .crosshair-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 4px 0;
-  }
-  .crosshair-label { color: var(--text-muted); }
-  .crosshair-value { color: var(--text-primary); font-weight: 600; font-variant-numeric: tabular-nums; }
 
   .loader {
     position: absolute;
@@ -501,20 +440,11 @@
 
   .status-spacer { flex: 1; }
 
-  .status-price { color: var(--green); }
-  .status-price.down { color: var(--red); }
-
   /* ===== SCROLLBAR ===== */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
-
-  /* ===== UTILITY ===== */
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .gap-4 { gap: 4px; }
-  .mb-4 { margin-bottom: 4px; }
-  .text-center { text-align: center; }
 </style>
 </head>
 <body>
@@ -523,14 +453,12 @@
   <div class="header">
     <div class="logo">🚀 Vela Pro</div>
 
-    <!-- Symbol & Ratio -->
     <div class="symbol-box">
       <select id="sym1"></select>
       <span class="divider">÷</span>
       <select id="sym2"></select>
     </div>
 
-    <!-- Timeframe -->
     <div class="tf-selector">
       <button class="tf-btn" onclick="setTF('1D')">1D</button>
       <button class="tf-btn active" onclick="setTF('1W')">1W</button>
@@ -539,7 +467,6 @@
 
     <div class="header-spacer"></div>
 
-    <!-- Info Display -->
     <div class="header-info">
       <div class="header-info-item">
         <span class="header-info-label">نسبت</span>
@@ -551,18 +478,17 @@
       </div>
     </div>
 
-    <!-- Buttons -->
     <button class="header-button primary" onclick="analyze()">📊 تحلیل</button>
     <button class="header-button" onclick="toggleTheme()" title="تغییر تم">
       <span id="themeIcon">🌙</span>
     </button>
   </div>
 
-  <!-- LEFT TOOLBAR (Drawing Tools) -->
+  <!-- LEFT TOOLBAR -->
   <div class="toolbar">
     <button class="tool-btn active" title="انتخاب"><svg viewBox="0 0 24 24"><path d="M3 3l18 18M3 21l18-18"/></svg></button>
     <button class="tool-btn" title="خط روند"><svg viewBox="0 0 24 24"><path d="M4 18L20 6"/></svg></button>
-    <button class="tool-btn" title="خط ا��قی"><svg viewBox="0 0 24 24"><path d="M3 12h18"/></svg></button>
+    <button class="tool-btn" title="خط افقی"><svg viewBox="0 0 24 24"><path d="M3 12h18"/></svg></button>
     <button class="tool-btn" title="خط عمودی"><svg viewBox="0 0 24 24"><path d="M12 3v18"/></svg></button>
     <button class="tool-btn" title="پرتو"><svg viewBox="0 0 24 24"><path d="M4 18L14 8M14 8h5M14 8v5"/></svg></button>
 
@@ -571,7 +497,6 @@
     <button class="tool-btn" title="فیبوناچی"><svg viewBox="0 0 24 24"><path d="M4 19h16M4 15h12M4 11h8M4 7h4"/></svg></button>
     <button class="tool-btn" title="مربع"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1"/></svg></button>
     <button class="tool-btn" title="دایره"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg></button>
-    <button class="tool-btn" title="متن"><svg viewBox="0 0 24 24"><path d="M8 3h8M8 21h8M3 7h18M3 17h18"/></svg></button>
 
     <div class="tool-divider"></div>
 
@@ -579,31 +504,33 @@
     <button class="tool-btn" title="پاک‌کردن" onclick="clearDrawings()"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 12h10l1-12"/></svg></button>
   </div>
 
-  <!-- LEFT SIDEBAR (Controls) -->
+  <!-- LEFT SIDEBAR -->
   <div class="sidebar">
-    <!-- Chart Style -->
-    <div class="sidebar-section">
-      <div class="section-title">📈 نوع نمودار</div>
-      <button class="select-input" id="styleBtn" onclick="cycleStyle()" style="text-align: center;">
+    <!-- Style -->
+    <div class="sidebar-block">
+      <div class="block-title">📈 نمودار</div>
+      <button class="select-input" id="styleBtn" onclick="cycleStyle()">
         <span id="styleLabel">کندل</span>
       </button>
     </div>
 
+    <div class="divider"></div>
+
     <!-- Indicators -->
-    <div class="sidebar-section">
-      <div class="section-title">📊 اندیکاتورها</div>
-      <div style="display: flex; flex-direction: column; gap: 4px;">
-        <button class="indicator-btn" onclick="addIndicator('sma')">➕ SMA 20</button>
-        <button class="indicator-btn" onclick="addIndicator('ema')">➕ EMA 20</button>
-        <button class="indicator-btn" onclick="addIndicator('rsi')">➕ RSI 14</button>
-        <button class="indicator-btn" onclick="addIndicator('bb')">➕ Bollinger</button>
-      </div>
+    <div class="sidebar-block">
+      <div class="block-title">📊 اندیکاتور</div>
+      <button class="indicator-btn" onclick="addIndicator('sma')">SMA 20</button>
+      <button class="indicator-btn" onclick="addIndicator('ema')">EMA 20</button>
+      <button class="indicator-btn" onclick="addIndicator('rsi')">RSI 14</button>
+      <button class="indicator-btn" onclick="addIndicator('bb')">Bollinger</button>
       <div class="indicators-list" id="activeIndicators"></div>
     </div>
 
-    <!-- Time Range -->
-    <div class="sidebar-section">
-      <div class="section-title">⏱️ بازه زمانی</div>
+    <div class="divider"></div>
+
+    <!-- Range -->
+    <div class="sidebar-block">
+      <div class="block-title">⏱️ بازه</div>
       <div class="range-group">
         <button class="range-btn" onclick="setRange(30,this)">1M</button>
         <button class="range-btn" onclick="setRange(180,this)">6M</button>
@@ -612,71 +539,34 @@
       </div>
     </div>
 
-    <!-- Scale Options -->
-    <div class="sidebar-section">
-      <div class="section-title">📏 مقیاس</div>
-      <button class="toggle-btn" id="logBtn" onclick="toggleLog()">مقیاس لگاریتمی</button>
-    </div>
+    <div class="divider"></div>
 
-    <!-- Info Box -->
-    <div class="sidebar-section">
-      <div class="info-box">
-        ✨ نسخه <strong>Vela Pro</strong> - حرفه‌ای ترادینگ
-        <br><br>
-        🎯 برای تجزیه و تحلیل نسبت دو نماد
-        <br><br>
-        💡 ابزارهای پیشرفته و رابط سریع
-      </div>
+    <!-- Scale -->
+    <div class="sidebar-block">
+      <div class="block-title">📏 مقیاس</div>
+      <button class="toggle-btn" id="logBtn" onclick="toggleLog()">Log</button>
     </div>
   </div>
 
   <!-- CHART -->
   <div class="chart-wrapper">
     <div id="chart"></div>
-
-    <!-- Chart Controls -->
     <div class="chart-controls">
       <button class="chart-control-btn" title="Fit">⊟</button>
       <button class="chart-control-btn" title="Reset">↻</button>
     </div>
-
-    <!-- Crosshair Info -->
-    <div class="crosshair-display" id="crosshair">
-      <div class="crosshair-row">
-        <span class="crosshair-label">تاریخ:</span>
-        <span class="crosshair-value" id="crosshairDate">—</span>
-      </div>
-      <div class="crosshair-row">
-        <span class="crosshair-label">قیمت:</span>
-        <span class="crosshair-value" id="crosshairPrice">—</span>
-      </div>
-      <div class="crosshair-row">
-        <span class="crosshair-label">بالا:</span>
-        <span class="crosshair-value" id="crosshairHigh">—</span>
-      </div>
-      <div class="crosshair-row">
-        <span class="crosshair-label">پایین:</span>
-        <span class="crosshair-value" id="crosshairLow">—</span>
-      </div>
-    </div>
-
-    <!-- Loader -->
     <div class="loader hidden" id="loader"></div>
   </div>
 
   <!-- STATUSBAR -->
   <div class="statusbar">
     <div class="status-group">
-      <span class="status-label">تعداد بارها:</span>
+      <span class="status-label">بارها:</span>
       <span class="status-value" id="barCount">—</span>
     </div>
     <div class="status-group">
-      <span class="status-label">آخرین بسته:</span>
+      <span class="status-label">آخرین:</span>
       <span class="status-value" id="lastBar">—</span>
-    </div>
-    <div class="status-group">
-      <span class="status-label">حجم:</span>
-      <span class="status-value" id="volume">—</span>
     </div>
 
     <div class="status-spacer"></div>
@@ -686,7 +576,6 @@
       <span class="status-value" id="status">آماده</span>
     </div>
     <div class="status-group">
-      <span class="status-label">ساعت:</span>
       <span class="status-value" id="clock">--:--:--</span>
     </div>
   </div>
@@ -697,7 +586,6 @@
 (function(){
   const $ = id => document.getElementById(id);
 
-  // ===== DATA & STATE =====
   const SYMBOLS = [
     { name: 'خساپا', file: 'khasapa.csv' },
     { name: 'خودرو', file: 'khodro.csv' }
@@ -715,7 +603,6 @@
   const styleNames = { candles:'کندل', bars:'میله', line:'خط', area:'ناحیه', baseline:'بیس‌لاین' };
   const styleCycle = ['candles','bars','line','area','baseline'];
 
-  // ===== UTILITY FUNCTIONS =====
   function parseCSV(text){
     const lines = text.trim().split(/\r?\n/);
     const out = [];
@@ -792,7 +679,6 @@
     curBars = allBars.filter(b => b.time >= lastT - curRange*86400000);
   }
 
-  // ===== UI UPDATES =====
   function updateHeader(){
     if(curBars.length === 0){
       $('headerRatio').textContent = '—';
@@ -812,7 +698,6 @@
       const last = curBars[curBars.length-1];
       const date = new Date(last.time);
       $('lastBar').textContent = date.toLocaleDateString('fa-IR');
-      $('volume').textContent = (last.volume || 0).toLocaleString();
     }
   }
 
@@ -836,14 +721,13 @@
     if(show){
       loader.classList.remove('hidden');
       loader.innerHTML = '<div class="spinner"></div><span>درحال بارگذاری...</span>';
-      $('status').textContent = '⏳ درحال بارگذاری...';
+      $('status').textContent = '⏳ بارگذاری';
     } else {
       loader.classList.add('hidden');
       $('status').textContent = '✅ آماده';
     }
   }
 
-  // ===== CHART FUNCTIONS =====
   function renderVela(){
     const el = $('chart');
     if(velaChart){
@@ -885,7 +769,6 @@
     }
   }
 
-  // ===== MAIN FUNCTIONS =====
   function analyze(){
     showLoader(true);
     const f1 = SYMBOLS[+$('sym1').value].file;
@@ -999,14 +882,13 @@
     if(velaChart?.drawings) try{ velaChart.drawings.clear(); }catch(e){}
   }
 
-  // ===== INITIALIZATION =====
   setInterval(() => {
     $('clock').textContent = new Date().toLocaleTimeString('fa-IR');
   }, 1000);
 
   document.querySelectorAll('.tool-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      if(!btn.title.includes('Delete') && !btn.title.includes('پاک')){
+      if(!btn.title.includes('پاک')){
         document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
       }
@@ -1024,7 +906,6 @@
     setTimeout(analyze, 300);
   })();
 
-  // ===== EXPOSE GLOBALS =====
   window.analyze = analyze;
   window.setTF = setTF;
   window.setRange = setRange;
