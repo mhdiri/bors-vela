@@ -1,1 +1,22 @@
-[]
+[
+  {
+    "name": "خساپا",
+    "file": "data/172.json",
+    "id": 172
+  },
+  {
+    "name": "خودرو",
+    "file": "data/167.json",
+    "id": 167
+  },
+  {
+    "name": "فولاد",
+    "file": "data/453.json",
+    "id": 453
+  },
+  {
+    "name": "شپنا",
+    "file": "data/484.json",
+    "id": 484
+  }
+]
