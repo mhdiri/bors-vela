@@ -2,1049 +2,506 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vela Pro | حرفه‌ای ترادینگ</title>
+<title>نسبت‌سنجی</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#131722;color:#d1d4dc;font-family:-apple-system,Tahoma,Arial,sans-serif;font-size:12px}
+button{background:none;border:none;color:#787b86;cursor:pointer;font-family:inherit;font-size:12px;padding:6px 10px;border-radius:2px}
+button:hover{background:rgba(255,255,255,.05);color:#d1d4dc}
+button.on{color:#2962FF}
+select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radius:2px;font-family:inherit;font-size:12px;cursor:pointer;outline:none;font-weight:600}
 
-  :root {
-    --bg-main: #0a0e27;
-    --bg-panel: #111827;
-    --bg-input: #1a1f3a;
-    --border: #2d3447;
-    --text-primary: #e2e8f0;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
-    --blue: #3b82f6;
-    --blue-hover: #2563eb;
-    --green: #10b981;
-    --red: #ef4444;
-    --orange: #f97316;
-    --accent: #06b6d4;
-    --purple: #8b5cf6;
-  }
+.app{display:grid;grid-template-rows:40px 1fr 26px;height:100vh}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+/* ===== نوار بالا ===== */
+.topbar{display:flex;align-items:center;gap:4px;padding:0 8px;background:#131722;border-bottom:1px solid #2a2e39;overflow-x:auto}
+.topbar::-webkit-scrollbar{height:0}
+.div{width:1px;height:20px;background:#2a2e39;margin:0 4px;flex-shrink:0}
+.spacer{flex:1}
 
-  html, body {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: var(--bg-main);
-    color: var(--text-primary);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-size: 12px;
-    -webkit-font-smoothing: antialiased;
-    line-height: 1.4;
-  }
+.symbox{display:flex;align-items:center;gap:2px;padding:3px 6px;background:#2a2e39;border-radius:2px}
+.symbox select{background:transparent;padding:3px 6px}
+.symbox .vs{color:#787b86;padding:0 2px;font-size:11px}
+.symbox .go{background:#2962FF;color:#fff;padding:4px 12px;font-weight:600;font-size:11px;border-radius:2px}
+.symbox .go:hover{background:#1e4fd8;color:#fff}
 
-  .app {
-    display: grid;
-    grid-template-rows: 56px 1fr 32px;
-    grid-template-columns: 48px 280px 1fr;
-    height: 100vh;
-    gap: 0;
-  }
+/* dropdown */
+.dd{position:relative;display:inline-block}
+.dd>button{padding:5px 10px;border-radius:2px;color:#d1d4dc;font-size:11px}
+.dd>button:hover{background:#2a2e39}
+.dd-menu{position:absolute;top:100%;right:0;margin-top:4px;background:#1e222d;border:1px solid #2a2e39;border-radius:2px;padding:4px;min-width:120px;z-index:999;display:none}
+.dd-menu.on{display:block}
+.dd-menu .it{padding:6px 10px;cursor:pointer;font-size:11px;color:#d1d4dc;border-radius:2px}
+.dd-menu .it:hover{background:#2a2e39}
+.dd-menu .it.on{color:#2962FF}
 
-  /* ===== HEADER (TradingView Style) ===== */
-  .header {
-    grid-column: 1 / 4;
-    background: var(--bg-panel);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    padding: 0 12px;
-    gap: 16px;
-    z-index: 50;
-    overflow-x: auto;
-    overflow-y: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-  }
-  .header::-webkit-scrollbar { height: 4px; }
-  .header::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+/* ===== بدنه ===== */
+.main{position:relative;overflow:hidden}
+#chartWrap{position:absolute;inset:0}
+#chart{width:100%;height:100%}
 
-  .logo {
-    font-weight: 800;
-    font-size: 16px;
-    background: linear-gradient(135deg, var(--blue), var(--accent));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    flex-shrink: 0;
-    white-space: nowrap;
-  }
+/* ===== پنهان کردن UI داخلی Vela ===== */
+#chartWrap [data-testid="drawing-toolbar"],
+#chartWrap [data-testid="left-toolbar"],
+#chartWrap [data-testid="watchlist"],
+#chartWrap [data-testid="right-panel"],
+#chartWrap [data-testid="symbol-details"],
+#chartWrap .vela-drawing-toolbar,
+#chartWrap .vela-watchlist,
+#chartWrap .vela-toolbar-left,
+#chartWrap .vela-toolbar-right{display:none !important}
 
-  .symbol-ticker {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 6px 12px;
-    height: 36px;
-    flex-shrink: 0;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .symbol-ticker:hover { border-color: var(--blue); background: rgba(59,130,246,0.05); }
-  .symbol-name { font-weight: 600; color: var(--text-primary); min-width: 60px; }
-  .symbol-divider { color: var(--text-muted); font-weight: 300; }
-  .symbol-ratio { color: var(--text-secondary); font-size: 11px; }
+/* پنل آمار */
+#stats{position:absolute;top:8px;right:8px;background:#1e222d;border:1px solid #2a2e39;padding:10px 12px;font-size:11px;font-family:monospace;color:#d1d4dc;z-index:99;min-width:200px;display:none}
+#stats.on{display:block}
+#stats .h{font-weight:700;font-size:11px;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #2a2e39;color:#787b86;text-transform:uppercase;letter-spacing:.5px}
+#stats .r{display:flex;justify-content:space-between;padding:2px 0;gap:16px}
+#stats .k{color:#787b86}
+#stats .v{font-weight:600}
 
-  .timeframe-selector {
-    display: flex;
-    gap: 0;
-    background: transparent;
-    border-radius: 4px;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-  .timeframe-btn {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-secondary);
-    padding: 6px 12px;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    min-width: 40px;
-  }
-  .timeframe-btn:first-child { border-radius: 4px 0 0 4px; }
-  .timeframe-btn:last-child { border-radius: 0 4px 4px 0; }
-  .timeframe-btn:not(:last-child) { border-right: none; }
-  .timeframe-btn:hover { background: rgba(59,130,246,0.1); color: var(--text-primary); }
-  .timeframe-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+/* سیگنال - پایین-چپ، بیرون از چارت */
+#sig{position:fixed;bottom:34px;left:12px;font-size:11px;font-family:monospace;font-weight:600;z-index:9999;display:none;padding:4px 10px;background:#1e222d;border:1px solid #2a2e39;border-radius:2px}
+#sig.on{display:block}
+#sig.buy{color:#26a69a;border-color:#26a69a}
+#sig.sell{color:#ef5350;border-color:#ef5350}
+#sig.neu{color:#f7b600;border-color:#f7b600}
 
-  .header-spacer { flex: 1; }
+/* لودینگ */
+#load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(19,23,34,.95);color:#787b86;font-size:13px;z-index:200;gap:10px}
+#load.off{display:none}
+.spin{width:24px;height:24px;border:2px solid #2a2e39;border-top-color:#2962FF;border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
 
-  .price-info {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 0 12px;
-    border-left: 1px solid var(--border);
-  }
-  .price-item {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .price-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  .price-value { font-size: 12px; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
-
-  .header-actions {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-  }
-
-  .header-btn {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-secondary);
-    padding: 6px 10px;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: all 0.15s;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    white-space: nowrap;
-  }
-  .header-btn:hover { background: rgba(59,130,246,0.1); color: var(--text-primary); border-color: var(--blue); }
-  .header-btn.primary { background: var(--blue); color: #fff; border-color: var(--blue); }
-  .header-btn.primary:hover { background: var(--blue-hover); }
-
-  /* ===== TOOLBAR (Left) ===== */
-  .toolbar {
-    grid-row: 2;
-    grid-column: 1;
-    background: var(--bg-panel);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 8px 0;
-    gap: 2px;
-    overflow-y: auto;
-    z-index: 40;
-  }
-  .toolbar::-webkit-scrollbar { width: 4px; }
-  .toolbar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  .toolbar-btn {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    background: transparent;
-    border-radius: 4px;
-    cursor: pointer;
-    color: var(--text-secondary);
-    transition: all 0.15s;
-    flex-shrink: 0;
-    position: relative;
-    font-size: 16px;
-  }
-  .toolbar-btn:hover { background: rgba(59,130,246,0.1); color: var(--text-primary); }
-  .toolbar-btn.active { background: rgba(59,130,246,0.25); color: var(--blue); box-shadow: inset 0 0 0 1px var(--blue); }
-  .toolbar-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
-
-  .toolbar-divider { width: 20px; height: 1px; background: var(--border); margin: 4px 0; flex-shrink: 0; }
-
-  /* ===== SIDEBAR ===== */
-  .sidebar {
-    grid-row: 2;
-    grid-column: 2;
-    background: var(--bg-panel);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    padding: 12px;
-    gap: 12px;
-    z-index: 35;
-  }
-  .sidebar::-webkit-scrollbar { width: 4px; }
-  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  .section {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .section-title {
-    font-size: 9px;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    letter-spacing: 0.5px;
-  }
-
-  .btn-select, .btn-toggle, .btn-indicator {
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    color: var(--text-primary);
-    padding: 6px 8px;
-    border-radius: 3px;
-    font-size: 11px;
-    cursor: pointer;
-    transition: all 0.15s;
-    text-align: center;
-  }
-  .btn-indicator { text-align: left; color: var(--text-secondary); font-size: 10px; }
-
-  .btn-select:hover, .btn-toggle:hover, .btn-indicator:hover {
-    border-color: var(--blue);
-    background: rgba(59,130,246,0.05);
-    color: var(--text-primary);
-  }
-
-  .btn-toggle.active { background: var(--blue); color: #fff; border-color: var(--blue); }
-
-  .indicators-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    max-height: 180px;
-    overflow-y: auto;
-    margin-top: 6px;
-  }
-  .indicators-panel::-webkit-scrollbar { width: 3px; }
-  .indicators-panel::-webkit-scrollbar-thumb { background: var(--border); }
-
-  .indicator-row {
-    background: rgba(59,130,246,0.08);
-    border: 1px solid rgba(59,130,246,0.3);
-    border-radius: 3px;
-    padding: 4px 6px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 9px;
-    animation: slideIn 0.3s ease;
-  }
-  @keyframes slideIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
-
-  .indicator-label { flex: 1; color: var(--text-secondary); }
-  .indicator-val { color: var(--blue); font-weight: 600; font-size: 10px; margin: 0 4px; font-variant-numeric: tabular-nums; }
-  .indicator-remove { background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 0 2px; font-size: 12px; transition: color 0.15s; }
-  .indicator-remove:hover { color: var(--red); }
-
-  .range-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4px;
-  }
-  .btn-range {
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    color: var(--text-secondary);
-    padding: 4px;
-    border-radius: 3px;
-    font-size: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .btn-range:hover { border-color: var(--blue); background: rgba(59,130,246,0.05); color: var(--text-primary); }
-  .btn-range.active { background: var(--blue); color: #fff; border-color: var(--blue); }
-
-  .divider-line { width: 100%; height: 1px; background: var(--border); }
-
-  /* ===== CHART AREA ===== */
-  .chart-container {
-    grid-row: 2;
-    grid-column: 3;
-    position: relative;
-    background: var(--bg-main);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-
-  #chart {
-    flex: 1;
-    width: 100%;
-  }
-
-  .chart-toolbar {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    background: var(--bg-panel);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 6px;
-    display: flex;
-    gap: 2px;
-    z-index: 20;
-  }
-
-  .chart-tool-btn {
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    color: var(--text-secondary);
-    cursor: pointer;
-    font-size: 12px;
-    transition: all 0.15s;
-  }
-  .chart-tool-btn:hover { background: rgba(59,130,246,0.1); color: var(--blue); border-color: var(--blue); }
-  .chart-tool-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
-
-  .crosshair-info {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: var(--bg-panel);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 8px 12px;
-    z-index: 20;
-    font-size: 11px;
-    min-width: 220px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s;
-  }
-  .crosshair-info.show { opacity: 1; }
-
-  .crosshair-line {
-    display: flex;
-    justify-content: space-between;
-    padding: 3px 0;
-  }
-  .crosshair-label { color: var(--text-muted); }
-  .crosshair-value { color: var(--text-primary); font-weight: 600; font-variant-numeric: tabular-nums; }
-
-  .loader {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(10,14,39,0.96);
-    z-index: 100;
-    gap: 12px;
-    color: var(--text-secondary);
-  }
-  .loader.hidden { display: none; }
-
-  .spinner {
-    width: 32px;
-    height: 32px;
-    border: 2.5px solid rgba(59,130,246,0.2);
-    border-top-color: var(--blue);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { 100% { transform: rotate(360deg); } }
-
-  /* ===== STATUSBAR ===== */
-  .statusbar {
-    grid-column: 1 / 4;
-    background: var(--bg-panel);
-    border-top: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    padding: 0 12px;
-    gap: 24px;
-    font-size: 10px;
-    z-index: 30;
-  }
-
-  .status-item {
-    display: flex;
-    gap: 4px;
-    align-items: center;
-  }
-  .status-label { color: var(--text-muted); }
-  .status-value { color: var(--text-primary); font-weight: 600; font-variant-numeric: tabular-nums; }
-
-  .status-spacer { flex: 1; }
-
-  .status-clock { color: var(--text-secondary); font-weight: 500; }
-
-  /* ===== SCROLLBAR ===== */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
-
-  /* ===== CONTEXT MENU ===== */
-  .context-menu {
-    position: absolute;
-    background: var(--bg-panel);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    z-index: 200;
-    display: none;
-    flex-direction: column;
-    min-width: 200px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-  }
-  .context-menu.show { display: flex; }
-
-  .context-item {
-    padding: 6px 12px;
-    color: var(--text-secondary);
-    cursor: pointer;
-    font-size: 11px;
-    transition: all 0.15s;
-    border: none;
-    background: transparent;
-    width: 100%;
-    text-align: left;
-  }
-  .context-item:hover { background: rgba(59,130,246,0.15); color: var(--text-primary); }
-  .context-item:first-child { border-radius: 3px 3px 0 0; }
-  .context-item:last-child { border-radius: 0 0 3px 3px; }
+/* ===== نوار پایین ===== */
+.botbar{display:flex;align-items:center;gap:2px;padding:0 8px;background:#131722;border-top:1px solid #2a2e39;font-size:11px;color:#787b86;font-family:monospace}
+.botbar button{padding:3px 8px;font-size:11px}
+.botbar button.on{color:#2962FF;font-weight:600}
+.botbar .time{margin-right:auto;font-family:monospace;font-size:11px;color:#787b86}
+.botbar .sep{color:#3a3e4a;padding:0 4px}
 </style>
 </head>
 <body>
+
 <div class="app">
-  <!-- HEADER (TradingView Pro) -->
-  <div class="header">
-    <div class="logo">⚡ VELA</div>
 
-    <!-- Symbol & Ratio -->
-    <div class="symbol-ticker" id="symbolTicker">
-      <span class="symbol-name" id="sym1Name">خساپا</span>
-      <span class="symbol-divider">÷</span>
-      <span class="symbol-name" id="sym2Name">خودرو</span>
-      <span class="symbol-ratio" id="ratioDisplay">—</span>
-    </div>
+<!-- ===== نوار بالا ===== -->
+<div class="topbar">
+  <div class="symbox">
+    <select id="sym1"></select>
+    <span class="vs">÷</span>
+    <select id="sym2"></select>
+    <button class="go" id="btnAnalyze">تحلیل</button>
+  </div>
 
-    <!-- Timeframes -->
-    <div class="timeframe-selector">
-      <button class="timeframe-btn" onclick="setTF('1D')">1D</button>
-      <button class="timeframe-btn active" onclick="setTF('1W')">1W</button>
-      <button class="timeframe-btn" onclick="setTF('1M')">1M</button>
-      <button class="timeframe-btn" onclick="setTF('3M')">3M</button>
-      <button class="timeframe-btn" onclick="setTF('1Y')">1Y</button>
-    </div>
+  <div class="div"></div>
 
-    <div class="header-spacer"></div>
+  <select id="tfSelect" title="تایم‌فریم">
+    <option value="1D">روزانه</option>
+    <option value="1W" selected>هفتگی</option>
+    <option value="1M">ماهانه</option>
+  </select>
 
-    <!-- Price Info -->
-    <div class="price-info">
-      <div class="price-item">
-        <span class="price-label">آخرین نسبت</span>
-        <span class="price-value" id="lastPrice">—</span>
-      </div>
-      <div class="price-item">
-        <span class="price-label">تغیر</span>
-        <span class="price-value" id="priceChange">—</span>
-      </div>
-      <div class="price-item">
-        <span class="price-label">بالا</span>
-        <span class="price-value" id="highPrice">—</span>
-      </div>
-      <div class="price-item">
-        <span class="price-label">پایین</span>
-        <span class="price-value" id="lowPrice">—</span>
-      </div>
-    </div>
-
-    <!-- Actions -->
-    <div class="header-actions">
-      <button class="header-btn primary" onclick="loadChart()">⟳ بارگذاری</button>
-      <button class="header-btn" onclick="toggleTheme()" title="تغییر تم">
-        <span id="themeIcon">🌙</span>
-      </button>
+  <!-- نوع چارت -->
+  <div class="dd">
+    <button id="chartTypeBtn">کندل ▾</button>
+    <div class="dd-menu" id="chartTypeMenu">
+      <div class="it on" data-type="candles">کندل</div>
+      <div class="it" data-type="line">خط</div>
+      <div class="it" data-type="area">ناحیه</div>
+      <div class="it" data-type="bars">میله‌ای</div>
     </div>
   </div>
 
-  <!-- TOOLBAR (Left) -->
-  <div class="toolbar">
-    <button class="toolbar-btn active" title="انتخاب">🖱️</button>
-    <button class="toolbar-btn" title="خط روند">📈</button>
-    <button class="toolbar-btn" title="خط افقی">—</button>
-    <button class="toolbar-btn" title="خط عمودی">|</button>
-    <button class="toolbar-btn" title="پرتو">📍</button>
+  <div class="spacer"></div>
 
-    <div class="toolbar-divider"></div>
-
-    <button class="toolbar-btn" title="فیبوناچی">⊘</button>
-    <button class="toolbar-btn" title="مربع">◻️</button>
-    <button class="toolbar-btn" title="دایره">●</button>
-
-    <div class="toolbar-divider"></div>
-
-    <button class="toolbar-btn" title="بزرگ‌نمایی">🔍</button>
-    <button class="toolbar-btn" onclick="clearDrawings()" title="پاک‌کردن">🗑️</button>
-  </div>
-
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <!-- Chart Type -->
-    <div class="section">
-      <div class="section-title">📊 نوع نمودار</div>
-      <button class="btn-select" id="chartTypeBtn" onclick="cycleChartType()">کندل</button>
-    </div>
-
-    <div class="divider-line"></div>
-
-    <!-- Indicators -->
-    <div class="section">
-      <div class="section-title">📈 اندیکاتورها</div>
-      <button class="btn-indicator" onclick="addIndicator('sma20')">+ SMA 20</button>
-      <button class="btn-indicator" onclick="addIndicator('ema20')">+ EMA 20</button>
-      <button class="btn-indicator" onclick="addIndicator('rsi14')">+ RSI (14)</button>
-      <button class="btn-indicator" onclick="addIndicator('macd')">+ MACD</button>
-      <button class="btn-indicator" onclick="addIndicator('bb')">+ Bollinger</button>
-      <button class="btn-indicator" onclick="addIndicator('volume')">+ Volume</button>
-      <div class="indicators-panel" id="indicatorsList"></div>
-    </div>
-
-    <div class="divider-line"></div>
-
-    <!-- Time Range -->
-    <div class="section">
-      <div class="section-title">⏱️ بازه</div>
-      <div class="range-grid">
-        <button class="btn-range" onclick="setRange(30,this)">1M</button>
-        <button class="btn-range" onclick="setRange(90,this)">3M</button>
-        <button class="btn-range" onclick="setRange(180,this)">6M</button>
-        <button class="btn-range" onclick="setRange(365,this)">1Y</button>
-        <button class="btn-range" onclick="setRange(0,this)">ALL</button>
-        <button class="btn-range" onclick="setRange(0,this)">—</button>
-      </div>
-    </div>
-
-    <div class="divider-line"></div>
-
-    <!-- Scale Options -->
-    <div class="section">
-      <div class="section-title">📏 مقیاس</div>
-      <button class="btn-toggle" id="logBtn" onclick="toggleLogScale()">لگاریتمی</button>
-    </div>
-
-    <div class="divider-line"></div>
-
-    <!-- Settings -->
-    <div class="section">
-      <div class="section-title">⚙️ تنظیمات</div>
-      <button class="btn-toggle" id="gridBtn" onclick="toggleGrid()" style="background: rgba(59,130,246,0.15); color: var(--blue); border-color: var(--blue);">شبکه ON</button>
-    </div>
-  </div>
-
-  <!-- CHART CONTAINER -->
-  <div class="chart-container">
-    <div id="chart"></div>
-
-    <!-- Chart Toolbar -->
-    <div class="chart-toolbar">
-      <button class="chart-tool-btn" title="Fit to Width">⊟</button>
-      <button class="chart-tool-btn" title="Reset View">↻</button>
-      <button class="chart-tool-btn" onclick="toggleCrosshair()" title="Crosshair">✝</button>
-      <button class="chart-tool-btn" title="Screenshot">📸</button>
-    </div>
-
-    <!-- Crosshair Info -->
-    <div class="crosshair-info" id="crosshairInfo">
-      <div class="crosshair-line">
-        <span class="crosshair-label">تاریخ:</span>
-        <span class="crosshair-value" id="ch-date">—</span>
-      </div>
-      <div class="crosshair-line">
-        <span class="crosshair-label">قیمت:</span>
-        <span class="crosshair-value" id="ch-price">—</span>
-      </div>
-      <div class="crosshair-line">
-        <span class="crosshair-label">بالا:</span>
-        <span class="crosshair-value" id="ch-high">—</span>
-      </div>
-      <div class="crosshair-line">
-        <span class="crosshair-label">پایین:</span>
-        <span class="crosshair-value" id="ch-low">—</span>
-      </div>
-      <div class="crosshair-line">
-        <span class="crosshair-label">بسته:</span>
-        <span class="crosshair-value" id="ch-close">—</span>
-      </div>
-    </div>
-
-    <!-- Loader -->
-    <div class="loader hidden" id="loader">
-      <div class="spinner"></div>
-      <span>درحال بارگذاری...</span>
-    </div>
-  </div>
-
-  <!-- STATUSBAR -->
-  <div class="statusbar">
-    <div class="status-item">
-      <span class="status-label">بارها:</span>
-      <span class="status-value" id="barCount">—</span>
-    </div>
-    <div class="status-item">
-      <span class="status-label">آخرین:</span>
-      <span class="status-value" id="lastBarDate">—</span>
-    </div>
-    <div class="status-item">
-      <span class="status-label">وضعیت:</span>
-      <span class="status-value" id="chartStatus">⏳</span>
-    </div>
-
-    <div class="status-spacer"></div>
-
-    <div class="status-item">
-      <span class="status-clock" id="statusClock">--:--:--</span>
-    </div>
-  </div>
+  <button id="btnLog" title="مقیاس لگاریتمی">log</button>
+  <button id="btnStats" title="آمار">▦</button>
+  <button id="btnCSV" title="CSV">⇩</button>
 </div>
 
-<!-- Context Menu -->
-<div class="context-menu" id="contextMenu">
-  <button class="context-item" onclick="addIndicator('sma20')">افزودن SMA</button>
-  <button class="context-item" onclick="addIndicator('rsi14')">افزودن RSI</button>
-  <button class="context-item" onclick="clearDrawings()">پاک‌کردن نقاشی</button>
+<!-- ===== بدنه ===== -->
+<div class="main">
+  <div id="chartWrap"><div id="chart"></div></div>
+
+  <div id="stats">
+    <div class="h">Ratio Analysis</div>
+    <div class="r"><span class="k">Current</span><span class="v" id="vCur" style="color:#2962FF">-</span></div>
+    <div class="r"><span class="k">Change</span><span class="v" id="vChg">-</span></div>
+    <div class="r"><span class="k">Mean</span><span class="v" id="vMean">-</span></div>
+    <div class="r"><span class="k">Std Dev</span><span class="v" id="vStd">-</span></div>
+    <div class="r"><span class="k">Z-Score</span><span class="v" id="vZ" style="color:#f7b600">-</span></div>
+    <div class="r"><span class="k">Percentile</span><span class="v" id="vPct">-</span></div>
+    <div class="r"><span class="k">Half-Life</span><span class="v" id="vHl" style="color:#9C27B0">-</span></div>
+    <div class="r"><span class="k">Hurst</span><span class="v" id="vHurst">-</span></div>
+    <div class="r"><span class="k">Bars</span><span class="v" id="vN">-</span></div>
+  </div>
+
+  <div id="sig"></div>
+  <div id="load" class="off"></div>
+</div>
+
+<!-- ===== نوار پایین ===== -->
+<div class="botbar">
+  <div class="dd">
+    <button id="rangeBtn">همه ▾</button>
+    <div class="dd-menu" id="rangeMenu">
+      <div class="it" data-range="90">۳ ماه</div>
+      <div class="it" data-range="180">۶ ماه</div>
+      <div class="it" data-range="365">۱ سال</div>
+      <div class="it" data-range="1825">۵ سال</div>
+      <div class="it on" data-range="0">همه</div>
+    </div>
+  </div>
+  <span class="sep">|</span>
+  <span class="time" id="clock">--:--:--</span>
+  <span class="sep">|</span>
+  <button id="btnPercent">%</button>
+  <button id="btnAuto" class="on">auto</button>
+</div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@luxalgo/vela@latest/dist/vela.global.min.js"></script>
+
 <script>
 (function(){
-  const $ = id => document.getElementById(id);
+  var $ = function(id){ return document.getElementById(id); };
+  var BASE = 'https://raw.githubusercontent.com/mhdiri/bors-vela/main/';
+  var SYMBOLS = [];
+  var raw1 = null, raw2 = null;
+  var allBars = [], curBars = [];
+  var curTF = '1W', curRange = 0, chartType = 'candles';
+  var isLog = false;
+  var velaChart = null;
 
-  // ===== DATA =====
-  const SYMBOLS = [
-    { name: 'خساپا', file: 'khasapa.csv' },
-    { name: 'خودرو', file: 'khodro.csv' }
-  ];
-  const BASE = 'https://raw.githubusercontent.com/mhdiri/bors-vela/main/';
-  const CHART_TYPES = ['candles', 'bars', 'line', 'area'];
+  /* ساعت */
+  setInterval(function(){
+    var d = new Date();
+    $('clock').textContent = d.toLocaleTimeString('en-GB') + ' UTC' + (d.getTimezoneOffset() <= 0 ? '+' : '-') + Math.abs(d.getTimezoneOffset()/60);
+  }, 1000);
 
-  // ===== STATE =====
-  let rawData1 = null, rawData2 = null;
-  let allBars = [], visibleBars = [];
-  let currentTF = '1W', currentRange = 0;
-  let isLogScale = false, isDarkTheme = true;
-  let chartType = 'candles';
-  let velaChart = null;
-  let showCrosshair = false;
+  /* لیست نمادها */
+  fetch(BASE + 'data/symbols.json')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      SYMBOLS = data;
+      var s1 = $('sym1'), s2 = $('sym2');
+      s1.innerHTML = ''; s2.innerHTML = '';
+      SYMBOLS.forEach(function(s, i){
+        s1.innerHTML += '<option value="' + i + '">' + s.name + '</option>';
+        s2.innerHTML += '<option value="' + i + '">' + s.name + '</option>';
+      });
+      s1.value = 0; s2.value = 1;
+      analyze();
+    });
 
-  const activeIndicators = new Map();
-  const chartTypeNames = { candles: 'کندل', bars: 'میله', line: 'خط', area: 'ناحیه' };
-
-  // ===== CSV PARSER =====
-  function parseCSV(text) {
-    return text
-      .trim()
-      .split(/\r?\n/)
-      .slice(1)
-      .map(line => {
-        const cols = line.split(',');
-        if (cols.length < 7) return null;
-        const date = new Date(cols[2].trim().split(' ')[0]);
-        if (isNaN(date)) return null;
-        const close = parseFloat(cols[6]);
-        if (close <= 0) return null;
-        return {
-          time: date.getTime(),
-          open: +cols[3],
-          high: +cols[4],
-          low: +cols[5],
-          close: close,
-          volume: cols[7] ? +cols[7] : 0
-        };
-      })
-      .filter(Boolean);
-  }
-
-  // ===== AGGREGATION =====
-  function aggregate(bars, tf) {
-    if (!bars.length) return bars;
-    const out = [];
-    let bucket = null;
-
-    for (const bar of bars) {
-      const d = new Date(bar.time);
-      let key;
-
-      if (tf === '1W') {
-        const day = d.getUTCDay() || 7;
-        const mon = new Date(d);
+  function aggregate(bars, tf){
+    if(!bars.length || tf === '1D') return bars.slice();
+    var out = [], bucket = null;
+    for(var i = 0; i < bars.length; i++){
+      var b = bars[i];
+      var d = new Date(b.time);
+      var key;
+      if(tf === '1W'){
+        var day = d.getUTCDay() || 7;
+        var mon = new Date(d);
         mon.setUTCDate(d.getUTCDate() - day + 1);
-        mon.setUTCHours(0, 0, 0, 0);
+        mon.setUTCHours(0,0,0,0);
         key = mon.getTime();
-      } else if (tf === '1D') {
-        key = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
-      } else if (tf === '1M') {
-        key = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1);
-      } else if (tf === '3M') {
-        const quarter = Math.floor(d.getUTCMonth() / 3);
-        key = Date.UTC(d.getUTCFullYear(), quarter * 3, 1);
-      } else if (tf === '1Y') {
-        key = Date.UTC(d.getUTCFullYear(), 0, 1);
-      }
-
-      if (!bucket || bucket.time !== key) {
-        if (bucket) out.push(bucket);
-        bucket = {
-          time: key,
-          open: bar.open,
-          high: bar.high,
-          low: bar.low,
-          close: bar.close,
-          volume: bar.volume || 0
-        };
       } else {
-        bucket.high = Math.max(bucket.high, bar.high);
-        bucket.low = Math.min(bucket.low, bar.low);
-        bucket.close = bar.close;
-        bucket.volume += bar.volume || 0;
+        key = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1);
+      }
+      if(!bucket || bucket.time !== key){
+        if(bucket) out.push(bucket);
+        bucket = { time: key, open: b.open, high: b.high, low: b.low, close: b.close, volume: b.volume };
+      } else {
+        if(b.high > bucket.high) bucket.high = b.high;
+        if(b.low < bucket.low) bucket.low = b.low;
+        bucket.close = b.close; bucket.volume += b.volume;
       }
     }
-    if (bucket) out.push(bucket);
+    if(bucket) out.push(bucket);
     return out;
   }
 
-  // ===== RATIO =====
-  function buildRatio(b1, b2) {
-    const m1 = {}, m2 = {};
-    b1.forEach(x => m1[x.time] = x);
-    b2.forEach(x => m2[x.time] = x);
-
-    const times = Object.keys(m1)
-      .filter(t => m2[t])
-      .map(Number)
-      .sort((a, b) => a - b);
-
-    const result = [];
-    let prevClose = null;
-
-    for (const t of times) {
-      const x1 = m1[t], x2 = m2[t];
-      if (!x1 || !x2 || x1.close <= 0 || x2.close <= 0) continue;
-
-      const rOpen = prevClose !== null ? prevClose : x1.open / x2.open;
-      const rClose = x1.close / x2.close;
-      const rHigh = Math.max(x1.high / x2.low, x1.close / x2.low, rOpen, rClose);
-      const rLow = Math.min(x1.low / x2.high, x1.close / x2.high, rOpen, rClose);
-
-      result.push({
-        time: t,
-        open: rOpen,
-        high: rHigh,
-        low: rLow,
-        close: rClose,
-        volume: 0
-      });
-      prevClose = rClose;
-    }
-    return result;
+  function buildRatio(b1, b2){
+    var m1 = {}, m2 = {};
+    b1.forEach(function(x){ m1[x.time] = x; });
+    b2.forEach(function(x){ m2[x.time] = x; });
+    var ts = Object.keys(m1).filter(function(t){ return m2[t]; }).map(Number).sort(function(a,b){ return a-b; });
+    var out = [], pc = null;
+    ts.forEach(function(t){
+      var x1 = m1[t], x2 = m2[t];
+      if(!x1 || !x2 || x1.close <= 0 || x2.close <= 0) return;
+      var rOpen = pc !== null ? pc : (x1.open / x2.open);
+      var rClose = x1.close / x2.close;
+      var rHigh = Math.max(x1.high/x2.low, x1.high/x2.close, x1.close/x2.low, rOpen, rClose);
+      var rLow = Math.min(x1.low/x2.high, x1.low/x2.close, x1.close/x2.high, rOpen, rClose);
+      out.push({ time: t, open: rOpen, high: rHigh, low: rLow, close: rClose, volume: 0 });
+      pc = rClose;
+    });
+    return out;
   }
 
-  // ===== RANGE FILTER =====
-  function applyRange() {
-    if (!allBars.length) {
-      visibleBars = [];
-      return;
+  function calcStats(d){
+    var v = d.map(function(b){ return b.close; });
+    var n = v.length; if(!n) return null;
+    var mean = 0; for(var i = 0; i < n; i++) mean += v[i]; mean /= n;
+    var vp = 0; for(var i = 0; i < n; i++) vp += Math.pow(v[i]-mean, 2);
+    var sd = Math.sqrt(vp/n);
+    var sorted = v.slice().sort(function(a,b){ return a-b; });
+    var cur = v[n-1];
+    var z = sd > 0 ? (cur-mean)/sd : 0;
+    var pct = (sorted.filter(function(x){ return x <= cur; }).length / n * 100).toFixed(1);
+    return { mean: mean, std: sd, cur: cur, z: z, pct: pct, n: n, first: v[0] };
+  }
+  function calcHalfLife(d){
+    var n = d.length; if(n < 10) return null;
+    var dr = [], rl = [];
+    for(var i = 1; i < n; i++){ dr.push(d[i].close - d[i-1].close); rl.push(d[i-1].close); }
+    var m = dr.length, mx = 0, my = 0;
+    for(var i = 0; i < m; i++){ mx += rl[i]; my += dr[i]; }
+    mx /= m; my /= m;
+    var sxy = 0, sxx = 0;
+    for(var i = 0; i < m; i++){ sxy += (rl[i]-mx)*(dr[i]-my); sxx += Math.pow(rl[i]-mx, 2); }
+    var beta = sxx > 0 ? sxy/sxx : 0;
+    if(beta >= 0) return { hl: Infinity };
+    return { hl: -Math.log(2)/Math.log(1+beta) };
+  }
+  function calcHurst(d){
+    var v = d.map(function(b){ return b.close; });
+    var n = v.length; if(n < 20) return null;
+    var sizes = []; for(var s = 8; s <= Math.floor(n/2); s *= 2) sizes.push(s);
+    if(sizes.length < 2) return null;
+    var logRS = [], logN = [];
+    for(var si = 0; si < sizes.length; si++){
+      var size = sizes[si], chunks = Math.floor(n/size), rsSum = 0, cnt = 0;
+      for(var c = 0; c < chunks; c++){
+        var ch = v.slice(c*size, (c+1)*size);
+        var mn = 0; for(var i = 0; i < size; i++) mn += ch[i]; mn /= size;
+        var cum = 0, mnC = 0, mxC = 0;
+        for(var i = 0; i < size; i++){
+          cum += ch[i] - mn;
+          if(cum < mnC) mnC = cum;
+          if(cum > mxC) mxC = cum;
+        }
+        var R = mxC - mnC;
+        var vv = 0; for(var i = 0; i < size; i++) vv += Math.pow(ch[i]-mn, 2);
+        var S = Math.sqrt(vv/size);
+        if(S > 0){ rsSum += R/S; cnt++; }
+      }
+      if(cnt > 0){ logRS.push(Math.log(rsSum/cnt)); logN.push(Math.log(size)); }
     }
-    if (currentRange === 0) {
-      visibleBars = allBars.slice();
-    } else {
-      const lastTime = allBars[allBars.length - 1].time;
-      visibleBars = allBars.filter(b => b.time >= lastTime - currentRange * 86400000);
+    if(logN.length < 2) return null;
+    var m = logN.length, mx = 0, my = 0;
+    for(var i = 0; i < m; i++){ mx += logN[i]; my += logRS[i]; }
+    mx /= m; my /= m;
+    var sxy = 0, sxx = 0;
+    for(var i = 0; i < m; i++){ sxy += (logN[i]-mx)*(logRS[i]-my); sxx += Math.pow(logN[i]-mx, 2); }
+    return sxx > 0 ? sxy/sxx : null;
+  }
+
+  function updateStats(){
+    if(!curBars.length) return;
+    var st = calcStats(curBars);
+    var chg = ((st.cur - st.first) / st.first * 100).toFixed(2);
+    $('vCur').textContent = st.cur.toFixed(4);
+    var vc = $('vChg');
+    vc.textContent = (chg >= 0 ? '+' : '') + chg + '%';
+    vc.style.color = chg >= 0 ? '#26a69a' : '#ef5350';
+    $('vMean').textContent = st.mean.toFixed(4);
+    $('vStd').textContent = st.std.toFixed(4);
+    $('vZ').textContent = st.z.toFixed(2);
+    $('vPct').textContent = st.pct + '%';
+    $('vN').textContent = st.n;
+    var hl = calcHalfLife(curBars);
+    if(hl) $('vHl').textContent = hl.hl === Infinity ? '∞' : hl.hl.toFixed(1);
+    var h = calcHurst(curBars);
+    if(h !== null){
+      var lbl = h.toFixed(3);
+      if(h > 0.55) lbl += ' (trend)';
+      else if(h < 0.45) lbl += ' (revert)';
+      else lbl += ' (random)';
+      $('vHurst').textContent = lbl;
+    }
+    var sig = $('sig');
+    sig.classList.add('on');
+    var t, c;
+    if(st.z > 2){ t = 'OVERBOUGHT | Z=' + st.z.toFixed(2); c = 'sell'; }
+    else if(st.z < -2){ t = 'OVERSOLD | Z=' + st.z.toFixed(2); c = 'buy'; }
+    else if(st.z > 1){ t = 'Above Mean'; c = 'neu'; }
+    else if(st.z < -1){ t = 'Below Mean'; c = 'neu'; }
+    else { t = 'Normal | Z=' + st.z.toFixed(2); c = 'neu'; }
+    sig.textContent = t;
+    sig.className = 'on ' + c;
+  }
+
+  function renderVela(){
+    try {
+      if(velaChart){
+        try {
+          if(typeof velaChart.destroy === 'function') velaChart.destroy();
+          else if(typeof velaChart.dispose === 'function') velaChart.dispose();
+        } catch(e){}
+        velaChart = null;
+      }
+      var wrap = $('chartWrap');
+      wrap.innerHTML = '<div id="chart"></div>';
+
+      if(typeof window.Vela === 'undefined') throw new Error('Vela لود نشد');
+      var VC = window.Vela.Vela || window.Vela;
+
+      var opts = {
+        data: curBars,
+        timeframe: curTF,
+        theme: 'dark',
+        priceStyle: chartType
+      };
+      if(isLog) opts.logScale = true;
+
+      velaChart = new VC('#chart', opts);
+
+      // ===== پنهان کردن UI داخلی Vela =====
+      setTimeout(function(){
+        var wrapEl = $('chartWrap');
+        var all = wrapEl.querySelectorAll('*');
+        all.forEach(function(el){
+          var cls = (el.className && typeof el.className === 'string') ? el.className.toLowerCase() : '';
+          var tag = el.tagName.toLowerCase();
+          // حذف نوار سمت چپ (drawing tools)
+          if(cls.indexOf('toolbar') > -1 && cls.indexOf('bottom') === -1 && cls.indexOf('top') === -1 && el.querySelectorAll('button,svg').length > 3){
+            el.style.display = 'none';
+          }
+          // حذف پنل راست (watchlist/symbol info)
+          if((cls.indexOf('watchlist') > -1 || cls.indexOf('symbol-info') > -1 || cls.indexOf('symbolinfo') > -1)){
+            el.style.display = 'none';
+          }
+        });
+      }, 800);
+    } catch(e){
+      console.error('Vela error:', e);
+      $('chartWrap').innerHTML = '<div style="padding:40px;color:#ef5350;text-align:center">خطا: ' + e.message + '</div>';
     }
   }
 
-  // ===== UI UPDATES =====
-  function updatePriceDisplay() {
-    if (!visibleBars.length) {
-      $('lastPrice').textContent = '—';
-      $('priceChange').textContent = '—';
-      $('highPrice').textContent = '—';
-      $('lowPrice').textContent = '—';
-      return;
-    }
-
-    const last = visibleBars[visibleBars.length - 1];
-    const prev = visibleBars.length > 1 ? visibleBars[visibleBars.length - 2].close : last.open;
-    const change = ((last.close - prev) / prev) * 100;
-    const high = Math.max(...visibleBars.map(b => b.high));
-    const low = Math.min(...visibleBars.map(b => b.low));
-
-    $('lastPrice').textContent = last.close.toFixed(4);
-    $('priceChange').textContent = (change > 0 ? '+' : '') + change.toFixed(2) + '%';
-    $('highPrice').textContent = high.toFixed(4);
-    $('lowPrice').textContent = low.toFixed(4);
-    $('ratioDisplay').textContent = last.close.toFixed(4);
-  }
-
-  function updateStatusBar() {
-    $('barCount').textContent = visibleBars.length;
-    if (visibleBars.length) {
-      const d = new Date(visibleBars[visibleBars.length - 1].time);
-      $('lastBarDate').textContent = d.toLocaleDateString('fa-IR');
-    }
-  }
-
-  function updateIndicatorsList() {
-    const list = $('indicatorsList');
-    list.innerHTML = '';
-    activeIndicators.forEach((ind, id) => {
-      const row = document.createElement('div');
-      row.className = 'indicator-row';
-      row.innerHTML = `
-        <span class="indicator-label">${ind.name}</span>
-        <span class="indicator-val">${ind.value || '—'}</span>
-        <button class="indicator-remove" onclick="removeIndicator('${id}')">✕</button>
-      `;
-      list.appendChild(row);
+  function analyze(){
+    $('load').classList.remove('off');
+    $('load').innerHTML = '<div class="spin"></div><span>Loading...</span>';
+    var f1 = SYMBOLS[+$('sym1').value].file;
+    var f2 = SYMBOLS[+$('sym2').value].file;
+    Promise.all([
+      fetch(BASE + f1).then(function(r){ return r.json(); }),
+      fetch(BASE + f2).then(function(r){ return r.json(); })
+    ]).then(function(res){
+      raw1 = res[0]; raw2 = res[1];
+      if(!raw1.length || !raw2.length) throw new Error('no data');
+      var a1 = aggregate(raw1, curTF);
+      var a2 = aggregate(raw2, curTF);
+      allBars = buildRatio(a1, a2);
+      if(allBars.length < 2) throw new Error('not enough data');
+      applyRange();
+      renderVela();
+      updateStats();
+      $('load').classList.add('off');
+    }).catch(function(e){
+      $('load').innerHTML = '<span style="color:#ef5350">Error: ' + e.message + '</span>';
     });
   }
 
-  function showLoader(show) {
-    const loader = $('loader');
-    if (show) {
-      loader.classList.remove('hidden');
-      $('chartStatus').textContent = '⏳ بارگذاری';
-    } else {
-      loader.classList.add('hidden');
-      $('chartStatus').textContent = '✅';
-    }
+  function applyRange(){
+    if(!allBars.length){ curBars = []; return; }
+    if(curRange === 0){ curBars = allBars.slice(); return; }
+    var lastT = allBars[allBars.length-1].time;
+    curBars = allBars.filter(function(b){ return b.time >= lastT - curRange*86400000; });
   }
 
-  // ===== CHART RENDERING =====
-  function renderChart() {
-    const container = $('chart');
-    if (velaChart) {
-      try { velaChart.destroy?.(); } catch (e) { }
-      velaChart = null;
-    }
+  /* دکمه‌ها */
+  $('btnAnalyze').addEventListener('click', analyze);
+  $('tfSelect').addEventListener('change', function(){
+    curTF = this.value;
+    if(!raw1) return;
+    var a1 = aggregate(raw1, curTF);
+    var a2 = aggregate(raw2, curTF);
+    allBars = buildRatio(a1, a2);
+    applyRange(); renderVela(); updateStats();
+  });
 
-    activeIndicators.clear();
-    updateIndicatorsList();
-    container.innerHTML = '';
-
-    if (typeof window.Vela === 'undefined') {
-      container.innerHTML = '<div style="color:#ef4444;padding:40px;text-align:center;">❌ Vela لود نشد</div>';
-      return;
-    }
-
-    const VelaClass = window.Vela.Vela || window.Vela;
-    if (!visibleBars.length) return;
-
-    try {
-      velaChart = new VelaClass('#chart', {
-        data: visibleBars,
-        timeframe: currentTF,
-        theme: isDarkTheme ? 'dark' : 'light',
-        priceStyle: chartType,
-        logScale: isLogScale,
-        upColor: '#10b981',
-        downColor: '#ef4444',
-        drawings: true
-      });
-    } catch (e) {
-      console.error(e);
-      container.innerHTML = `<div style="color:#ef4444;padding:40px;">${e.message}</div>`;
-    }
-  }
-
-  // ===== MAIN FUNCTIONS =====
-  function loadChart() {
-    showLoader(true);
-    const s1 = SYMBOLS[0].file;
-    const s2 = SYMBOLS[1].file;
-
-    Promise.all([
-      fetch(BASE + s1).then(r => r.text()),
-      fetch(BASE + s2).then(r => r.text())
-    ])
-      .then(([t1, t2]) => {
-        rawData1 = parseCSV(t1);
-        rawData2 = parseCSV(t2);
-
-        if (!rawData1.length || !rawData2.length) throw new Error('داده‌ی خالی');
-
-        const agg1 = aggregate(rawData1, currentTF);
-        const agg2 = aggregate(rawData2, currentTF);
-        allBars = buildRatio(agg1, agg2);
-
-        if (allBars.length < 2) throw new Error('داده ناکافی');
-
-        applyRange();
-        renderChart();
-        updatePriceDisplay();
-        updateStatusBar();
-        showLoader(false);
-      })
-      .catch(e => {
-        $('chart').innerHTML = `<div style="color:#ef4444;padding:40px;">${e.message}</div>`;
-        showLoader(false);
-      });
-  }
-
-  window.setTF = function(tf) {
-    currentTF = tf;
-    document.querySelectorAll('.timeframe-btn').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
-    if (!rawData1) return;
-    allBars = buildRatio(aggregate(rawData1, tf), aggregate(rawData2, tf));
-    applyRange();
-    renderChart();
-    updatePriceDisplay();
-  };
-
-  window.setRange = function(days, btn) {
-    currentRange = days;
-    document.querySelectorAll('.btn-range').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    if (!allBars.length) return;
-    applyRange();
-    renderChart();
-    updatePriceDisplay();
-  };
-
-  window.cycleChartType = function() {
-    const idx = CHART_TYPES.indexOf(chartType);
-    chartType = CHART_TYPES[(idx + 1) % CHART_TYPES.length];
-    $('chartTypeBtn').textContent = chartTypeNames[chartType];
-    renderChart();
-  };
-
-  window.toggleLogScale = function() {
-    isLogScale = !isLogScale;
-    $('logBtn').classList.toggle('active', isLogScale);
-    renderChart();
-  };
-
-  window.toggleGrid = function() {
-    $('gridBtn').classList.toggle('active');
-  };
-
-  window.toggleCrosshair = function() {
-    showCrosshair = !showCrosshair;
-    $('crosshairInfo').classList.toggle('show', showCrosshair);
-  };
-
-  window.toggleTheme = function() {
-    isDarkTheme = !isDarkTheme;
-    $('themeIcon').textContent = isDarkTheme ? '🌙' : '☀️';
-    renderChart();
-  };
-
-  window.addIndicator = function(type) {
-    if (!velaChart) return;
-    const indicators = {
-      sma20: { name: 'SMA 20', params: { length: 20 } },
-      ema20: { name: 'EMA 20', params: { length: 20 } },
-      rsi14: { name: 'RSI 14', params: { length: 14 } },
-      macd: { name: 'MACD', params: {} },
-      bb: { name: 'Bollinger', params: { length: 20 } },
-      volume: { name: 'Volume', params: {} }
-    };
-
-    const ind = indicators[type];
-    if (!ind) return;
-
-    try {
-      const handle = velaChart.addNativeIndicator?.(type.replace(/\d+/, ''), ind.params) ||
-                     velaChart.addIndicator?.(type, ind.params);
-      if (handle) {
-        const id = Date.now() + Math.random();
-        activeIndicators.set(id, { handle, name: ind.name, value: '—' });
-        updateIndicatorsList();
-      }
-    } catch (e) {
-      console.warn('Indicator error:', e);
-    }
-  };
-
-  window.removeIndicator = function(id) {
-    const ind = activeIndicators.get(id);
-    if (!ind) return;
-    try {
-      ind.handle?.remove?.();
-      ind.handle?.destroy?.();
-    } catch (e) { }
-    activeIndicators.delete(id);
-    updateIndicatorsList();
-  };
-
-  window.clearDrawings = function() {
-    if (velaChart?.drawings) {
-      try { velaChart.drawings.clear(); } catch (e) { }
-    }
-  };
-
-  // ===== TOOLBAR =====
-  document.querySelectorAll('.toolbar-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (!btn.textContent.includes('🗑️')) {
-        document.querySelectorAll('.toolbar-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      }
+  // نوع چارت dropdown
+  $('chartTypeBtn').addEventListener('click', function(e){
+    e.stopPropagation();
+    $('chartTypeMenu').classList.toggle('on');
+  });
+  document.querySelectorAll('#chartTypeMenu .it').forEach(function(it){
+    it.addEventListener('click', function(){
+      chartType = this.dataset.type;
+      $('chartTypeBtn').textContent = this.textContent + ' ▾';
+      document.querySelectorAll('#chartTypeMenu .it').forEach(function(x){ x.classList.remove('on'); });
+      this.classList.add('on');
+      $('chartTypeMenu').classList.remove('on');
+      if(allBars.length) renderVela();
     });
   });
 
-  // ===== CLOCK =====
-  setInterval(() => {
-    $('statusClock').textContent = new Date().toLocaleTimeString('fa-IR');
-  }, 1000);
+  // بازه dropdown
+  $('rangeBtn').addEventListener('click', function(e){
+    e.stopPropagation();
+    $('rangeMenu').classList.toggle('on');
+  });
+  document.querySelectorAll('#rangeMenu .it').forEach(function(it){
+    it.addEventListener('click', function(){
+      curRange = +this.dataset.range;
+      $('rangeBtn').textContent = this.textContent + ' ▾';
+      document.querySelectorAll('#rangeMenu .it').forEach(function(x){ x.classList.remove('on'); });
+      this.classList.add('on');
+      $('rangeMenu').classList.remove('on');
+      if(!allBars.length) return;
+      applyRange(); renderVela(); updateStats();
+    });
+  });
 
-  // ===== INIT =====
-  $('sym1Name').textContent = SYMBOLS[0].name;
-  $('sym2Name').textContent = SYMBOLS[1].name;
+  // بستن dropdown‌ها با کلیک بیرون
+  document.addEventListener('click', function(){
+    $('chartTypeMenu').classList.remove('on');
+    $('rangeMenu').classList.remove('on');
+  });
 
-  setTimeout(loadChart, 300);
+  // log
+  $('btnLog').addEventListener('click', function(){
+    isLog = !isLog;
+    this.classList.toggle('on', isLog);
+    if(allBars.length) renderVela();
+  });
+
+  // auto
+  $('btnAuto').addEventListener('click', function(){
+    isLog = false;
+    $('btnLog').classList.remove('on');
+    this.classList.add('on');
+    if(allBars.length) renderVela();
+  });
+
+  // stats
+  $('btnStats').addEventListener('click', function(){
+    $('stats').classList.toggle('on');
+    this.classList.toggle('on');
+  });
+
+  // CSV
+  $('btnCSV').addEventListener('click', function(){
+    if(!curBars.length){ alert('load data first'); return; }
+    var s1 = SYMBOLS[+$('sym1').value].name;
+    var s2 = SYMBOLS[+$('sym2').value].name;
+    var csv = 'date,open,high,low,close\n';
+    curBars.forEach(function(r){
+      csv += new Date(r.time).toISOString().slice(0,10) + ',' + r.open + ',' + r.high + ',' + r.low + ',' + r.close + '\n';
+    });
+    var b = new Blob([csv], {type:'text/csv;charset=utf-8'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(b);
+    a.download = s1 + '_' + s2 + '.csv';
+    a.click();
+  });
+
 })();
 </script>
 </body>
