@@ -1,99 +1,141 @@
 <!DOCTYPE html>
-<html lang="fa">
+<html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>Vela - Bors Ratio</title>
+<title>نسبت‌سنجی - Vela</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{width:100%;height:100%;overflow:hidden;background:#131722;color:#d1d4dc;font-family:Tahoma}
   #chart{width:100%;height:100vh}
-  #log{position:fixed;top:10px;left:10px;background:rgba(0,0,0,.9);padding:10px;border-radius:6px;
-    font-size:11px;font-family:monospace;max-width:450px;z-index:99;white-space:pre-wrap;
-    color:#aed581;direction:ltr}
+  #info{position:fixed;top:10px;left:10px;background:rgba(30,34,45,.92);padding:12px 15px;border-radius:6px;
+    font-size:12px;font-family:monospace;z-index:99;border:1px solid #2a2e39}
+  #info .title{font-weight:bold;font-size:13px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #2a2e39}
+  #info .row{margin:4px 0;color:#aed581}
+  #info .val{color:#2962FF;font-weight:bold}
+  #info .warn{color:#f7b600;font-size:11px;margin-top:8px}
 </style>
 </head>
 <body>
+<div id="info">
+  <div class="title">📊 نسبت‌سنجی خساپا / خودرو</div>
+  <div class="row">وضعیت: <span class="val" id="status">در حال بارگذاری...</span></div>
+  <div class="row">تعداد نقاط: <span class="val" id="count">-</span></div>
+  <div class="row">نسبت فعلی: <span class="val" id="ratio">-</span></div>
+  <div class="warn">⚠️ داده‌ها هفتگی (1week) هستند</div>
+</div>
 <div id="chart"></div>
-<div id="log">loading...</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@luxalgo/vela@latest/dist/vela.global.min.js"></script>
 
 <script>
 (function(){
-  var log = function(m){ document.getElementById('log').innerHTML += '\n' + m; };
-  var API = 'https://cdn.tsetmc.com';
+  var $ = function(id){ return document.getElementById(id); };
+  
+  // اسم فایل‌های CSV در گیت‌هاب
+  var FILE1 = 'khasapa.csv';  // سهم اول
+  var FILE2 = 'khodro.csv';   // سهم دوم
+  
+  // لینک مستقیم به فایل خام در GitHub
+  var BASE = 'https://raw.githubusercontent.com/mhdiri/bors-vela/main/';
 
-  function dateToTs(s){
-    s = String(s);
-    if (s.length !== 8) return null;
-    var y = +s.slice(0,4), m = +s.slice(4,6), d = +s.slice(6,8);
-    if (y<1990||y>2100||m<1||m>12||d<1||d>31) return null;
-    return Math.floor(new Date(y, m-1, d).getTime() / 1000);
-  }
-
-  function fj(url){
-    return fetch(url, {mode: 'cors'}).then(function(r){
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    });
-  }
-
-  function getCode(s){
-    log('search: ' + s);
-    return fj(API + '/api/Instrument/GetInstrumentSearch/' + encodeURIComponent(s))
-      .then(function(d){ return d.instrumentSearch && d.instrumentSearch[0] ? d.instrumentSearch[0].insCode : null; });
-  }
-
-  function getHist(code){
-    log('history: ' + code);
-    return fj(API + '/api/ClosingPrice/GetClosingPriceDailyList/' + code + '/0')
-      .then(function(d){ return d.closingPriceDaily || d.closingPrice || []; });
-  }
-
-  function buildRatio(s1, s2){
-    var c1, c2;
-    return getCode(s1).then(function(x){ c1 = x; return getCode(s2); })
-      .then(function(x){
-        c2 = x;
-        log('codes: ' + c1 + ' / ' + c2);
-        if (!c1 || !c2) throw new Error('not found');
-        return Promise.all([getHist(c1), getHist(c2)]);
-      })
-      .then(function(hs){
-        var h1 = hs[0], h2 = hs[1];
-        log('records: ' + h1.length + ' / ' + h2.length);
-        var m1 = {}, m2 = {};
-        h1.forEach(function(x){ var c = x.pClosing || x.pDrCotVal; if (c>0) m1[String(x.dEven)] = c; });
-        h2.forEach(function(x){ var c = x.pClosing || x.pDrCotVal; if (c>0) m2[String(x.dEven)] = c; });
-        var dates = Object.keys(m1).filter(function(d){ return m2[d]; }).sort();
-        log('common: ' + dates.length);
-        var bars = [], pc = null;
-        for (var i = 0; i < dates.length; i++){
-          var d = dates[i], ts = dateToTs(d);
-          if (ts === null) continue;
-          var rc = m1[d]/m2[d];
-          var ro = pc !== null ? pc : rc;
-          bars.push({ time: ts*1000, open: ro, high: Math.max(ro,rc), low: Math.min(ro,rc), close: rc, volume: 0 });
-          pc = rc;
-        }
-        log('bars: ' + bars.length);
-        return bars;
+  // پارس کردن CSV
+  function parseCSV(text){
+    var lines = text.trim().split(/\r?\n/);
+    var out = [];
+    // خط اول هدر هست، از خط دوم شروع می‌کنیم
+    for(var i = 1; i < lines.length; i++){
+      var parts = lines[i].split(',');
+      if(parts.length < 8) continue;
+      var dateStr = parts[2].trim().split(' ')[0]; // فقط تاریخ بدون ساعت
+      var ts = new Date(dateStr).getTime();
+      if(isNaN(ts)) continue;
+      out.push({
+        time: ts,
+        open: parseFloat(parts[3]),
+        high: parseFloat(parts[4]),
+        low: parseFloat(parts[5]),
+        close: parseFloat(parts[6]),
+        volume: parseFloat(parts[7]) || 0
       });
+    }
+    return out;
   }
 
-  window.addEventListener('DOMContentLoaded', function(){
-    if (typeof window.Vela === 'undefined'){ log('NO VELA'); return; }
-    var VC = window.Vela.Vela || window.Vela;
-
-    buildRatio('شیراز', 'شپدیس').then(function(bars){
-      if (!bars.length){ log('NO DATA'); return; }
-      log('init chart...');
-      new VC('#chart', { data: bars, timeframe: '1D', theme: 'dark', priceStyle: 'candles' });
-      log('DONE');
-    }).catch(function(e){
-      log('ERR: ' + e.message);
+  // ساخت نسبت از دو سهم
+  function buildRatio(bars1, bars2){
+    var map1 = {}, map2 = {};
+    bars1.forEach(function(b){ map1[b.time] = b; });
+    bars2.forEach(function(b){ map2[b.time] = b; });
+    
+    var times = Object.keys(map1).filter(function(t){ return map2[t]; }).map(Number).sort(function(a,b){ return a-b; });
+    
+    var out = [];
+    var prevClose = null;
+    times.forEach(function(t){
+      var b1 = map1[t], b2 = map2[t];
+      if(!b1 || !b2 || b1.close <= 0 || b2.close <= 0) return;
+      var closeR = b1.close / b2.close;
+      var openR = prevClose !== null ? prevClose : closeR;
+      var highR = Math.max(openR, closeR);
+      var lowR = Math.min(openR, closeR);
+      out.push({
+        time: t,
+        open: openR,
+        high: highR,
+        low: lowR,
+        close: closeR,
+        volume: 0
+      });
+      prevClose = closeR;
     });
-  });
+    return out;
+  }
+
+  // بارگذاری و رسم
+  async function main(){
+    try {
+      $('status').textContent = 'دریافت فایل‌ها...';
+      
+      var res1 = await fetch(BASE + FILE1);
+      var res2 = await fetch(BASE + FILE2);
+      
+      if(!res1.ok || !res2.ok) throw new Error('خطا در دریافت فایل CSV');
+      
+      var text1 = await res1.text();
+      var text2 = await res2.text();
+      
+      var bars1 = parseCSV(text1);
+      var bars2 = parseCSV(text2);
+      
+      $('status').textContent = 'پردازش داده...';
+      
+      var ratioBars = buildRatio(bars1, bars2);
+      
+      if(ratioBars.length < 2) throw new Error('داده کافی نیست');
+      
+      $('count').textContent = ratioBars.length;
+      $('ratio').textContent = ratioBars[ratioBars.length-1].close.toFixed(4);
+      $('status').textContent = 'آماده';
+      
+      // راه‌اندازی Vela
+      if(typeof window.Vela === 'undefined') throw new Error('Vela لود نشد');
+      var VC = window.Vela.Vela || window.Vela;
+      
+      new VC('#chart', {
+        data: ratioBars,
+        timeframe: '1W',
+        theme: 'dark',
+        priceStyle: 'candles'
+      });
+      
+    } catch(e) {
+      $('status').textContent = 'خطا: ' + e.message;
+      $('status').style.color = '#ef5350';
+      console.error(e);
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', main);
 })();
 </script>
 </body>
