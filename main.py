@@ -1,8 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import urllib.request
-import urllib.parse
-import json
+from oxtapus import Rahavard365
+import os
 
 app = FastAPI()
 
@@ -13,44 +12,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def q(s):
-    return urllib.parse.quote(s, encoding='utf-8', safe='')
+USER = os.environ.get("RV_USER", "")
+PASS = os.environ.get("RV_PASS", "")
 
-def fetch_json(url):
-    req = urllib.request.Request(url, headers={
-        "User-Agent": "Mozilla/5.0",
-        "Accept": "application/json"
-    })
-    with urllib.request.urlopen(req, timeout=20) as r:
-        return json.loads(r.read().decode("utf-8"))
-
-def codebazan_url(symbol):
-    return "https://api.codebazan.ir/bours/?type=" + q("تاریخی") + "&symbol=" + q(symbol)
+client = Rahavard365(username=USER, password=PASS)
 
 @app.get("/")
 def root():
     return {"status": "ok"}
 
-@app.get("/api/test")
-def test():
+@app.get("/api/history/{symbol}")
+def history(symbol: str):
     try:
-        d = fetch_json(codebazan_url("شیراز"))
-        return {"ok": True, "sample": str(d)[:500]}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
-
-@app.get("/api/search/{symbol}")
-def search(symbol: str):
-    try:
-        return fetch_json(codebazan_url(symbol))
-    except Exception as e:
-        return {"error": str(e)}
-
-@app.get("/api/ratio/{s1}/{s2}")
-def ratio(s1: str, s2: str):
-    try:
-        d1 = fetch_json(codebazan_url(s1))
-        d2 = fetch_json(codebazan_url(s2))
-        return {"s1": s1, "s2": s2, "d1": d1, "d2": d2}
+        # دریافت داده تاریخی از رهاورد ۳۶۵
+        data = client.get_history(symbol=symbol)
+        return {"symbol": symbol, "data": data}
     except Exception as e:
         return {"error": str(e)}
