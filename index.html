@@ -3,339 +3,607 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>نسبت‌سنجی | Vela Pro</title>
+<title>Vela Pro | حرفه‌ای ترادینگ</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
   :root {
-    --bg: #131722;
-    --bg-panel: #1e222d;
-    --border: #2a2e39;
-    --text-primary: #d1d4dc;
-    --text-secondary: #787b86;
-    --text-muted: #565b66;
-    --blue: #2962ff;
-    --green: #089981;
-    --red: #f23645;
-    --orange: #ff9800;
-    --hover: #2a2e39;
-    --active: #1e3a5f;
-    --trading-bg: #0e1117;
+    --bg-main: #0a0e27;
+    --bg-panel: #111827;
+    --bg-input: #1a1f3a;
+    --border: #2d3447;
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --blue: #3b82f6;
+    --blue-hover: #2563eb;
+    --green: #10b981;
+    --red: #ef4444;
+    --orange: #f97316;
+    --accent: #06b6d4;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   html, body {
-    width: 100%; height: 100%;
+    width: 100%;
+    height: 100%;
     overflow: hidden;
-    background: var(--trading-bg);
+    background: var(--bg-main);
     color: var(--text-primary);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-size: 12px;
     -webkit-font-smoothing: antialiased;
-    line-height: 1.5;
+    line-height: 1.4;
   }
 
   .app {
     display: grid;
-    grid-template-rows: 32px 1fr 24px;
-    grid-template-columns: 48px 220px 1fr;
+    grid-template-rows: 40px 1fr 28px;
+    grid-template-columns: 56px 280px 1fr;
     height: 100vh;
     gap: 0;
   }
 
-  /* ===== Header ===== */
+  /* ===== HEADER ===== */
   .header {
     grid-column: 1 / 4;
-    background: var(--bg-panel);
+    background: linear-gradient(180deg, var(--bg-panel) 0%, rgba(17,24,39,0.95) 100%);
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
-    padding: 0 12px;
-    gap: 12px;
-    z-index: 40;
+    padding: 0 16px;
+    gap: 16px;
+    z-index: 50;
     overflow-x: auto;
     overflow-y: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
-  .header::-webkit-scrollbar { height: 3px; }
+  .header::-webkit-scrollbar { height: 4px; }
   .header::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
   .logo {
-    font-weight: 700; font-size: 12px; color: var(--blue);
-    text-transform: uppercase; letter-spacing: 1px;
+    font-weight: 800;
+    font-size: 14px;
+    background: linear-gradient(135deg, var(--blue), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-transform: uppercase;
+    letter-spacing: 2px;
     flex-shrink: 0;
   }
 
-  .symbol-selector {
-    display: flex; align-items: center; gap: 4px;
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: 4px; padding: 4px 8px; height: 26px;
+  .symbol-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    height: 32px;
     flex-shrink: 0;
   }
-  .symbol-selector select {
-    background: transparent; border: none; color: var(--text-primary);
-    font-weight: 600; font-size: 11px; outline: none; cursor: pointer;
-    min-width: 70px;
+  .symbol-box select {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 12px;
+    outline: none;
+    cursor: pointer;
+    min-width: 80px;
   }
-  .symbol-selector .divider { color: var(--text-muted); font-size: 10px; }
+  .symbol-box select:hover { color: var(--blue); }
+  .symbol-box .divider {
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 300;
+  }
 
-  .tf-tabs {
-    display: flex; gap: 2px; flex-shrink: 0;
+  .tf-selector {
+    display: flex;
+    gap: 0;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
   }
-  .tf-tab {
-    background: transparent; border: none; color: var(--text-secondary);
-    padding: 4px 12px; font-size: 11px; font-weight: 600;
-    cursor: pointer; border-bottom: 2px solid transparent;
-    transition: all 0.2s;
+  .tf-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 6px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-right: 1px solid var(--border);
   }
-  .tf-tab:hover { color: var(--text-primary); }
-  .tf-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .tf-btn:last-child { border-right: none; }
+  .tf-btn:hover { color: var(--text-primary); background: rgba(59,130,246,0.1); }
+  .tf-btn.active { background: var(--blue); color: #fff; }
 
   .header-spacer { flex: 1; }
 
-  .header-button {
-    background: transparent; border: none; color: var(--text-secondary);
-    padding: 4px 8px; font-size: 11px; cursor: pointer;
-    border-radius: 3px; transition: all 0.15s;
+  .header-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-left: 12px;
+    border-left: 1px solid var(--border);
   }
-  .header-button:hover { background: var(--hover); color: var(--text-primary); }
-  .header-button.active { background: var(--active); color: var(--blue); }
+  .header-info-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    font-size: 10px;
+  }
+  .header-info-label { color: var(--text-muted); }
+  .header-info-value { color: var(--text-primary); font-weight: 600; }
 
-  /* ===== Left Toolbar ===== */
-  .toolbar-left {
+  .header-button {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .header-button:hover { background: var(--bg-input); color: var(--text-primary); }
+  .header-button.primary {
+    background: var(--blue);
+    color: #fff;
+    border-color: var(--blue);
+  }
+  .header-button.primary:hover { background: var(--blue-hover); }
+
+  /* ===== LEFT TOOLBAR ===== */
+  .toolbar {
     grid-row: 2;
     grid-column: 1;
-    background: var(--bg);
+    background: var(--bg-panel);
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 8px 0;
-    gap: 2px;
+    padding: 12px 0;
+    gap: 4px;
     overflow-y: auto;
-    z-index: 30;
+    z-index: 40;
   }
-  .toolbar-left::-webkit-scrollbar { width: 3px; }
-  .toolbar-left::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .toolbar::-webkit-scrollbar { width: 4px; }
+  .toolbar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
   .tool-btn {
-    width: 36px; height: 36px;
-    display: flex; align-items: center; justify-content: center;
-    border: none; background: transparent;
-    border-radius: 4px; cursor: pointer;
-    color: var(--text-secondary); transition: all 0.15s;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
     flex-shrink: 0;
     position: relative;
+    tooltip: "";
   }
-  .tool-btn:hover { background: var(--hover); color: var(--text-primary); }
-  .tool-btn.active { background: var(--active); color: var(--blue); }
-  .tool-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .tool-btn:hover {
+    background: rgba(59,130,246,0.1);
+    color: var(--text-primary);
+  }
+  .tool-btn.active {
+    background: rgba(59,130,246,0.25);
+    color: var(--blue);
+    box-shadow: inset 0 0 0 1px var(--blue);
+  }
+  .tool-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
 
-  .tool-sep { width: 20px; height: 1px; background: var(--border); margin: 4px 0; flex-shrink: 0; }
+  .tool-divider {
+    width: 24px;
+    height: 1px;
+    background: var(--border);
+    margin: 6px 0;
+    flex-shrink: 0;
+  }
 
-  /* ===== Left Sidebar (Chart Settings) ===== */
-  .sidebar-left {
+  /* ===== LEFT SIDEBAR ===== */
+  .sidebar {
     grid-row: 2;
     grid-column: 2;
     background: var(--bg-panel);
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
-    padding: 12px 0;
-    gap: 2px;
     overflow-y: auto;
-    z-index: 25;
-    font-size: 11px;
+    z-index: 35;
   }
-  .sidebar-left::-webkit-scrollbar { width: 3px; }
-  .sidebar-left::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
   .sidebar-section {
-    padding: 0 8px; display: flex; flex-direction: column; gap: 4px;
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .sidebar-section:last-child { border-bottom: none; }
+
+  .section-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    margin-bottom: 4px;
   }
 
-  .sidebar-title {
-    font-size: 10px; font-weight: 700; text-transform: uppercase;
-    color: var(--text-muted); letter-spacing: 0.5px; padding: 8px 8px 4px;
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .input-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 600;
   }
 
-  .sidebar-item {
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: 3px; padding: 6px 8px; cursor: pointer;
-    transition: all 0.15s; display: flex; justify-content: space-between; align-items: center;
+  .select-input, .toggle-btn {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
   }
-  .sidebar-item:hover { background: var(--hover); }
-  .sidebar-item.active { background: var(--active); color: var(--blue); border-color: var(--blue); }
+  .select-input:hover, .toggle-btn:hover {
+    border-color: var(--blue);
+    background: rgba(59,130,246,0.05);
+  }
+  .select-input:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+  }
+  .toggle-btn.active {
+    background: var(--blue);
+    color: #fff;
+    border-color: var(--blue);
+  }
+
+  .indicator-btn {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+  }
+  .indicator-btn:hover {
+    background: rgba(59,130,246,0.1);
+    color: var(--text-primary);
+    border-color: var(--blue);
+  }
+
+  .indicators-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 6px;
+  }
 
   .indicator-item {
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: 3px; padding: 6px 8px; margin-bottom: 4px;
-    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.3);
+    border-radius: 4px;
+    padding: 6px 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     font-size: 10px;
+    animation: slideIn 0.3s ease;
   }
-  .indicator-name { flex: 1; color: var(--text-secondary); }
-  .indicator-value { color: var(--blue); font-weight: 600; margin: 0 6px; font-variant-numeric: tabular-nums; }
-  .indicator-remove { background: transparent; border: none; color: var(--text-muted);
-    cursor: pointer; font-size: 12px; padding: 0 2px; transition: color 0.15s; }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+
+  .indicator-name { color: var(--text-secondary); flex: 1; }
+  .indicator-value {
+    color: var(--blue);
+    font-weight: 600;
+    margin: 0 6px;
+    font-variant-numeric: tabular-nums;
+  }
+  .indicator-remove {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0;
+    transition: color 0.2s;
+  }
   .indicator-remove:hover { color: var(--red); }
 
   .range-group {
-    display: flex; gap: 4px; flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
   }
   .range-btn {
-    flex: 1; min-width: 40px;
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: 3px; padding: 4px; font-size: 10px; cursor: pointer;
-    color: var(--text-secondary); transition: all 0.15s;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
   }
-  .range-btn:hover { background: var(--hover); }
-  .range-btn.active { background: var(--active); color: var(--blue); border-color: var(--blue); }
-
-  .toggle-btn {
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: 3px; padding: 6px 8px; width: 100%;
-    color: var(--text-secondary); cursor: pointer; font-size: 10px;
-    transition: all 0.15s;
+  .range-btn:hover {
+    border-color: var(--blue);
+    background: rgba(59,130,246,0.05);
   }
-  .toggle-btn:hover { background: var(--hover); }
-  .toggle-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .range-btn.active {
+    background: var(--blue);
+    color: #fff;
+    border-color: var(--blue);
+  }
 
-  .divider { width: 100%; height: 1px; background: var(--border); margin: 8px 0; }
+  .info-box {
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.3);
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 10px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
 
-  /* ===== Chart Area ===== */
-  .chart-container {
+  /* ===== CHART AREA ===== */
+  .chart-wrapper {
     grid-row: 2;
     grid-column: 3;
     position: relative;
+    background: var(--bg-main);
     overflow: hidden;
-    background: var(--bg);
-  }
-  #chart { width: 100%; height: 100%; }
-
-  .chart-overlay {
-    position: absolute; top: 12px; right: 12px;
-    z-index: 20; pointer-events: none;
   }
 
-  .crosshair-info {
-    background: var(--bg-panel); border: 1px solid var(--border);
-    border-radius: 4px; padding: 6px 10px;
-    font-size: 10px; color: var(--text-secondary);
-    font-variant-numeric: tabular-nums;
+  #chart {
+    width: 100%;
+    height: 100%;
   }
-  .crosshair-value { color: var(--text-primary); font-weight: 600; margin: 2px 0; }
 
-  /* Loading spinner */
-  #loader {
-    position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(14,17,23,0.92); z-index: 60; gap: 12px;
+  .chart-controls {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px;
+    display: flex;
+    gap: 6px;
+    z-index: 20;
+  }
+
+  .chart-control-btn {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 12px;
+  }
+  .chart-control-btn:hover {
+    background: rgba(59,130,246,0.1);
+    color: var(--blue);
+  }
+
+  .crosshair-display {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    z-index: 20;
+    font-size: 11px;
+    min-width: 200px;
+    display: none;
+  }
+  .crosshair-display.active { display: block; }
+
+  .crosshair-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 4px 0;
+  }
+  .crosshair-label { color: var(--text-muted); }
+  .crosshair-value { color: var(--text-primary); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .loader {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10,14,39,0.95);
+    z-index: 100;
+    gap: 12px;
     color: var(--text-secondary);
   }
-  #loader.hidden { display: none; }
+  .loader.hidden { display: none; }
+
   .spinner {
-    width: 24px; height: 24px;
-    border: 2px solid var(--border);
+    width: 28px;
+    height: 28px;
+    border: 2.5px solid var(--border);
     border-top-color: var(--blue);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes spin { 100% { transform: rotate(360deg); } }
 
-  /* ===== Bottom Bar ===== */
+  /* ===== STATUSBAR ===== */
   .statusbar {
     grid-column: 1 / 4;
     background: var(--bg-panel);
     border-top: 1px solid var(--border);
-    display: flex; align-items: center;
-    padding: 0 12px; gap: 12px;
-    font-size: 10px; color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 20px;
+    font-size: 10px;
+    color: var(--text-muted);
+    z-index: 30;
   }
 
-  .status-item { display: flex; gap: 4px; align-items: center; }
-  .status-value { color: var(--text-primary); font-weight: 600; }
+  .status-group {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .status-label { color: var(--text-muted); }
+  .status-value { color: var(--text-primary); font-weight: 600; font-variant-numeric: tabular-nums; }
 
-  .statusbar-spacer { flex: 1; }
+  .status-spacer { flex: 1; }
 
-  /* Scroll styling */
+  .status-price { color: var(--green); }
+  .status-price.down { color: var(--red); }
+
+  /* ===== SCROLLBAR ===== */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  /* ===== UTILITY ===== */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .gap-4 { gap: 4px; }
+  .mb-4 { margin-bottom: 4px; }
+  .text-center { text-align: center; }
 </style>
 </head>
 <body>
 <div class="app">
-  <!-- Header -->
+  <!-- HEADER -->
   <div class="header">
-    <div class="logo">Vela Pro</div>
+    <div class="logo">🚀 Vela Pro</div>
 
-    <div class="symbol-selector">
+    <!-- Symbol & Ratio -->
+    <div class="symbol-box">
       <select id="sym1"></select>
       <span class="divider">÷</span>
       <select id="sym2"></select>
     </div>
 
-    <div class="tf-tabs">
-      <button class="tf-tab" onclick="setTF('1D')">1D</button>
-      <button class="tf-tab active" onclick="setTF('1W')">1W</button>
-      <button class="tf-tab" onclick="setTF('1M')">1M</button>
+    <!-- Timeframe -->
+    <div class="tf-selector">
+      <button class="tf-btn" onclick="setTF('1D')">1D</button>
+      <button class="tf-btn active" onclick="setTF('1W')">1W</button>
+      <button class="tf-btn" onclick="setTF('1M')">1M</button>
     </div>
 
     <div class="header-spacer"></div>
 
-    <button class="header-button" onclick="analyze()" style="background: var(--blue); color: #fff; font-weight: 600; padding: 4px 12px; border-radius: 3px;">
-      📊 تحلیل
-    </button>
-    <button class="header-button" id="themeBtn" onclick="toggleTheme()" title="Theme">
-      🌙
+    <!-- Info Display -->
+    <div class="header-info">
+      <div class="header-info-item">
+        <span class="header-info-label">نسبت</span>
+        <span class="header-info-value" id="headerRatio">—</span>
+      </div>
+      <div class="header-info-item">
+        <span class="header-info-label">تغیر</span>
+        <span class="header-info-value" id="headerChange">—</span>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <button class="header-button primary" onclick="analyze()">📊 تحلیل</button>
+    <button class="header-button" onclick="toggleTheme()" title="تغییر تم">
+      <span id="themeIcon">🌙</span>
     </button>
   </div>
 
-  <!-- Left Toolbar (Drawing Tools) -->
-  <div class="toolbar-left">
-    <button class="tool-btn active" title="Cursor"><svg viewBox="0 0 24 24"><path d="M3 3l18 18M3 21l18-18"/></svg></button>
-    <button class="tool-btn" title="Trend"><svg viewBox="0 0 24 24"><path d="M4 18L20 6"/></svg></button>
-    <button class="tool-btn" title="H Line"><svg viewBox="0 0 24 24"><path d="M3 12h18"/></svg></button>
-    <button class="tool-btn" title="V Line"><svg viewBox="0 0 24 24"><path d="M12 3v18"/></svg></button>
-    <button class="tool-btn" title="Ray"><svg viewBox="0 0 24 24"><path d="M4 18L14 8M14 8h5M14 8v5"/></svg></button>
-    <div class="tool-sep"></div>
-    <button class="tool-btn" title="Fib"><svg viewBox="0 0 24 24"><path d="M4 19h16M4 15h12M4 11h8M4 7h4"/></svg></button>
-    <button class="tool-btn" title="Box"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1"/></svg></button>
-    <div class="tool-sep"></div>
-    <button class="tool-btn" title="Zoom"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
-    <div class="tool-sep"></div>
-    <button class="tool-btn" title="Delete" onclick="clearDrawings()"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 12h10l1-12"/></svg></button>
+  <!-- LEFT TOOLBAR (Drawing Tools) -->
+  <div class="toolbar">
+    <button class="tool-btn active" title="انتخاب"><svg viewBox="0 0 24 24"><path d="M3 3l18 18M3 21l18-18"/></svg></button>
+    <button class="tool-btn" title="خط روند"><svg viewBox="0 0 24 24"><path d="M4 18L20 6"/></svg></button>
+    <button class="tool-btn" title="خط ا��قی"><svg viewBox="0 0 24 24"><path d="M3 12h18"/></svg></button>
+    <button class="tool-btn" title="خط عمودی"><svg viewBox="0 0 24 24"><path d="M12 3v18"/></svg></button>
+    <button class="tool-btn" title="پرتو"><svg viewBox="0 0 24 24"><path d="M4 18L14 8M14 8h5M14 8v5"/></svg></button>
+
+    <div class="tool-divider"></div>
+
+    <button class="tool-btn" title="فیبوناچی"><svg viewBox="0 0 24 24"><path d="M4 19h16M4 15h12M4 11h8M4 7h4"/></svg></button>
+    <button class="tool-btn" title="مربع"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1"/></svg></button>
+    <button class="tool-btn" title="دایره"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg></button>
+    <button class="tool-btn" title="متن"><svg viewBox="0 0 24 24"><path d="M8 3h8M8 21h8M3 7h18M3 17h18"/></svg></button>
+
+    <div class="tool-divider"></div>
+
+    <button class="tool-btn" title="بزرگ‌نمایی"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg></button>
+    <button class="tool-btn" title="پاک‌کردن" onclick="clearDrawings()"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 12h10l1-12"/></svg></button>
   </div>
 
-  <!-- Left Sidebar (Settings & Indicators) -->
-  <div class="sidebar-left">
-    <!-- Chart Type -->
+  <!-- LEFT SIDEBAR (Controls) -->
+  <div class="sidebar">
+    <!-- Chart Style -->
     <div class="sidebar-section">
-      <div class="sidebar-title">📈 نمودار</div>
-      <button class="sidebar-item" id="styleBtn" onclick="cycleStyle()">
+      <div class="section-title">📈 نوع نمودار</div>
+      <button class="select-input" id="styleBtn" onclick="cycleStyle()" style="text-align: center;">
         <span id="styleLabel">کندل</span>
-        <span style="font-size: 10px; color: var(--text-muted);">⚙️</span>
       </button>
     </div>
 
-    <div class="divider"></div>
-
     <!-- Indicators -->
     <div class="sidebar-section">
-      <div class="sidebar-title">📊 اندیکاتور</div>
-      <button class="sidebar-item" onclick="addIndicator('sma')" title="SMA">SMA 20</button>
-      <button class="sidebar-item" onclick="addIndicator('ema')" title="EMA">EMA 20</button>
-      <button class="sidebar-item" onclick="addIndicator('rsi')" title="RSI">RSI 14</button>
-      <button class="sidebar-item" onclick="addIndicator('bb')" title="Bollinger">BB 20</button>
-      <div id="activeIndicators" style="margin-top: 6px;"></div>
+      <div class="section-title">📊 اندیکاتورها</div>
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <button class="indicator-btn" onclick="addIndicator('sma')">➕ SMA 20</button>
+        <button class="indicator-btn" onclick="addIndicator('ema')">➕ EMA 20</button>
+        <button class="indicator-btn" onclick="addIndicator('rsi')">➕ RSI 14</button>
+        <button class="indicator-btn" onclick="addIndicator('bb')">➕ Bollinger</button>
+      </div>
+      <div class="indicators-list" id="activeIndicators"></div>
     </div>
-
-    <div class="divider"></div>
 
     <!-- Time Range -->
     <div class="sidebar-section">
-      <div class="sidebar-title">⏱️ بازه</div>
+      <div class="section-title">⏱️ بازه زمانی</div>
       <div class="range-group">
         <button class="range-btn" onclick="setRange(30,this)">1M</button>
         <button class="range-btn" onclick="setRange(180,this)">6M</button>
@@ -344,42 +612,82 @@
       </div>
     </div>
 
-    <div class="divider"></div>
-
-    <!-- Scale -->
+    <!-- Scale Options -->
     <div class="sidebar-section">
-      <div class="sidebar-title">📏 مقیاس</div>
-      <button class="toggle-btn" id="logBtn" onclick="toggleLog()">Log Scale</button>
+      <div class="section-title">📏 مقیاس</div>
+      <button class="toggle-btn" id="logBtn" onclick="toggleLog()">مقیاس لگاریتمی</button>
     </div>
-  </div>
 
-  <!-- Chart -->
-  <div class="chart-container">
-    <div id="chart"></div>
-    <div class="chart-overlay" id="chartOverlay" style="display:none;">
-      <div class="crosshair-info">
-        <div class="crosshair-value" id="crosshairPrice">—</div>
-        <div style="font-size: 9px; color: var(--text-muted);" id="crosshairDate">—</div>
+    <!-- Info Box -->
+    <div class="sidebar-section">
+      <div class="info-box">
+        ✨ نسخه <strong>Vela Pro</strong> - حرفه‌ای ترادینگ
+        <br><br>
+        🎯 برای تجزیه و تحلیل نسبت دو نماد
+        <br><br>
+        💡 ابزارهای پیشرفته و رابط سریع
       </div>
     </div>
-    <div id="loader" class="hidden"></div>
   </div>
 
-  <!-- Status Bar -->
+  <!-- CHART -->
+  <div class="chart-wrapper">
+    <div id="chart"></div>
+
+    <!-- Chart Controls -->
+    <div class="chart-controls">
+      <button class="chart-control-btn" title="Fit">⊟</button>
+      <button class="chart-control-btn" title="Reset">↻</button>
+    </div>
+
+    <!-- Crosshair Info -->
+    <div class="crosshair-display" id="crosshair">
+      <div class="crosshair-row">
+        <span class="crosshair-label">تاریخ:</span>
+        <span class="crosshair-value" id="crosshairDate">—</span>
+      </div>
+      <div class="crosshair-row">
+        <span class="crosshair-label">قیمت:</span>
+        <span class="crosshair-value" id="crosshairPrice">—</span>
+      </div>
+      <div class="crosshair-row">
+        <span class="crosshair-label">بالا:</span>
+        <span class="crosshair-value" id="crosshairHigh">—</span>
+      </div>
+      <div class="crosshair-row">
+        <span class="crosshair-label">پایین:</span>
+        <span class="crosshair-value" id="crosshairLow">—</span>
+      </div>
+    </div>
+
+    <!-- Loader -->
+    <div class="loader hidden" id="loader"></div>
+  </div>
+
+  <!-- STATUSBAR -->
   <div class="statusbar">
-    <div class="status-item">
-      <span>بار:</span>
+    <div class="status-group">
+      <span class="status-label">تعداد بارها:</span>
       <span class="status-value" id="barCount">—</span>
     </div>
-    <div class="status-item">
-      <span>نسبت:</span>
-      <span class="status-value" id="currentRatio">—</span>
+    <div class="status-group">
+      <span class="status-label">آخرین بسته:</span>
+      <span class="status-value" id="lastBar">—</span>
+    </div>
+    <div class="status-group">
+      <span class="status-label">حجم:</span>
+      <span class="status-value" id="volume">—</span>
     </div>
 
-    <div class="statusbar-spacer"></div>
+    <div class="status-spacer"></div>
 
-    <div class="status-item">
-      <span id="clock">--:--:--</span>
+    <div class="status-group">
+      <span class="status-label">وضعیت:</span>
+      <span class="status-value" id="status">آماده</span>
+    </div>
+    <div class="status-group">
+      <span class="status-label">ساعت:</span>
+      <span class="status-value" id="clock">--:--:--</span>
     </div>
   </div>
 </div>
@@ -389,6 +697,7 @@
 (function(){
   const $ = id => document.getElementById(id);
 
+  // ===== DATA & STATE =====
   const SYMBOLS = [
     { name: 'خساپا', file: 'khasapa.csv' },
     { name: 'خودرو', file: 'khodro.csv' }
@@ -397,17 +706,16 @@
 
   let raw1 = null, raw2 = null;
   let allBars = [], curBars = [];
-  let curTF = '1W';
-  let curRange = 0;
-  let isLog = false;
+  let curTF = '1W', curRange = 0;
+  let isLog = false, isDark = true;
   let priceStyle = 'candles';
-  let isDark = true;
   let velaChart = null;
 
   const indicators = new Map();
   const styleNames = { candles:'کندل', bars:'میله', line:'خط', area:'ناحیه', baseline:'بیس‌لاین' };
   const styleCycle = ['candles','bars','line','area','baseline'];
 
+  // ===== UTILITY FUNCTIONS =====
   function parseCSV(text){
     const lines = text.trim().split(/\r?\n/);
     const out = [];
@@ -484,11 +792,27 @@
     curBars = allBars.filter(b => b.time >= lastT - curRange*86400000);
   }
 
-  function updateStatus(){
+  // ===== UI UPDATES =====
+  function updateHeader(){
+    if(curBars.length === 0){
+      $('headerRatio').textContent = '—';
+      $('headerChange').textContent = '—';
+      return;
+    }
+    const last = curBars[curBars.length-1];
+    const prev = curBars.length > 1 ? curBars[curBars.length-2].close : last.open;
+    const chg = ((last.close - prev) / prev * 100);
+    $('headerRatio').textContent = last.close.toFixed(4);
+    $('headerChange').textContent = (chg > 0 ? '+' : '') + chg.toFixed(2) + '%';
+  }
+
+  function updateStatusBar(){
     $('barCount').textContent = curBars.length;
     if(curBars.length > 0){
       const last = curBars[curBars.length-1];
-      $('currentRatio').textContent = last.close.toFixed(4);
+      const date = new Date(last.time);
+      $('lastBar').textContent = date.toLocaleDateString('fa-IR');
+      $('volume').textContent = (last.volume || 0).toLocaleString();
     }
   }
 
@@ -498,13 +822,28 @@
     indicators.forEach((item, id) => {
       const div = document.createElement('div');
       div.className = 'indicator-item';
-      div.innerHTML = `<span class="indicator-name">${item.name}</span>
+      div.innerHTML = `
+        <span class="indicator-name">${item.name}</span>
         <span class="indicator-value">${item.values || '—'}</span>
-        <button class="indicator-remove" onclick="removeIndicator(${id})">×</button>`;
+        <button class="indicator-remove" onclick="removeIndicator('${id}')">✕</button>
+      `;
       list.appendChild(div);
     });
   }
 
+  function showLoader(show = true){
+    const loader = $('loader');
+    if(show){
+      loader.classList.remove('hidden');
+      loader.innerHTML = '<div class="spinner"></div><span>درحال بارگذاری...</span>';
+      $('status').textContent = '⏳ درحال بارگذاری...';
+    } else {
+      loader.classList.add('hidden');
+      $('status').textContent = '✅ آماده';
+    }
+  }
+
+  // ===== CHART FUNCTIONS =====
   function renderVela(){
     const el = $('chart');
     if(velaChart){
@@ -516,9 +855,10 @@
     el.innerHTML = '';
 
     if(typeof window.Vela === 'undefined'){
-      el.innerHTML = '<div style="padding:40px;color:#f23645;text-align:center">Vela لود نشد</div>';
+      el.innerHTML = '<div style="padding:40px;color:#ef4444;text-align:center;font-size:16px;">❌ Vela لود نشد</div>';
       return;
     }
+
     const VC = window.Vela.Vela || window.Vela;
     if(typeof VC !== 'function' || !curBars.length) return;
 
@@ -526,12 +866,12 @@
       velaChart = new VC('#chart', {
         data: curBars,
         timeframe: curTF,
-        theme: 'dark',
+        theme: isDark ? 'dark' : 'light',
         priceStyle,
         logScale: isLog,
         currentPriceLine: true,
-        upColor: '#089981',
-        downColor: '#f23645',
+        upColor: '#10b981',
+        downColor: '#ef4444',
         drawings: true,
         animations: true
       });
@@ -541,14 +881,13 @@
       }
     }catch(e){
       console.error(e);
-      el.innerHTML = '<div style="padding:40px;color:#f23645;text-align:center">'+e.message+'</div>';
+      el.innerHTML = '<div style="padding:40px;color:#ef4444;text-align:center;">❌ ' + e.message + '</div>';
     }
   }
 
+  // ===== MAIN FUNCTIONS =====
   function analyze(){
-    $('loader').classList.remove('hidden');
-    $('loader').innerHTML = '<div class="spinner"></div><span>درحال بارگذاری...</span>';
-
+    showLoader(true);
     const f1 = SYMBOLS[+$('sym1').value].file;
     const f2 = SYMBOLS[+$('sym2').value].file;
 
@@ -563,22 +902,24 @@
       if(allBars.length < 2) throw new Error('داده کافی نیست');
       applyRange();
       renderVela();
-      updateStatus();
-      $('loader').classList.add('hidden');
+      updateHeader();
+      updateStatusBar();
+      showLoader(false);
     }).catch(e => {
-      $('loader').innerHTML = '<span style="color:#f23645">خطا: ' + e.message + '</span>';
+      $('loader').innerHTML = '<span style="color:#ef4444;">❌ خطا: ' + e.message + '</span>';
     });
   }
 
   function setTF(tf){
     curTF = tf;
-    document.querySelectorAll('.tf-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
     event.target.classList.add('active');
     if(!raw1 || !raw2) return;
     allBars = buildRatio(aggregate(raw1, tf), aggregate(raw2, tf));
     applyRange();
     renderVela();
-    updateStatus();
+    updateHeader();
+    updateStatusBar();
   }
 
   function setRange(days, btn){
@@ -588,7 +929,8 @@
     if(!allBars.length) return;
     applyRange();
     renderVela();
-    updateStatus();
+    updateHeader();
+    updateStatusBar();
   }
 
   function toggleLog(){
@@ -610,7 +952,7 @@
 
   function toggleTheme(){
     isDark = !isDark;
-    document.body.classList.toggle('dark', isDark);
+    $('themeIcon').textContent = isDark ? '🌙' : '☀️';
     renderVela();
   }
 
@@ -629,10 +971,10 @@
         name = 'RSI 14';
       } else if(type === 'bb'){
         handle = velaChart.addNativeIndicator('bb', { inputs: { length: 20 } });
-        name = 'BB 20';
+        name = 'Bollinger';
       }
     }catch(e){
-      console.warn('addNativeIndicator failed', e);
+      console.warn('Indicator failed:', e);
       return;
     }
     if(handle){
@@ -657,13 +999,14 @@
     if(velaChart?.drawings) try{ velaChart.drawings.clear(); }catch(e){}
   }
 
+  // ===== INITIALIZATION =====
   setInterval(() => {
-    $('clock').textContent = new Date().toLocaleTimeString('en-GB', {hour12:false});
+    $('clock').textContent = new Date().toLocaleTimeString('fa-IR');
   }, 1000);
 
   document.querySelectorAll('.tool-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      if(!btn.title.includes('Delete')) {
+      if(!btn.title.includes('Delete') && !btn.title.includes('پاک')){
         document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
       }
@@ -681,6 +1024,7 @@
     setTimeout(analyze, 300);
   })();
 
+  // ===== EXPOSE GLOBALS =====
   window.analyze = analyze;
   window.setTF = setTF;
   window.setRange = setRange;
