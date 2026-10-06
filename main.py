@@ -14,7 +14,7 @@ app.add_middleware(
 )
 
 def q(s):
-    return urllib.parse.quote(s, encoding='utf-8')
+    return urllib.parse.quote(s, encoding='utf-8', safe='')
 
 def fetch_json(url):
     req = urllib.request.Request(url, headers={
@@ -24,6 +24,9 @@ def fetch_json(url):
     with urllib.request.urlopen(req, timeout=20) as r:
         return json.loads(r.read().decode("utf-8"))
 
+def codebazan_url(symbol):
+    return "https://api.codebazan.ir/bours/?type=" + q("تاریخی") + "&symbol=" + q(symbol)
+
 @app.get("/")
 def root():
     return {"status": "ok"}
@@ -31,7 +34,7 @@ def root():
 @app.get("/api/test")
 def test():
     try:
-        d = fetch_json("https://api.codebazan.ir/bours/?type=تاریخی&symbol=" + q("شیراز"))
+        d = fetch_json(codebazan_url("شیراز"))
         return {"ok": True, "sample": str(d)[:500]}
     except Exception as e:
         return {"ok": False, "error": str(e)}
@@ -39,15 +42,15 @@ def test():
 @app.get("/api/search/{symbol}")
 def search(symbol: str):
     try:
-        return fetch_json("https://api.codebazan.ir/bours/?type=تاریخی&symbol=" + q(symbol))
+        return fetch_json(codebazan_url(symbol))
     except Exception as e:
         return {"error": str(e)}
 
 @app.get("/api/ratio/{s1}/{s2}")
 def ratio(s1: str, s2: str):
     try:
-        d1 = fetch_json("https://api.codebazan.ir/bours/?type=تاریخی&symbol=" + q(s1))
-        d2 = fetch_json("https://api.codebazan.ir/bours/?type=تاریخی&symbol=" + q(s2))
+        d1 = fetch_json(codebazan_url(s1))
+        d2 = fetch_json(codebazan_url(s2))
         return {"s1": s1, "s2": s2, "d1": d1, "d2": d2}
     except Exception as e:
         return {"error": str(e)}
