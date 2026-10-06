@@ -6,10 +6,7 @@
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{width:100%;height:100%;overflow:hidden;background:#131722;color:#d1d4dc;font-family:Tahoma}
-  
   .app{display:grid;grid-template-rows:44px 1fr;height:100vh}
-  
-  /* نوار بالا - اضافه شده */
   .topbar{
     display:flex;align-items:center;gap:6px;padding:0 12px;
     background:#1e222d;border-bottom:1px solid #2a2e39;
@@ -17,7 +14,6 @@
   }
   .topbar::-webkit-scrollbar{height:0}
   .logo{font-weight:700;font-size:14px;color:#d1d4dc}
-  
   .symbox{display:flex;align-items:center;gap:4px;padding:4px 8px;background:#2a2e39;border-radius:4px}
   .symbox select{
     background:transparent;border:none;color:#d1d4dc;font-family:inherit;
@@ -30,22 +26,14 @@
     border-radius:3px;font-weight:600;font-size:11px;cursor:pointer;font-family:inherit;
   }
   .symbox .go:hover{background:#1e4fd8}
-  
   .divider{width:1px;height:20px;background:#2a2e39;margin:0 4px;flex-shrink:0}
-  
   .btn{
     background:none;border:none;color:#d1d4dc;font-family:inherit;font-size:11px;
     padding:6px 10px;border-radius:3px;cursor:pointer;white-space:nowrap;
   }
   .btn:hover{background:#2a2e39}
   .btn.on{background:#2962FF;color:#fff}
-  
-  .sep-mini{width:1px;height:14px;background:#3a3e4a;margin:0 2px;display:inline-block;vertical-align:middle}
-  
-  /* چارت Vela - بدون تغییر */
   #chart{width:100%;height:100%;overflow:hidden}
-  
-  /* پنل اطلاعات گوشه - اضافه شده */
   #info{
     position:fixed;top:56px;left:12px;
     background:rgba(30,34,45,.92);
@@ -56,8 +44,6 @@
   }
   #info .row{margin:3px 0}
   #info .v{color:#2962FF;font-weight:700}
-  
-  /* پنل آمار - اضافه شده */
   #stats{
     position:fixed;top:56px;right:12px;
     background:rgba(30,34,45,.92);
@@ -71,8 +57,6 @@
   #stats .r{display:flex;justify-content:space-between;padding:3px 0;gap:16px}
   #stats .k{color:#787b86}
   #stats .val{font-weight:700}
-  
-  /* سیگنال - اضافه شده */
   #sig{
     position:fixed;bottom:20px;left:12px;
     padding:8px 14px;border-radius:4px;
@@ -83,8 +67,6 @@
   #sig.buy{background:rgba(38,166,154,.2);color:#26a69a;border:1px solid #26a69a}
   #sig.sell{background:rgba(239,83,80,.2);color:#ef5350;border:1px solid #ef5350}
   #sig.neu{background:rgba(247,182,0,.15);color:#f7b600;border:1px solid #f7b600}
-  
-  /* لودینگ */
   #load{
     position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
     background:rgba(19,23,34,.9);color:#787b86;font-size:14px;z-index:200;gap:12px;
@@ -97,48 +79,33 @@
 <body>
 
 <div class="app">
-
-  <!-- نوار بالا: انتخاب نماد + تنظیمات -->
   <div class="topbar">
     <span class="logo">📊 نسبت‌سنجی</span>
-    
     <div class="symbox">
       <select id="sym1"></select>
       <span class="vs">÷</span>
       <select id="sym2"></select>
       <button class="go" onclick="analyze()">تحلیل</button>
     </div>
-    
     <div class="divider"></div>
-    
     <button class="btn" onclick="setTF('1W',this)" id="tfW">هفتگی</button>
     <button class="btn" onclick="setTF('1M',this)" id="tfM">ماهانه</button>
-    
     <div class="divider"></div>
-    
     <button class="btn" onclick="setRange(30,this)">۱م</button>
     <button class="btn" onclick="setRange(180,this)">۶م</button>
     <button class="btn" onclick="setRange(365,this)">۱س</button>
     <button class="btn" onclick="setRange(1825,this)">۵س</button>
     <button class="btn" onclick="setRange(0,this)">همه</button>
-    
     <div class="divider"></div>
-    
     <button class="btn" onclick="toggleLog(this)" id="logBtn">لگاریتمی</button>
     <button class="btn" onclick="toggleStats(this)" id="statsBtn">📊 آمار</button>
     <button class="btn" onclick="exportCSV()">📥 CSV</button>
   </div>
-  
-  <!-- چارت Vela -->
   <div id="chart"></div>
-  
-  <!-- پنل اطلاعات کوچک -->
   <div id="info">
     <div class="row">وضعیت: <span class="v" id="stStatus">در حال بارگذاری...</span></div>
     <div class="row">تعداد نقاط: <span class="v" id="stCount">-</span></div>
   </div>
-  
-  <!-- پنل آمار -->
   <div id="stats">
     <div class="h">📊 تحلیل نسبت</div>
     <div class="r"><span class="k">نسبت فعلی</span><span class="val" id="vCur" style="color:#2962FF">-</span></div>
@@ -150,33 +117,22 @@
     <div class="r"><span class="k">نیمه‌عمر</span><span class="val" id="vHl" style="color:#9C27B0">-</span></div>
     <div class="r"><span class="k">Hurst</span><span class="val" id="vHurst">-</span></div>
   </div>
-  
-  <!-- سیگنال -->
   <div id="sig"></div>
-  
-  <!-- لودینگ -->
   <div id="load" class="off"></div>
-  
 </div>
 
-<!-- کتابخانه Vela -->
 <script src="https://cdn.jsdelivr.net/npm/@luxalgo/vela@latest/dist/vela.global.min.js"></script>
 
 <script>
 (function(){
   var $ = function(id){ return document.getElementById(id); };
   
-  /* ========== لیست نمادها ==========
-     هر فایل CSV رو در پوشه اصلی مخزن آپلود کن با اسم انگلیسی
-     بعد اینجا اضافه کن: { name: 'فولاد', file: 'folad.csv' }
-  */
   var SYMBOLS = [
     { name: 'خساپا', file: 'khasapa.csv' },
     { name: 'خودرو', file: 'khodro.csv' }
   ];
   
   var BASE = 'https://raw.githubusercontent.com/mhdiri/bors-vela/main/';
-  
   var raw1 = null, raw2 = null;
   var allBars = [], curBars = [];
   var curTF = '1W';
@@ -211,11 +167,9 @@
   /* ========== تجمیع ========== */
   function aggregate(bars, tf){
     if(!bars.length) return bars;
-    // چک کنیم نیاز به تجمیع داره یا نه
     if(bars.length > 2){
       var gap = (bars[bars.length-1].time - bars[0].time) / (bars.length-1) / 86400000;
-      if(gap < 5) { /* روزانه - نیاز به تجمیع */ }
-      else return bars.slice();
+      if(gap >= 5) return bars.slice();
     }
     var out = [], bucket = null;
     for(var i = 0; i < bars.length; i++){
@@ -245,7 +199,7 @@
     return out;
   }
   
-  /* ========== ساخت نسبت ========== */
+  /* ========== ساخت نسبت با سایه واقعی ========== */
   function buildRatio(b1, b2){
     var m1 = {}, m2 = {};
     b1.forEach(function(x){ m1[x.time] = x; });
@@ -255,17 +209,37 @@
     ts.forEach(function(t){
       var x1 = m1[t], x2 = m2[t];
       if(!x1 || !x2 || x1.close <= 0 || x2.close <= 0) return;
-      var rc = x1.close / x2.close;
-      var ro = pc !== null ? pc : rc;
+      
+      // نسبت‌های OHLC
+      var rOpen = pc !== null ? pc : (x1.open / x2.open);
+      var rClose = x1.close / x2.close;
+      
+      // بیشترین نسبت: بیشترین قیمت سهم۱ ÷ کمترین قیمت سهم۲
+      var rHigh = Math.max(
+        x1.high / x2.low,
+        x1.high / x2.close,
+        x1.close / x2.low,
+        rOpen,
+        rClose
+      );
+      // کمترین نسبت: کمترین قیمت سهم۱ ÷ بیشترین قیمت سهم۲
+      var rLow = Math.min(
+        x1.low / x2.high,
+        x1.low / x2.close,
+        x1.close / x2.high,
+        rOpen,
+        rClose
+      );
+      
       out.push({
         time: t,
-        open: ro,
-        high: Math.max(ro, rc),
-        low: Math.min(ro, rc),
-        close: rc,
+        open: rOpen,
+        high: rHigh,
+        low: rLow,
+        close: rClose,
         volume: 0
       });
-      pc = rc;
+      pc = rClose;
     });
     return out;
   }
@@ -357,7 +331,6 @@
     if(!curBars.length) return;
     var st = calcStats(curBars);
     var chg = ((st.cur - st.first) / st.first * 100).toFixed(2);
-    
     $('vCur').textContent = st.cur.toFixed(4);
     var vc = $('vChg');
     vc.textContent = (chg >= 0 ? '+' : '') + chg + '%';
@@ -366,10 +339,8 @@
     $('vStd').textContent = st.std.toFixed(4);
     $('vZ').textContent = st.z.toFixed(2);
     $('vPct').textContent = st.pct + '%';
-    
     var hl = calcHalfLife(curBars);
     if(hl) $('vHl').textContent = hl.hl === Infinity ? '∞' : hl.hl.toFixed(1);
-    
     var h = calcHurst(curBars);
     if(h !== null){
       var lbl = h.toFixed(3);
@@ -378,8 +349,6 @@
       else lbl += ' (تصادفی)';
       $('vHurst').textContent = lbl;
     }
-    
-    // سیگنال
     var sig = $('sig');
     sig.classList.add('on');
     var t, c;
@@ -390,7 +359,6 @@
     else { t = '⚪ نرمال | Z=' + st.z.toFixed(2); c = 'neu'; }
     sig.textContent = t;
     sig.className = 'on ' + c;
-    
     $('stCount').textContent = curBars.length;
   }
   
@@ -399,7 +367,6 @@
     var el = $('chart');
     el.innerHTML = '';
     velaChart = null;
-    
     if(typeof window.Vela === 'undefined'){
       el.innerHTML = '<div style="padding:40px;color:#ef5350;text-align:center">❌ Vela لود نشد</div>';
       return;
@@ -409,7 +376,6 @@
       el.innerHTML = '<div style="padding:40px;color:#ef5350;text-align:center">❌ Vela constructor پیدا نشد</div>';
       return;
     }
-    
     try {
       velaChart = new VC('#chart', {
         data: curBars,
@@ -429,10 +395,8 @@
     $('load').classList.remove('off');
     $('load').innerHTML = '<div class="spin"></div><span>در حال دریافت داده...</span>';
     $('stStatus').textContent = 'دریافت...';
-    
     var f1 = SYMBOLS[+$('sym1').value].file;
     var f2 = SYMBOLS[+$('sym2').value].file;
-    
     Promise.all([
       fetch(BASE + f1).then(function(r){ return r.text(); }),
       fetch(BASE + f2).then(function(r){ return r.text(); })
@@ -440,16 +404,13 @@
       raw1 = parseCSV(res[0]);
       raw2 = parseCSV(res[1]);
       if(!raw1.length || !raw2.length) throw new Error('داده خالی');
-      
       var a1 = aggregate(raw1, curTF);
       var a2 = aggregate(raw2, curTF);
       allBars = buildRatio(a1, a2);
       if(allBars.length < 2) throw new Error('داده کافی نیست');
-      
       applyRange();
       renderVela();
       updateStats();
-      
       $('load').classList.add('off');
       $('stStatus').textContent = 'آماده';
     }).catch(function(e){
@@ -521,7 +482,6 @@
     $('tfW').classList.add('on');
     setTimeout(analyze, 500);
   })();
-  
 })();
 </script>
 </body>
