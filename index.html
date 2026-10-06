@@ -11,7 +11,7 @@ button:hover{background:#2a2e39}
 button.on{background:#2962FF;color:#fff}
 select{background:#2a2e39;border:none;color:#d1d4dc;padding:5px 10px;border-radius:3px;font-family:inherit;font-size:12px;cursor:pointer;outline:none;font-weight:600}
 .app{display:grid;grid-template-rows:48px 1fr 28px;height:100vh}
-.top{display:flex;align-items:center;gap:6px;padding:0 12px;background:#1e222d;border-bottom:1px solid #2a2e39;overflow-x:auto;white-space:nowrap}
+.top{display:flex;align-items:center;gap:4px;padding:0 12px;background:#1e222d;border-bottom:1px solid #2a2e39;overflow-x:auto;white-space:nowrap}
 .top::-webkit-scrollbar{height:0}
 .logo{font-weight:700;font-size:14px}
 .symbox{display:flex;align-items:center;gap:4px;padding:4px 8px;background:#2a2e39;border-radius:4px}
@@ -21,6 +21,7 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:5px 10px;border-radi
 .symbox .go:hover{background:#1e4fd8}
 .divider{width:1px;height:22px;background:#2a2e39;margin:0 4px;flex-shrink:0}
 .chart-wrap{position:relative;background:#131722;overflow:hidden}
+#chartWrap{position:absolute;inset:0}
 #chart{width:100%;height:100%}
 #info{position:absolute;top:12px;left:12px;background:rgba(30,34,45,.92);padding:10px 14px;border-radius:6px;font-size:11px;font-family:monospace;color:#aed581;z-index:99;border:1px solid #2a2e39;backdrop-filter:blur(6px)}
 #info .row{margin:3px 0}
@@ -42,6 +43,8 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:5px 10px;border-radi
 @keyframes sp{to{transform:rotate(360deg)}}
 .bot{display:flex;align-items:center;padding:0 12px;background:#1e222d;border-top:1px solid #2a2e39;font-size:11px;color:#787b86;gap:12px}
 .bot .st{margin-left:auto}
+.err{position:fixed;bottom:40px;left:12px;right:12px;background:#ef5350;color:#fff;padding:10px 14px;border-radius:4px;font-family:monospace;font-size:12px;z-index:999;display:none}
+.err.on{display:block}
 </style>
 </head>
 <body>
@@ -54,25 +57,25 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:5px 10px;border-radi
     <select id="sym1"></select>
     <span class="vs">÷</span>
     <select id="sym2"></select>
-    <button class="go" onclick="analyze()">تحلیل</button>
+    <button class="go" id="btnAnalyze">تحلیل</button>
   </div>
   <div class="divider"></div>
-  <button onclick="setTF('1D',this)">روزانه</button>
-  <button onclick="setTF('1W',this)" id="tfW">هفتگی</button>
-  <button onclick="setTF('1M',this)">ماهانه</button>
+  <button id="btnTF_D">روزانه</button>
+  <button id="btnTF_W" class="on">هفتگی</button>
+  <button id="btnTF_M">ماهانه</button>
   <div class="divider"></div>
-  <button onclick="setRange(90,this)">۳م</button>
-  <button onclick="setRange(365,this)">۱س</button>
-  <button onclick="setRange(1825,this)">۵س</button>
-  <button onclick="setRange(0,this)" id="rAll">همه</button>
+  <button id="btnR90">۳م</button>
+  <button id="btnR365">۱س</button>
+  <button id="btnR1825">۵س</button>
+  <button id="btnR0" class="on">همه</button>
   <div class="divider"></div>
-  <button onclick="toggleLog(this)" id="logBtn">لگاریتمی</button>
-  <button onclick="toggleStats(this)" id="statsBtn">📊 آمار</button>
-  <button onclick="exportCSV()">📥 CSV</button>
+  <button id="btnLog">لگاریتمی</button>
+  <button id="btnStats">📊 آمار</button>
+  <button id="btnCSV">📥 CSV</button>
 </div>
 
 <div class="chart-wrap">
-  <div id="chart"></div>
+  <div id="chartWrap"><div id="chart"></div></div>
   <div id="info">
     <div class="row">وضعیت: <span class="v" id="stStatus">در حال بارگذاری...</span></div>
     <div class="row">تعداد نقاط: <span class="v" id="stCount">-</span></div>
@@ -96,6 +99,8 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:5px 10px;border-radi
   <span id="status">آماده</span>
 </div>
 
+<div class="err" id="errBox"></div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@luxalgo/vela@latest/dist/vela.global.min.js"></script>
@@ -110,25 +115,34 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:5px 10px;border-radi
   var curTF = '1W', curRange = 0, isLog = false;
   var velaChart = null;
 
+  function showError(msg){
+    $('errBox').textContent = '❌ ' + msg;
+    $('errBox').classList.add('on');
+    setTimeout(function(){ $('errBox').classList.remove('on'); }, 5000);
+    console.error(msg);
+  }
+
   /* ========== بارگذاری لیست نمادها ========== */
-  async function loadSymbols(){
-    try {
-      var res = await fetch(BASE + 'data/symbols.json');
-      SYMBOLS = await res.json();
-      var s1 = $('sym1'), s2 = $('sym2');
-      s1.innerHTML = ''; s2.innerHTML = '';
-      SYMBOLS.forEach(function(s, i){
-        s1.innerHTML += '<option value="' + i + '">' + s.name + '</option>';
-        s2.innerHTML += '<option value="' + i + '">' + s.name + '</option>';
+  function loadSymbols(){
+    fetch(BASE + 'data/symbols.json')
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        SYMBOLS = data;
+        var s1 = $('sym1'), s2 = $('sym2');
+        s1.innerHTML = ''; s2.innerHTML = '';
+        SYMBOLS.forEach(function(s, i){
+          s1.innerHTML += '<option value="' + i + '">' + s.name + '</option>';
+          s2.innerHTML += '<option value="' + i + '">' + s.name + '</option>';
+        });
+        s1.value = 0;
+        s2.value = 1;
+        $('stStatus').textContent = 'آماده';
+        analyze();
+      })
+      .catch(function(e){
+        $('stStatus').textContent = 'خطا';
+        showError('لیست نمادها لود نشد: ' + e.message);
       });
-      s1.value = 0;
-      s2.value = 1;
-      $('stStatus').textContent = 'آماده';
-      analyze();
-    } catch(e){
-      $('stStatus').textContent = 'خطا در لیست نمادها';
-      console.error(e);
-    }
   }
 
   /* ========== تجمیع ========== */
@@ -290,31 +304,43 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:5px 10px;border-radi
     $('stCount').textContent = curBars.length;
   }
 
-  /* ========== راه‌اندازی Vela ========== */
+  /* ========== راه‌اندازی Vela (با cleanup کامل) ========== */
   function renderVela(){
-    var el = $('chart');
-    el.innerHTML = '';
-    velaChart = null;
-    if(typeof window.Vela === 'undefined'){
-      el.innerHTML = '<div style="padding:40px;color:#ef5350;text-align:center">❌ Vela لود نشد</div>';
-      return;
-    }
-    var VC = window.Vela.Vela || window.Vela;
-    if(typeof VC !== 'function'){
-      el.innerHTML = '<div style="padding:40px;color:#ef5350;text-align:center">❌ Vela constructor پیدا نشد</div>';
-      return;
-    }
     try {
+      // ۱. از بین بردن کامل Vela قبلی
+      if(velaChart){
+        try {
+          if(typeof velaChart.destroy === 'function') velaChart.destroy();
+          else if(typeof velaChart.dispose === 'function') velaChart.dispose();
+        } catch(e){ console.warn('destroy error:', e); }
+        velaChart = null;
+      }
+
+      // ۲. تعویض کل DOM چارت (تمیز کردن کامل)
+      var wrap = $('chartWrap');
+      wrap.innerHTML = '<div id="chart"></div>';
+
+      // ۳. بررسی Vela
+      if(typeof window.Vela === 'undefined'){
+        throw new Error('Vela لود نشد');
+      }
+      var VC = window.Vela.Vela || window.Vela;
+      if(typeof VC !== 'function'){
+        throw new Error('Vela constructor پیدا نشد');
+      }
+
+      // ۴. ساخت Vela جدید
       velaChart = new VC('#chart', {
         data: curBars,
         timeframe: curTF,
         theme: 'dark',
-        priceStyle: 'candles',
-        logScale: isLog
+        priceStyle: 'candles'
       });
+
+      console.log('[Vela] rendered', curBars.length, 'bars');
+
     } catch(e){
-      console.error('Vela error:', e);
-      el.innerHTML = '<div style="padding:40px;color:#ef5350;text-align:center">❌ ' + e.message + '</div>';
+      showError('خطا در Vela: ' + e.message);
     }
   }
 
@@ -344,48 +370,78 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:5px 10px;border-radi
     }).catch(function(e){
       $('load').innerHTML = '<span style="color:#ef5350">خطا: ' + e.message + '</span>';
       $('stStatus').textContent = 'خطا';
+      showError(e.message);
     });
   }
 
-  /* ========== تنظیمات ========== */
-  function setTF(tf, btn){
-    curTF = tf;
-    document.querySelectorAll('.top button').forEach(function(b){ if(b.id !== 'logBtn' && b.id !== 'statsBtn') b.classList.remove('on'); });
-    if(btn) btn.classList.add('on');
-    if(!raw1 || !raw2) return;
-    var a1 = aggregate(raw1, tf);
-    var a2 = aggregate(raw2, tf);
-    allBars = buildRatio(a1, a2);
-    applyRange();
-    renderVela();
-    updateStats();
-  }
-  function setRange(days, btn){
-    curRange = days;
-    document.querySelectorAll('.top button').forEach(function(b){ b.classList.remove('on'); });
-    if(btn) btn.classList.add('on');
-    if(!allBars.length) return;
-    applyRange();
-    renderVela();
-    updateStats();
-  }
+  /* ========== بازه ========== */
   function applyRange(){
     if(!allBars.length){ curBars = []; return; }
     if(curRange === 0){ curBars = allBars.slice(); return; }
     var lastT = allBars[allBars.length-1].time;
     curBars = allBars.filter(function(b){ return b.time >= lastT - curRange*86400000; });
   }
-  function toggleLog(btn){
+
+  /* ========== دکمه‌ها ========== */
+  function clearON(ids){
+    ids.forEach(function(id){ $(id).classList.remove('on'); });
+  }
+  function setON(id){ $(id).classList.add('on'); }
+
+  $('btnTF_D').addEventListener('click', function(){
+    curTF = '1D';
+    clearON(['btnTF_D','btnTF_W','btnTF_M']);
+    setON('btnTF_D');
+    if(!raw1) return;
+    var a1 = aggregate(raw1, '1D');
+    var a2 = aggregate(raw2, '1D');
+    allBars = buildRatio(a1, a2);
+    applyRange(); renderVela(); updateStats();
+  });
+  $('btnTF_W').addEventListener('click', function(){
+    curTF = '1W';
+    clearON(['btnTF_D','btnTF_W','btnTF_M']);
+    setON('btnTF_W');
+    if(!raw1) return;
+    var a1 = aggregate(raw1, '1W');
+    var a2 = aggregate(raw2, '1W');
+    allBars = buildRatio(a1, a2);
+    applyRange(); renderVela(); updateStats();
+  });
+  $('btnTF_M').addEventListener('click', function(){
+    curTF = '1M';
+    clearON(['btnTF_D','btnTF_W','btnTF_M']);
+    setON('btnTF_M');
+    if(!raw1) return;
+    var a1 = aggregate(raw1, '1M');
+    var a2 = aggregate(raw2, '1M');
+    allBars = buildRatio(a1, a2);
+    applyRange(); renderVela(); updateStats();
+  });
+
+  function setRangeAndRender(days, btnId){
+    curRange = days;
+    clearON(['btnR90','btnR365','btnR1825','btnR0']);
+    setON(btnId);
+    if(!allBars.length) return;
+    applyRange(); renderVela(); updateStats();
+  }
+  $('btnR90').addEventListener('click', function(){ setRangeAndRender(90, 'btnR90'); });
+  $('btnR365').addEventListener('click', function(){ setRangeAndRender(365, 'btnR365'); });
+  $('btnR1825').addEventListener('click', function(){ setRangeAndRender(1825, 'btnR1825'); });
+  $('btnR0').addEventListener('click', function(){ setRangeAndRender(0, 'btnR0'); });
+
+  $('btnLog').addEventListener('click', function(){
     isLog = !isLog;
-    btn.classList.toggle('on', isLog);
-    btn.textContent = isLog ? 'خطی' : 'لگاریتمی';
+    this.classList.toggle('on', isLog);
+    this.textContent = isLog ? 'خطی' : 'لگاریتمی';
     if(allBars.length) renderVela();
-  }
-  function toggleStats(btn){
+  });
+  $('btnStats').addEventListener('click', function(){
     $('stats').classList.toggle('on');
-    btn.classList.toggle('on');
-  }
-  function exportCSV(){
+    this.classList.toggle('on');
+  });
+  $('btnCSV').addEventListener('click', function(){
     if(!curBars.length){ alert('ابتدا تحلیل کنید'); return; }
     var s1 = SYMBOLS[+$('sym1').value].name;
     var s2 = SYMBOLS[+$('sym2').value].name;
@@ -398,7 +454,8 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:5px 10px;border-radi
     a.href = URL.createObjectURL(b);
     a.download = s1 + '_' + s2 + '.csv';
     a.click();
-  }
+  });
+  $('btnAnalyze').addEventListener('click', analyze);
 
   /* ========== شروع ========== */
   loadSymbols();
