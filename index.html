@@ -8,7 +8,7 @@
   html,body{width:100%;height:100%;overflow:hidden;background:#131722;color:#d1d4dc;font-family:Tahoma}
   #chart{width:100%;height:100vh}
   #log{position:fixed;top:10px;left:10px;background:rgba(0,0,0,.9);padding:10px;border-radius:6px;
-    font-size:11px;font-family:monospace;max-width:400px;z-index:99;white-space:pre-wrap;
+    font-size:11px;font-family:monospace;max-width:450px;z-index:99;white-space:pre-wrap;
     color:#aed581;direction:ltr}
 </style>
 </head>
@@ -21,45 +21,59 @@
 <script>
 (function(){
   var log = function(m){ document.getElementById('log').innerHTML += '\n' + m; };
-  var KEY = 'BQLj8R6NUAQyZjFykZNZW7MU7W7sz8fA';
+  var API = 'https://cdn.tsetmc.com';
 
-  function fetchBrsApi(symbol){
-    var url = 'https://Api.BrsApi.ir/Tsetmc/History.php?key=' + KEY + '&type=0&l18=' + encodeURIComponent(symbol);
-    log('fetch: ' + symbol);
-    return fetch(url).then(function(r){ return r.json(); });
+  function dateToTs(s){
+    s = String(s);
+    if (s.length !== 8) return null;
+    var y = +s.slice(0,4), m = +s.slice(4,6), d = +s.slice(6,8);
+    if (y<1990||y>2100||m<1||m>12||d<1||d>31) return null;
+    return Math.floor(new Date(y, m-1, d).getTime() / 1000);
+  }
+
+  function fj(url){
+    return fetch(url, {mode: 'cors'}).then(function(r){
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    });
+  }
+
+  function getCode(s){
+    log('search: ' + s);
+    return fj(API + '/api/Instrument/GetInstrumentSearch/' + encodeURIComponent(s))
+      .then(function(d){ return d.instrumentSearch && d.instrumentSearch[0] ? d.instrumentSearch[0].insCode : null; });
+  }
+
+  function getHist(code){
+    log('history: ' + code);
+    return fj(API + '/api/ClosingPrice/GetClosingPriceDailyList/' + code + '/0')
+      .then(function(d){ return d.closingPriceDaily || d.closingPrice || []; });
   }
 
   function buildRatio(s1, s2){
-    var d1, d2;
-    return fetchBrsApi(s1).then(function(x){ d1 = x; return fetchBrsApi(s2); })
+    var c1, c2;
+    return getCode(s1).then(function(x){ c1 = x; return getCode(s2); })
       .then(function(x){
-        d2 = x;
-        log('d1 keys: ' + (d1 && d1[0] ? Object.keys(d1[0]).join(',') : 'none'));
-        log('d1: ' + (d1 ? d1.length : 0) + ' | d2: ' + (d2 ? d2.length : 0));
-        log('sample: ' + JSON.stringify(d1 && d1[0]).substring(0, 250));
-        if (!d1 || !d1.length || !d2 || !d2.length) throw new Error('no data');
-
+        c2 = x;
+        log('codes: ' + c1 + ' / ' + c2);
+        if (!c1 || !c2) throw new Error('not found');
+        return Promise.all([getHist(c1), getHist(c2)]);
+      })
+      .then(function(hs){
+        var h1 = hs[0], h2 = hs[1];
+        log('records: ' + h1.length + ' / ' + h2.length);
         var m1 = {}, m2 = {};
-        d1.forEach(function(x){
-          var c = x.pc || x.pl || x.pf || x.close;
-          if (c > 0) m1[String(x.date)] = c;
-        });
-        d2.forEach(function(x){
-          var c = x.pc || x.pl || x.pf || x.close;
-          if (c > 0) m2[String(x.date)] = c;
-        });
-
+        h1.forEach(function(x){ var c = x.pClosing || x.pDrCotVal; if (c>0) m1[String(x.dEven)] = c; });
+        h2.forEach(function(x){ var c = x.pClosing || x.pDrCotVal; if (c>0) m2[String(x.dEven)] = c; });
         var dates = Object.keys(m1).filter(function(d){ return m2[d]; }).sort();
         log('common: ' + dates.length);
-
         var bars = [], pc = null;
         for (var i = 0; i < dates.length; i++){
-          var d = dates[i];
-          var ts = new Date(d).getTime();
-          if (isNaN(ts)) continue;
-          var rc = m1[d] / m2[d];
+          var d = dates[i], ts = dateToTs(d);
+          if (ts === null) continue;
+          var rc = m1[d]/m2[d];
           var ro = pc !== null ? pc : rc;
-          bars.push({ time: ts, open: ro, high: Math.max(ro, rc), low: Math.min(ro, rc), close: rc, volume: 0 });
+          bars.push({ time: ts*1000, open: ro, high: Math.max(ro,rc), low: Math.min(ro,rc), close: rc, volume: 0 });
           pc = rc;
         }
         log('bars: ' + bars.length);
