@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from oxtapus import Rahavard365
-import os
+import urllib.request
+import urllib.parse
+import json
 
 app = FastAPI()
 
@@ -12,19 +13,47 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-USER = os.environ.get("RV_USER", "")
-PASS = os.environ.get("RV_PASS", "")
+API = "https://cdn.tsetmc.com"
 
-client = Rahavard365(username=USER, password=PASS)
+def fetch_json(url):
+    req = urllib.request.Request(url, headers={
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "application/json"
+    })
+    with urllib.request.urlopen(req, timeout=15) as r:
+        return json.loads(r.read().decode("utf-8"))
 
 @app.get("/")
 def root():
     return {"status": "ok"}
 
-@app.get("/api/history/{symbol}")
-def history(symbol: str):
+@app.get("/api/search/{symbol}")
+def search(symbol: str):
     try:
-        data = client.get_history(symbol=symbol)
-        return {"symbol": symbol, "data": data}
+        url = API + "/api/Instrument/GetInstrumentSearch/" + urllib.parse.quote(symbol)
+        return fetch_json(url)
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/api/history/{code}")
+def history(code: str):
+    try:
+        url = API + "/api/ClosingPrice/GetClosingPriceDailyList/" + code + "/0"
+        return fetch_json(url)
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/api/ratio/{s1}/{s2}")
+def ratio(s1: str, s2: str):
+    try:
+        d1 = fetch_json(API + "/api/Instrument/GetInstrumentSearch/" + urllib.parse.quote(s1))
+        d2 = fetch_json(API + "/api/Instrument/GetInstrumentSearch/" + urllib.parse.quote(s2))
+        c1 = d1["instrumentSearch"][0]["insCode"]
+        c2 = d2["instrumentSearch"][0]["insCode"]
+        h1 = fetch_json(API + "/api/ClosingPrice/GetClosingPriceDailyList/" + c1 + "/0")
+        h2 = fetch_json(API + "/api/ClosingPrice/GetClosingPriceDailyList/" + c2 + "/0")
+        return {"s1": s1, "s2": s2, "c1": c1, "c2": c2,
+                "h1": h1.get("closingPriceDaily", []),
+                "h2": h2.get("closingPriceDaily", [])}
     except Exception as e:
         return {"error": str(e)}
