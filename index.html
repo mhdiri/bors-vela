@@ -5,101 +5,136 @@
 <title>نسبت‌سنجی بورس ایران</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;overflow:hidden;background:#131722;color:#d1d4dc;font-family:Tahoma,Arial;font-size:12px}
-button{background:none;border:none;color:inherit;cursor:pointer;font-family:inherit;font-size:11px;padding:6px 10px;border-radius:3px}
-button:hover{background:#2a2e39}
+html,body{width:100%;height:100%;overflow:hidden;background:#131722;color:#d1d4dc;font-family:-apple-system,BlinkMacSystemFont,Tahoma,Arial,sans-serif;font-size:12px}
+button{background:none;border:none;color:#787b86;cursor:pointer;font-family:inherit;font-size:12px;padding:6px 8px;border-radius:2px}
+button:hover{background:rgba(255,255,255,.05);color:#d1d4dc}
 button.on{background:#2962FF;color:#fff}
-select{background:#2a2e39;border:none;color:#d1d4dc;padding:5px 10px;border-radius:3px;font-family:inherit;font-size:12px;cursor:pointer;outline:none;font-weight:600}
-.app{display:grid;grid-template-rows:48px 1fr 28px;height:100vh}
-.top{display:flex;align-items:center;gap:4px;padding:0 12px;background:#1e222d;border-bottom:1px solid #2a2e39;overflow-x:auto;white-space:nowrap}
-.top::-webkit-scrollbar{height:0}
-.logo{font-weight:700;font-size:14px}
-.symbox{display:flex;align-items:center;gap:4px;padding:4px 8px;background:#2a2e39;border-radius:4px}
-.symbox select{background:transparent;padding:3px 6px}
-.symbox .vs{color:#787b86;padding:0 4px;font-weight:700}
-.symbox .go{background:#2962FF;color:#fff;padding:5px 14px;font-weight:600;border-radius:3px}
-.symbox .go:hover{background:#1e4fd8}
-.divider{width:1px;height:22px;background:#2a2e39;margin:0 4px;flex-shrink:0}
-.chart-wrap{position:relative;background:#131722;overflow:hidden}
+select{background:transparent;border:none;color:#d1d4dc;padding:4px 6px;font-family:inherit;font-size:12px;cursor:pointer;outline:none;font-weight:600}
+select option{background:#1e222d}
+input{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;font-family:inherit;font-size:12px;outline:none;border-radius:2px}
+
+.app{display:grid;grid-template-rows:40px 1fr 28px;height:100vh}
+
+/* ===== نوار بالا ===== */
+.topbar{display:flex;align-items:center;gap:2px;padding:0 6px;background:#131722;border-bottom:1px solid #2a2e39;overflow-x:auto}
+.topbar::-webkit-scrollbar{height:0}
+.tb-icon{width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:#787b86;font-size:14px;border-radius:2px}
+.tb-icon:hover{background:rgba(255,255,255,.05);color:#d1d4dc}
+.tb-symbol{display:flex;align-items:center;gap:0;background:#2a2e39;border-radius:2px;padding:0 4px;height:28px}
+.tb-symbol select{background:transparent;padding:3px 6px;font-weight:600;font-size:12px}
+.tb-symbol .vs{color:#787b86;padding:0 3px;font-size:11px}
+.tb-symbol .go{background:#2962FF;color:#fff;padding:0 12px;height:22px;font-weight:600;font-size:11px;border-radius:2px;margin-right:4px}
+.tb-symbol .go:hover{background:#1e4fd8}
+.tb-div{width:1px;height:20px;background:#2a2e39;margin:0 4px;flex-shrink:0}
+.spacer{flex:1}
+
+/* ===== بدنه ===== */
+.main{position:relative;overflow:hidden}
 #chartWrap{position:absolute;inset:0}
 #chart{width:100%;height:100%}
-#info{position:absolute;top:12px;left:12px;background:rgba(30,34,45,.92);padding:10px 14px;border-radius:6px;font-size:11px;font-family:monospace;color:#aed581;z-index:99;border:1px solid #2a2e39;backdrop-filter:blur(6px)}
-#info .row{margin:3px 0}
-#info .v{color:#2962FF;font-weight:700}
-#stats{position:absolute;top:12px;right:12px;background:rgba(30,34,45,.92);padding:12px 15px;border-radius:6px;font-size:11px;font-family:monospace;color:#d1d4dc;z-index:99;border:1px solid #2a2e39;backdrop-filter:blur(6px);min-width:220px;display:none}
+
+/* پنل آمار - گوشه بالا-راست */
+#stats{position:absolute;top:8px;right:8px;background:#1e222d;border:1px solid #2a2e39;padding:10px 12px;font-size:11px;font-family:-apple-system,monospace;color:#d1d4dc;z-index:99;min-width:200px;display:none}
 #stats.on{display:block}
-#stats .h{font-weight:700;font-size:12px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #2a2e39}
-#stats .r{display:flex;justify-content:space-between;padding:3px 0;gap:16px}
+#stats .h{font-weight:700;font-size:11px;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #2a2e39;color:#787b86;text-transform:uppercase;letter-spacing:.5px}
+#stats .r{display:flex;justify-content:space-between;padding:2px 0;gap:16px}
 #stats .k{color:#787b86}
-#stats .val{font-weight:700}
-#sig{position:absolute;bottom:20px;left:12px;padding:8px 14px;border-radius:4px;font-size:12px;font-weight:700;font-family:monospace;z-index:99;display:none}
+#stats .v{font-weight:600}
+
+/* سیگنال - گوشه پایین-چپ */
+#sig{position:absolute;bottom:35px;right:8px;font-size:11px;font-family:monospace;font-weight:600;z-index:99;display:none;padding:4px 8px}
 #sig.on{display:block}
-#sig.buy{background:rgba(38,166,154,.2);color:#26a69a;border:1px solid #26a69a}
-#sig.sell{background:rgba(239,83,80,.2);color:#ef5350;border:1px solid #ef5350}
-#sig.neu{background:rgba(247,182,0,.15);color:#f7b600;border:1px solid #f7b600}
-#load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(19,23,34,.9);color:#787b86;font-size:14px;z-index:200;gap:12px}
+#sig.buy{color:#26a69a;border-left:2px solid #26a69a}
+#sig.sell{color:#ef5350;border-left:2px solid #ef5350}
+#sig.neu{color:#f7b600;border-left:2px solid #f7b600}
+
+/* لودینگ */
+#load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(19,23,34,.95);color:#787b86;font-size:13px;z-index:200;gap:10px}
 #load.off{display:none}
-.spin{width:30px;height:30px;border:2px solid #2a2e39;border-top-color:#2962FF;border-radius:50%;animation:sp .8s linear infinite}
+.spin{width:24px;height:24px;border:2px solid #2a2e39;border-top-color:#2962FF;border-radius:50%;animation:sp .8s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
-.bot{display:flex;align-items:center;padding:0 12px;background:#1e222d;border-top:1px solid #2a2e39;font-size:11px;color:#787b86;gap:12px}
-.bot .st{margin-left:auto}
-.err{position:fixed;bottom:40px;left:12px;right:12px;background:#ef5350;color:#fff;padding:10px 14px;border-radius:4px;font-family:monospace;font-size:12px;z-index:999;display:none}
-.err.on{display:block}
+
+/* ===== نوار پایین ===== */
+.botbar{display:flex;align-items:center;gap:2px;padding:0 8px;background:#131722;border-top:1px solid #2a2e39;font-size:11px;color:#787b86;font-family:monospace}
+.botbar button{padding:3px 8px;font-size:11px;color:#787b86;border-radius:2px}
+.botbar button:hover{background:rgba(255,255,255,.05);color:#d1d4dc}
+.botbar button.on{background:transparent;color:#2962FF;font-weight:600}
+.botbar .time{margin-right:auto;font-family:monospace;font-size:11px;color:#787b86}
+.botbar .sep{color:#3a3e4a;padding:0 4px}
 </style>
 </head>
 <body>
 
 <div class="app">
 
-<div class="top">
-  <span class="logo">📊 نسبت‌سنجی</span>
-  <div class="symbox">
+<!-- ===== نوار بالا ===== -->
+<div class="topbar">
+  <button class="tb-icon" title="منو">☰</button>
+  <button class="tb-icon" title="جستجو">🔍</button>
+  <div class="tb-div"></div>
+
+  <div class="tb-symbol">
     <select id="sym1"></select>
     <span class="vs">÷</span>
     <select id="sym2"></select>
     <button class="go" id="btnAnalyze">تحلیل</button>
   </div>
-  <div class="divider"></div>
-  <button id="btnTF_D">روزانه</button>
-  <button id="btnTF_W" class="on">هفتگی</button>
-  <button id="btnTF_M">ماهانه</button>
-  <div class="divider"></div>
-  <button id="btnR90">۳م</button>
-  <button id="btnR365">۱س</button>
-  <button id="btnR1825">۵س</button>
-  <button id="btnR0" class="on">همه</button>
-  <div class="divider"></div>
-  <button id="btnLog">لگاریتمی</button>
-  <button id="btnStats">📊 آمار</button>
-  <button id="btnCSV">📥 CSV</button>
+
+  <div class="tb-div"></div>
+
+  <!-- تایم‌فریم کشویی -->
+  <select id="tfSelect" title="تایم‌فریم">
+    <option value="1D">روزانه</option>
+    <option value="1W" selected>هفتگی</option>
+    <option value="1M">ماهانه</option>
+  </select>
+
+  <div class="tb-div"></div>
+
+  <button class="tb-icon" id="btnLog" title="مقیاس لگاریتمی">log</button>
+  <button class="tb-icon" id="btnStats" title="آمار">▦</button>
+  <button class="tb-icon" id="btnCSV" title="خروجی CSV">⇩</button>
+
+  <div class="spacer"></div>
+
+  <button class="tb-icon" title="Save">💾</button>
 </div>
 
-<div class="chart-wrap">
+<!-- ===== بدنه ===== -->
+<div class="main">
   <div id="chartWrap"><div id="chart"></div></div>
-  <div id="info">
-    <div class="row">وضعیت: <span class="v" id="stStatus">در حال بارگذاری...</span></div>
-    <div class="row">تعداد نقاط: <span class="v" id="stCount">-</span></div>
-  </div>
+
   <div id="stats">
-    <div class="h">📊 تحلیل نسبت</div>
-    <div class="r"><span class="k">نسبت فعلی</span><span class="val" id="vCur" style="color:#2962FF">-</span></div>
-    <div class="r"><span class="k">تغییر کل</span><span class="val" id="vChg">-</span></div>
-    <div class="r"><span class="k">میانگین</span><span class="val" id="vMean">-</span></div>
-    <div class="r"><span class="k">انحراف معیار</span><span class="val" id="vStd">-</span></div>
-    <div class="r"><span class="k">Z-Score</span><span class="val" id="vZ" style="color:#f7b600">-</span></div>
-    <div class="r"><span class="k">صدک</span><span class="val" id="vPct">-</span></div>
-    <div class="r"><span class="k">نیمه‌عمر</span><span class="val" id="vHl" style="color:#9C27B0">-</span></div>
-    <div class="r"><span class="k">Hurst</span><span class="val" id="vHurst">-</span></div>
+    <div class="h">Ratio Analysis</div>
+    <div class="r"><span class="k">Current</span><span class="v" id="vCur" style="color:#2962FF">-</span></div>
+    <div class="r"><span class="k">Change</span><span class="v" id="vChg">-</span></div>
+    <div class="r"><span class="k">Mean</span><span class="v" id="vMean">-</span></div>
+    <div class="r"><span class="k">Std Dev</span><span class="v" id="vStd">-</span></div>
+    <div class="r"><span class="k">Z-Score</span><span class="v" id="vZ" style="color:#f7b600">-</span></div>
+    <div class="r"><span class="k">Percentile</span><span class="v" id="vPct">-</span></div>
+    <div class="r"><span class="k">Half-Life</span><span class="v" id="vHl" style="color:#9C27B0">-</span></div>
+    <div class="r"><span class="k">Hurst</span><span class="v" id="vHurst">-</span></div>
+    <div class="r"><span class="k">Bars</span><span class="v" id="vN">-</span></div>
   </div>
+
   <div id="sig"></div>
   <div id="load" class="off"></div>
 </div>
 
-<div class="bot">
-  <span id="status">آماده</span>
+<!-- ===== نوار پایین ===== -->
+<div class="botbar">
+  <button data-range="90">3M</button>
+  <button data-range="180">6M</button>
+  <button data-range="365">1Y</button>
+  <button data-range="1825">5Y</button>
+  <button data-range="0" class="on">ALL</button>
+  <span class="sep">|</span>
+  <span class="time" id="clock">--:--:--</span>
+  <span class="sep">|</span>
+  <button id="btnPercent" title="مقیاس درصدی">%</button>
+  <button id="btnLog2" title="مقیاس لگاریتمی">log</button>
+  <button id="btnAuto" class="on" title="مقیاس خودکار">auto</button>
 </div>
-
-<div class="err" id="errBox"></div>
 
 </div>
 
@@ -112,38 +147,30 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:5px 10px;border-radi
   var SYMBOLS = [];
   var raw1 = null, raw2 = null;
   var allBars = [], curBars = [];
-  var curTF = '1W', curRange = 0, isLog = false;
+  var curTF = '1W', curRange = 0, scaleMode = 'auto'; // auto / log / percent
   var velaChart = null;
 
-  function showError(msg){
-    $('errBox').textContent = '❌ ' + msg;
-    $('errBox').classList.add('on');
-    setTimeout(function(){ $('errBox').classList.remove('on'); }, 5000);
-    console.error(msg);
-  }
+  /* ========== ساعت ========== */
+  setInterval(function(){
+    var d = new Date();
+    $('clock').textContent = d.toLocaleTimeString('en-GB') + ' UTC' + (d.getTimezoneOffset() <= 0 ? '+' : '-') + Math.abs(d.getTimezoneOffset()/60);
+  }, 1000);
 
-  /* ========== بارگذاری لیست نمادها ========== */
-  function loadSymbols(){
-    fetch(BASE + 'data/symbols.json')
-      .then(function(r){ return r.json(); })
-      .then(function(data){
-        SYMBOLS = data;
-        var s1 = $('sym1'), s2 = $('sym2');
-        s1.innerHTML = ''; s2.innerHTML = '';
-        SYMBOLS.forEach(function(s, i){
-          s1.innerHTML += '<option value="' + i + '">' + s.name + '</option>';
-          s2.innerHTML += '<option value="' + i + '">' + s.name + '</option>';
-        });
-        s1.value = 0;
-        s2.value = 1;
-        $('stStatus').textContent = 'آماده';
-        analyze();
-      })
-      .catch(function(e){
-        $('stStatus').textContent = 'خطا';
-        showError('لیست نمادها لود نشد: ' + e.message);
+  /* ========== لیست نمادها ========== */
+  fetch(BASE + 'data/symbols.json')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      SYMBOLS = data;
+      var s1 = $('sym1'), s2 = $('sym2');
+      s1.innerHTML = ''; s2.innerHTML = '';
+      SYMBOLS.forEach(function(s, i){
+        s1.innerHTML += '<option value="' + i + '">' + s.name + '</option>';
+        s2.innerHTML += '<option value="' + i + '">' + s.name + '</option>';
       });
-  }
+      s1.value = 0; s2.value = 1;
+      analyze();
+    })
+    .catch(function(e){ console.error('symbols error:', e); });
 
   /* ========== تجمیع ========== */
   function aggregate(bars, tf){
@@ -168,15 +195,14 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:5px 10px;border-radi
       } else {
         if(b.high > bucket.high) bucket.high = b.high;
         if(b.low < bucket.low) bucket.low = b.low;
-        bucket.close = b.close;
-        bucket.volume += b.volume;
+        bucket.close = b.close; bucket.volume += b.volume;
       }
     }
     if(bucket) out.push(bucket);
     return out;
   }
 
-  /* ========== ساخت نسبت ========== */
+  /* ========== نسبت ========== */
   function buildRatio(b1, b2){
     var m1 = {}, m2 = {};
     b1.forEach(function(x){ m1[x.time] = x; });
@@ -201,11 +227,8 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:5px 10px;border-radi
     var v = d.map(function(b){ return b.close; });
     var n = v.length;
     if(!n) return null;
-    var mean = 0;
-    for(var i = 0; i < n; i++) mean += v[i];
-    mean /= n;
-    var vp = 0;
-    for(var i = 0; i < n; i++) vp += Math.pow(v[i]-mean, 2);
+    var mean = 0; for(var i = 0; i < n; i++) mean += v[i]; mean /= n;
+    var vp = 0; for(var i = 0; i < n; i++) vp += Math.pow(v[i]-mean, 2);
     var sd = Math.sqrt(vp/n);
     var sorted = v.slice().sort(function(a,b){ return a-b; });
     var cur = v[n-1];
@@ -214,12 +237,10 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:5px 10px;border-radi
     return { mean: mean, std: sd, cur: cur, z: z, pct: pct, n: n, first: v[0] };
   }
   function calcHalfLife(d){
-    var n = d.length;
-    if(n < 10) return null;
+    var n = d.length; if(n < 10) return null;
     var dr = [], rl = [];
     for(var i = 1; i < n; i++){ dr.push(d[i].close - d[i-1].close); rl.push(d[i-1].close); }
-    var m = dr.length;
-    var mx = 0, my = 0;
+    var m = dr.length, mx = 0, my = 0;
     for(var i = 0; i < m; i++){ mx += rl[i]; my += dr[i]; }
     mx /= m; my /= m;
     var sxy = 0, sxx = 0;
@@ -230,21 +251,15 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:5px 10px;border-radi
   }
   function calcHurst(d){
     var v = d.map(function(b){ return b.close; });
-    var n = v.length;
-    if(n < 20) return null;
-    var sizes = [];
-    for(var s = 8; s <= Math.floor(n/2); s *= 2) sizes.push(s);
+    var n = v.length; if(n < 20) return null;
+    var sizes = []; for(var s = 8; s <= Math.floor(n/2); s *= 2) sizes.push(s);
     if(sizes.length < 2) return null;
     var logRS = [], logN = [];
     for(var si = 0; si < sizes.length; si++){
-      var size = sizes[si];
-      var chunks = Math.floor(n/size);
-      var rsSum = 0, cnt = 0;
+      var size = sizes[si], chunks = Math.floor(n/size), rsSum = 0, cnt = 0;
       for(var c = 0; c < chunks; c++){
         var ch = v.slice(c*size, (c+1)*size);
-        var mn = 0;
-        for(var i = 0; i < size; i++) mn += ch[i];
-        mn /= size;
+        var mn = 0; for(var i = 0; i < size; i++) mn += ch[i]; mn /= size;
         var cum = 0, mnC = 0, mxC = 0;
         for(var i = 0; i < size; i++){
           cum += ch[i] - mn;
@@ -252,16 +267,14 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:5px 10px;border-radi
           if(cum > mxC) mxC = cum;
         }
         var R = mxC - mnC;
-        var vv = 0;
-        for(var i = 0; i < size; i++) vv += Math.pow(ch[i]-mn, 2);
+        var vv = 0; for(var i = 0; i < size; i++) vv += Math.pow(ch[i]-mn, 2);
         var S = Math.sqrt(vv/size);
         if(S > 0){ rsSum += R/S; cnt++; }
       }
       if(cnt > 0){ logRS.push(Math.log(rsSum/cnt)); logN.push(Math.log(size)); }
     }
     if(logN.length < 2) return null;
-    var m = logN.length;
-    var mx = 0, my = 0;
+    var m = logN.length, mx = 0, my = 0;
     for(var i = 0; i < m; i++){ mx += logN[i]; my += logRS[i]; }
     mx /= m; my /= m;
     var sxy = 0, sxx = 0;
@@ -281,100 +294,86 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:5px 10px;border-radi
     $('vStd').textContent = st.std.toFixed(4);
     $('vZ').textContent = st.z.toFixed(2);
     $('vPct').textContent = st.pct + '%';
+    $('vN').textContent = st.n;
     var hl = calcHalfLife(curBars);
     if(hl) $('vHl').textContent = hl.hl === Infinity ? '∞' : hl.hl.toFixed(1);
     var h = calcHurst(curBars);
     if(h !== null){
       var lbl = h.toFixed(3);
-      if(h > 0.55) lbl += ' (روند)';
-      else if(h < 0.45) lbl += ' (بازگشت)';
-      else lbl += ' (تصادفی)';
+      if(h > 0.55) lbl += ' (trend)';
+      else if(h < 0.45) lbl += ' (revert)';
+      else lbl += ' (random)';
       $('vHurst').textContent = lbl;
     }
     var sig = $('sig');
     sig.classList.add('on');
     var t, c;
-    if(st.z > 2){ t = '🔴 اشباع خرید | Z=' + st.z.toFixed(2); c = 'sell'; }
-    else if(st.z < -2){ t = '🟢 اشباع فروش | Z=' + st.z.toFixed(2); c = 'buy'; }
-    else if(st.z > 1){ t = '🟠 بالاتر از میانگین'; c = 'neu'; }
-    else if(st.z < -1){ t = '🟡 پایین‌تر از میانگین'; c = 'neu'; }
-    else { t = '⚪ نرمال | Z=' + st.z.toFixed(2); c = 'neu'; }
+    if(st.z > 2){ t = 'OVERBOUGHT | Z=' + st.z.toFixed(2); c = 'sell'; }
+    else if(st.z < -2){ t = 'OVERSOLD | Z=' + st.z.toFixed(2); c = 'buy'; }
+    else if(st.z > 1){ t = 'Above Mean'; c = 'neu'; }
+    else if(st.z < -1){ t = 'Below Mean'; c = 'neu'; }
+    else { t = 'Normal | Z=' + st.z.toFixed(2); c = 'neu'; }
     sig.textContent = t;
     sig.className = 'on ' + c;
-    $('stCount').textContent = curBars.length;
   }
 
-  /* ========== راه‌اندازی Vela (با cleanup کامل) ========== */
+  /* ========== Vela ========== */
   function renderVela(){
     try {
-      // ۱. از بین بردن کامل Vela قبلی
       if(velaChart){
         try {
           if(typeof velaChart.destroy === 'function') velaChart.destroy();
           else if(typeof velaChart.dispose === 'function') velaChart.dispose();
-        } catch(e){ console.warn('destroy error:', e); }
+        } catch(e){}
         velaChart = null;
       }
-
-      // ۲. تعویض کل DOM چارت (تمیز کردن کامل)
       var wrap = $('chartWrap');
       wrap.innerHTML = '<div id="chart"></div>';
 
-      // ۳. بررسی Vela
-      if(typeof window.Vela === 'undefined'){
-        throw new Error('Vela لود نشد');
-      }
+      if(typeof window.Vela === 'undefined') throw new Error('Vela لود نشد');
       var VC = window.Vela.Vela || window.Vela;
-      if(typeof VC !== 'function'){
-        throw new Error('Vela constructor پیدا نشد');
-      }
+      if(typeof VC !== 'function') throw new Error('Vela constructor پیدا نشد');
 
-      // ۴. ساخت Vela جدید
-      velaChart = new VC('#chart', {
+      var opts = {
         data: curBars,
         timeframe: curTF,
         theme: 'dark',
         priceStyle: 'candles'
-      });
+      };
+      if(scaleMode === 'log') opts.logScale = true;
 
-      console.log('[Vela] rendered', curBars.length, 'bars');
-
+      velaChart = new VC('#chart', opts);
     } catch(e){
-      showError('خطا در Vela: ' + e.message);
+      console.error('Vela error:', e);
+      $('chartWrap').innerHTML = '<div style="padding:40px;color:#ef5350;text-align:center">خطا: ' + e.message + '</div>';
     }
   }
 
   /* ========== تحلیل ========== */
   function analyze(){
     $('load').classList.remove('off');
-    $('load').innerHTML = '<div class="spin"></div><span>در حال دریافت داده...</span>';
-    $('stStatus').textContent = 'دریافت...';
+    $('load').innerHTML = '<div class="spin"></div><span>Loading...</span>';
     var f1 = SYMBOLS[+$('sym1').value].file;
     var f2 = SYMBOLS[+$('sym2').value].file;
     Promise.all([
       fetch(BASE + f1).then(function(r){ return r.json(); }),
       fetch(BASE + f2).then(function(r){ return r.json(); })
     ]).then(function(res){
-      raw1 = res[0];
-      raw2 = res[1];
-      if(!raw1.length || !raw2.length) throw new Error('داده خالی');
+      raw1 = res[0]; raw2 = res[1];
+      if(!raw1.length || !raw2.length) throw new Error('no data');
       var a1 = aggregate(raw1, curTF);
       var a2 = aggregate(raw2, curTF);
       allBars = buildRatio(a1, a2);
-      if(allBars.length < 2) throw new Error('داده کافی نیست');
+      if(allBars.length < 2) throw new Error('not enough data');
       applyRange();
       renderVela();
       updateStats();
       $('load').classList.add('off');
-      $('stStatus').textContent = 'آماده';
     }).catch(function(e){
-      $('load').innerHTML = '<span style="color:#ef5350">خطا: ' + e.message + '</span>';
-      $('stStatus').textContent = 'خطا';
-      showError(e.message);
+      $('load').innerHTML = '<span style="color:#ef5350">Error: ' + e.message + '</span>';
     });
   }
 
-  /* ========== بازه ========== */
   function applyRange(){
     if(!allBars.length){ curBars = []; return; }
     if(curRange === 0){ curBars = allBars.slice(); return; }
@@ -383,66 +382,63 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:5px 10px;border-radi
   }
 
   /* ========== دکمه‌ها ========== */
-  function clearON(ids){
-    ids.forEach(function(id){ $(id).classList.remove('on'); });
+  $('btnAnalyze').addEventListener('click', analyze);
+
+  $('tfSelect').addEventListener('change', function(){
+    curTF = this.value;
+    if(!raw1) return;
+    var a1 = aggregate(raw1, curTF);
+    var a2 = aggregate(raw2, curTF);
+    allBars = buildRatio(a1, a2);
+    applyRange(); renderVela(); updateStats();
+  });
+
+  // بازه‌ها
+  document.querySelectorAll('.botbar [data-range]').forEach(function(b){
+    b.addEventListener('click', function(){
+      curRange = +this.dataset.range;
+      document.querySelectorAll('.botbar [data-range]').forEach(function(x){ x.classList.remove('on'); });
+      this.classList.add('on');
+      if(!allBars.length) return;
+      applyRange(); renderVela(); updateStats();
+    });
+  });
+
+  // log
+  function toggleLog(){
+    scaleMode = scaleMode === 'log' ? 'auto' : 'log';
+    $('btnLog').classList.toggle('on', scaleMode === 'log');
+    $('btnLog2').classList.toggle('on', scaleMode === 'log');
+    $('btnAuto').classList.toggle('on', scaleMode === 'auto');
+    if(allBars.length) renderVela();
   }
-  function setON(id){ $(id).classList.add('on'); }
+  $('btnLog').addEventListener('click', toggleLog);
+  $('btnLog2').addEventListener('click', toggleLog);
 
-  $('btnTF_D').addEventListener('click', function(){
-    curTF = '1D';
-    clearON(['btnTF_D','btnTF_W','btnTF_M']);
-    setON('btnTF_D');
-    if(!raw1) return;
-    var a1 = aggregate(raw1, '1D');
-    var a2 = aggregate(raw2, '1D');
-    allBars = buildRatio(a1, a2);
-    applyRange(); renderVela(); updateStats();
-  });
-  $('btnTF_W').addEventListener('click', function(){
-    curTF = '1W';
-    clearON(['btnTF_D','btnTF_W','btnTF_M']);
-    setON('btnTF_W');
-    if(!raw1) return;
-    var a1 = aggregate(raw1, '1W');
-    var a2 = aggregate(raw2, '1W');
-    allBars = buildRatio(a1, a2);
-    applyRange(); renderVela(); updateStats();
-  });
-  $('btnTF_M').addEventListener('click', function(){
-    curTF = '1M';
-    clearON(['btnTF_D','btnTF_W','btnTF_M']);
-    setON('btnTF_M');
-    if(!raw1) return;
-    var a1 = aggregate(raw1, '1M');
-    var a2 = aggregate(raw2, '1M');
-    allBars = buildRatio(a1, a2);
-    applyRange(); renderVela(); updateStats();
-  });
-
-  function setRangeAndRender(days, btnId){
-    curRange = days;
-    clearON(['btnR90','btnR365','btnR1825','btnR0']);
-    setON(btnId);
-    if(!allBars.length) return;
-    applyRange(); renderVela(); updateStats();
-  }
-  $('btnR90').addEventListener('click', function(){ setRangeAndRender(90, 'btnR90'); });
-  $('btnR365').addEventListener('click', function(){ setRangeAndRender(365, 'btnR365'); });
-  $('btnR1825').addEventListener('click', function(){ setRangeAndRender(1825, 'btnR1825'); });
-  $('btnR0').addEventListener('click', function(){ setRangeAndRender(0, 'btnR0'); });
-
-  $('btnLog').addEventListener('click', function(){
-    isLog = !isLog;
-    this.classList.toggle('on', isLog);
-    this.textContent = isLog ? 'خطی' : 'لگاریتمی';
+  // %
+  $('btnPercent').addEventListener('click', function(){
+    this.classList.toggle('on');
     if(allBars.length) renderVela();
   });
+
+  // auto
+  $('btnAuto').addEventListener('click', function(){
+    scaleMode = 'auto';
+    $('btnLog').classList.remove('on');
+    $('btnLog2').classList.remove('on');
+    this.classList.add('on');
+    if(allBars.length) renderVela();
+  });
+
+  // stats
   $('btnStats').addEventListener('click', function(){
     $('stats').classList.toggle('on');
     this.classList.toggle('on');
   });
+
+  // CSV
   $('btnCSV').addEventListener('click', function(){
-    if(!curBars.length){ alert('ابتدا تحلیل کنید'); return; }
+    if(!curBars.length){ alert('load data first'); return; }
     var s1 = SYMBOLS[+$('sym1').value].name;
     var s2 = SYMBOLS[+$('sym2').value].name;
     var csv = 'date,open,high,low,close\n';
@@ -455,10 +451,7 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:5px 10px;border-radi
     a.download = s1 + '_' + s2 + '.csv';
     a.click();
   });
-  $('btnAnalyze').addEventListener('click', analyze);
 
-  /* ========== شروع ========== */
-  loadSymbols();
 })();
 </script>
 </body>
