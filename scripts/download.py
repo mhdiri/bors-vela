@@ -3,6 +3,7 @@ import json
 import os
 import time
 
+
 API = "https://rahavard365.com/api/v2"
 
 TOKEN = os.environ.get("RV_TOKEN", "")
@@ -15,6 +16,7 @@ HEADERS = {
 
 
 def get_bars(asset_id):
+
     url = (
         API
         + "/chart/bars?countback=5000"
@@ -39,7 +41,7 @@ def get_bars(asset_id):
 
 def main():
 
-    print("=== RAHAVARD DATA TEST ===")
+    print("=== RAHAVARD FULL DOWNLOAD ===")
 
     with open(
         "data/symbols.json",
@@ -48,56 +50,108 @@ def main():
     ) as f:
         symbols = json.load(f)
 
+
     print("Total symbols:", len(symbols))
 
-    os.makedirs("data/test", exist_ok=True)
 
+    os.makedirs(
+        "data/raw",
+        exist_ok=True
+    )
+
+
+    errors = []
     success = 0
 
-    # فعلا فقط 10 نماد اول برای تست
-    for s in symbols[:10]:
+
+    for index, s in enumerate(symbols, start=1):
 
         name = s["name"]
         asset_id = s["id"]
 
-        print("")
-        print("Downloading:", name, asset_id)
+        print(
+            f"[{index}/{len(symbols)}] {name} ({asset_id})"
+        )
 
         try:
 
             result = get_bars(asset_id)
 
-            if "data" not in result:
-                print("NO DATA")
+
+            if "data" not in result or not result["data"]:
+
+                print("  NO DATA")
+
+                errors.append({
+                    "name": name,
+                    "id": asset_id,
+                    "error": "no data"
+                })
+
                 continue
+
 
             bars = result["data"]
 
-            print("Candles:", len(bars))
 
             with open(
-                f"data/test/{asset_id}.json",
+                f"data/raw/{asset_id}.json",
                 "w",
                 encoding="utf-8"
             ) as f:
+
                 json.dump(
                     bars,
                     f,
                     ensure_ascii=False
                 )
 
+
             success += 1
 
+            print(
+                "  candles:",
+                len(bars)
+            )
+
+
         except Exception as e:
-            print("ERROR:", e)
+
+            print(
+                "  ERROR:",
+                e
+            )
+
+            errors.append({
+                "name": name,
+                "id": asset_id,
+                "error": str(e)
+            })
+
 
         time.sleep(1)
 
 
+
+    with open(
+        "data/errors.json",
+        "w",
+        encoding="utf-8"
+    ) as f:
+
+        json.dump(
+            errors,
+            f,
+            ensure_ascii=False,
+            indent=2
+        )
+
+
     print("")
-    print("====================")
-    print("Successful:", success)
-    print("====================")
+    print("======================")
+    print("SUCCESS:", success)
+    print("ERRORS:", len(errors))
+    print("======================")
 
 
 if __name__ == "__main__":
