@@ -42,9 +42,10 @@ SUSPICIOUS_RATIO = 0.5
 MAX_DATA_AGE_HOURS = 6
 
 # ===== تعدیل =====
-ADJUST_GAPS = True          # ← حالا روشن
+ADJUST_GAPS = True
 THRESHOLD_HIGH = 1.4
 THRESHOLD_LOW = 0.7
+
 
 def acquire_lock():
     os.makedirs("data", exist_ok=True)
@@ -55,7 +56,7 @@ def acquire_lock():
             lock_time = datetime.fromisoformat(info.get("time", ""))
             age = (datetime.now() - lock_time).total_seconds() / 3600
             if age < MAX_DATA_AGE_HOURS:
-                print("❌ LOCK exists. Another update running.")
+                print("LOCK exists. Another update running.")
                 sys.exit(1)
             else:
                 os.remove(LOCK_FILE)
@@ -64,9 +65,11 @@ def acquire_lock():
     with open(LOCK_FILE, "w", encoding="utf-8") as f:
         json.dump({"time": datetime.now().isoformat(), "pid": os.getpid()}, f)
 
+
 def release_lock():
     if os.path.exists(LOCK_FILE):
         os.remove(LOCK_FILE)
+
 
 def request_json(url):
     last = None
@@ -92,6 +95,7 @@ def request_json(url):
             time.sleep(SLEEP_RETRY * attempt)
     raise Exception("MAX_RETRY: " + str(last)[:100])
 
+
 def get_bars(asset_id):
     url = (API + "/chart/bars?countback=5000"
            + "&symbol=exchange.asset:" + str(asset_id) + ":real_close:type0"
@@ -99,6 +103,7 @@ def get_bars(asset_id):
            + "&from=2000-01-01T00:00:00Z"
            + "&to=2030-01-01T00:00:00Z")
     return request_json(url)
+
 
 def load_json(path, default=None):
     if not os.path.exists(path):
@@ -108,6 +113,7 @@ def load_json(path, default=None):
             return json.load(f)
     except Exception:
         return default if default is not None else []
+
 
 def save_safe(path, data):
     folder = os.path.dirname(path)
@@ -120,6 +126,7 @@ def save_safe(path, data):
         json.load(f)
     os.replace(temp, path)
 
+
 def backup_file(path):
     if not os.path.exists(path):
         return None
@@ -129,39 +136,53 @@ def backup_file(path):
     shutil.copy2(path, backup)
     return backup
 
+
 def rollback(path, backup):
     if backup and os.path.exists(backup):
         shutil.copy2(backup, path)
 
+
 def validate_candle(c):
-    if not isinstance(c, dict): return False
-    if "time" not in c: return False
-    if not isinstance(c["time"], (int, float)): return False
+    if not isinstance(c, dict):
+        return False
+    if "time" not in c:
+        return False
+    if not isinstance(c["time"], (int, float)):
+        return False
     close = c.get("close")
-    if close is None: return False
+    if close is None:
+        return False
     try:
-        if float(close) <= 0: return False
+        if float(close) <= 0:
+            return False
     except Exception:
         return False
     return True
 
+
 def validate_data(data):
-    if not data or not isinstance(data, list): return False
-    if len(data) < MIN_CANDLES: return False
+    if not data or not isinstance(data, list):
+        return False
+    if len(data) < MIN_CANDLES:
+        return False
     for c in data:
-        if not validate_candle(c): return False
+        if not validate_candle(c):
+            return False
     return True
+
 
 def clean_data(data):
     seen = set()
     out = []
     for c in data:
         t = c.get("time")
-        if t in seen: continue
+        if t in seen:
+            continue
         seen.add(t)
         out.append(c)
     out.sort(key=lambda x: x["time"])
     return out
+
 
 def find_gaps(bars):
     gaps = []
@@ -173,6 +194,7 @@ def find_gaps(bars):
             if r > THRESHOLD_HIGH or r < THRESHOLD_LOW:
                 gaps.append({"idx": i, "ratio": r})
     return gaps
+
 
 def adjust_bars(bars):
     adjusted = [dict(b) for b in bars]
@@ -186,6 +208,7 @@ def adjust_bars(bars):
                 if v is not None:
                     adjusted[j][key] = round(v * r, 6)
     return adjusted
+
 
 def update_symbol(symbol):
     asset_id = symbol["id"]
@@ -209,21 +232,24 @@ def update_symbol(symbol):
     if old_count > 0 and len(new_raw) < old_count * SUSPICIOUS_RATIO:
         raise Exception("SUSPICIOUS_REDUCTION")
 
+    # ★★★ تعدیل خودکار ★★★
     if ADJUST_GAPS:
         new_raw = adjust_bars(new_raw)
-
-    old_times = set()
-    for c in old:
-        if "time" in c:
-            old_times.add(c["time"])
-
-    added = 0
-    merged = list(old)
-    for candle in new_raw:
-        if candle["time"] not in old_times:
-            merged.append(candle)
-            old_times.add(candle["time"])
-            added += 1
+        # وقتی تعدیل روشنه، کل داده از نو جایگزین می‌شه
+        merged = list(new_raw)
+        added = len(new_raw)
+    else:
+        old_times = set()
+        for c in old:
+            if "time" in c:
+                old_times.add(c["time"])
+        added = 0
+        merged = list(old)
+        for candle in new_raw:
+            if candle["time"] not in old_times:
+                merged.append(candle)
+                old_times.add(candle["time"])
+                added += 1
 
     merged = clean_data(merged)
 
@@ -252,10 +278,11 @@ def update_symbol(symbol):
         "gaps": gaps_final
     }
 
+
 def main():
     start = datetime.now()
     print("=" * 60)
-    print("🚀 RAHAVARD UPDATE V5 - با تعدیل")
+    print("RAHAVARD UPDATE V5 - with Adjust")
     print("=" * 60)
     print("Test mode: " + str(TEST_MODE))
     print("Adjust gaps: " + str(ADJUST_GAPS))
@@ -268,14 +295,14 @@ def main():
 
         symbols = load_json(SYMBOL_FILE, default=[])
         if not symbols:
-            print("❌ symbols.json empty")
+            print("symbols.json empty")
             return
 
         if TEST_MODE:
             symbols = [s for s in symbols if s["name"] in TEST_SYMBOLS]
-            print("🧪 TEST MODE: " + str(len(symbols)))
+            print("TEST MODE: " + str(len(symbols)))
         else:
-            print("📊 FULL MODE: " + str(len(symbols)))
+            print("FULL MODE: " + str(len(symbols)))
 
         print("")
 
@@ -293,12 +320,12 @@ def main():
                 print("     Final:      " + str(r["final"]))
                 if r["gaps"] >= 0:
                     print("     Gaps:       " + str(r["gaps"]))
-                print("     Status:     ✅ OK")
+                print("     Status:     OK")
                 total_added += r["added"]
                 success += 1
                 results.append(r)
             except Exception as e:
-                print("     Status:     ❌ ERROR")
+                print("     Status:     ERROR")
                 print("     Reason:     " + str(e)[:120])
                 errors.append({
                     "name": symbol["name"],
@@ -310,14 +337,24 @@ def main():
 
         save_safe(ERROR_FILE, errors)
 
-        # status
         status = load_json(STATUS_FILE, default={})
-        if not isinstance(status, dict): status = {}
+        if not isinstance(status, dict):
+            status = {}
         now = datetime.now().isoformat()
         for r in results:
-            status[str(r["id"])] = {"name": r["name"], "last_update": now, "candles": r["final"], "status": "ok"}
+            status[str(r["id"])] = {
+                "name": r["name"],
+                "last_update": now,
+                "candles": r["final"],
+                "status": "ok"
+            }
         for e in errors:
-            status[str(e["id"])] = {"name": e["name"], "last_update": now, "status": "error", "error": e["error"]}
+            status[str(e["id"])] = {
+                "name": e["name"],
+                "last_update": now,
+                "status": "error",
+                "error": e["error"]
+            }
         save_safe(STATUS_FILE, status)
 
         report = {
@@ -334,14 +371,15 @@ def main():
 
         print("")
         print("=" * 60)
-        print("✅ SUCCESS:    " + str(success))
-        print("❌ ERRORS:     " + str(len(errors)))
-        print("📊 NEW CANDLES: " + str(total_added))
-        print("⏱  DURATION:   " + str(report["duration_seconds"]) + "s")
+        print("SUCCESS:     " + str(success))
+        print("ERRORS:      " + str(len(errors)))
+        print("NEW CANDLES: " + str(total_added))
+        print("DURATION:    " + str(report["duration_seconds"]) + "s")
         print("=" * 60)
 
     finally:
         release_lock()
+
 
 if __name__ == "__main__":
     main()
