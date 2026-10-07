@@ -14,17 +14,41 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0"
 }
 
-
 RAW_DIR = "data/raw"
 
+SYMBOL_FILE = "data/symbols.json"
 
-TEST_SYMBOLS = [
-    {"name": "فولاد", "id": 453},
-    {"name": "غچین", "id": 35},
-    {"name": "فسرب", "id": 253},
-    {"name": "کیسون", "id": 505},
-    {"name": "فاما", "id": 147}
-]
+ERROR_FILE = "data/update_errors.json"
+
+
+def request_json(url, retry=3):
+
+    for attempt in range(retry):
+
+        try:
+
+            req = urllib.request.Request(
+                url,
+                headers=HEADERS
+            )
+
+            with urllib.request.urlopen(
+                req,
+                timeout=60
+            ) as r:
+
+                return json.loads(
+                    r.read().decode("utf-8")
+                )
+
+
+        except Exception as e:
+
+            if attempt == retry - 1:
+                raise e
+
+            time.sleep(3)
+
 
 
 def get_bars(asset_id):
@@ -40,20 +64,11 @@ def get_bars(asset_id):
         + "&to=2030-01-01T00:00:00Z"
     )
 
-    req = urllib.request.Request(
-        url,
-        headers=HEADERS
-    )
-
-    with urllib.request.urlopen(req, timeout=60) as r:
-        return json.loads(
-            r.read().decode("utf-8")
-        )
+    return request_json(url)
 
 
-def load_old(asset_id):
 
-    path = f"{RAW_DIR}/{asset_id}.json"
+def load_json(path):
 
     if not os.path.exists(path):
         return []
@@ -63,18 +78,21 @@ def load_old(asset_id):
         "r",
         encoding="utf-8"
     ) as f:
+
         return json.load(f)
 
 
-def save_data(asset_id, data):
 
-    path = f"{RAW_DIR}/{asset_id}.json"
+def save_safe(path, data):
+
+    temp = path + ".tmp"
 
     with open(
-        path,
+        temp,
         "w",
         encoding="utf-8"
     ) as f:
+
         json.dump(
             data,
             f,
@@ -82,41 +100,53 @@ def save_data(asset_id, data):
         )
 
 
+    os.replace(
+        temp,
+        path
+    )
+
+
+
 def update_symbol(symbol):
 
     asset_id = symbol["id"]
 
-    print("\nUpdating:", symbol["name"])
+    name = symbol["name"]
 
-    old = load_old(asset_id)
+    path = f"{RAW_DIR}/{asset_id}.json"
 
-    print("Old candles:", len(old))
+
+    old = load_json(path)
 
 
     result = get_bars(asset_id)
 
+
     if "data" not in result:
-        print("No data")
-        return
+
+        raise Exception(
+            "No data"
+        )
 
 
     new = result["data"]
 
-    print("Downloaded:", len(new))
-
 
     old_times = set()
 
-    for candle in old:
-        old_times.add(candle["time"])
+    for c in old:
+        old_times.add(c["time"])
 
 
     added = 0
 
+
     for candle in new:
 
         if candle["time"] not in old_times:
+
             old.append(candle)
+
             added += 1
 
 
@@ -125,38 +155,125 @@ def update_symbol(symbol):
     )
 
 
-    save_data(
-        asset_id,
+    save_safe(
+        path,
         old
     )
 
 
-    print("Added:", added)
-    print("Final:", len(old))
+    return {
+        "name": name,
+        "id": asset_id,
+        "old": len(old)-added,
+        "downloaded": len(new),
+        "added": added,
+        "final": len(old)
+    }
+
 
 
 def main():
 
-    print("=== DAILY UPDATE TEST ===")
+
+    print("=== DAILY UPDATE START ===")
 
 
-    for symbol in TEST_SYMBOLS:
+    symbols = load_json(
+        SYMBOL_FILE
+    )
+
+
+    errors = []
+
+    success = 0
+
+    total_added = 0
+
+
+    print(
+        "TOTAL SYMBOLS:",
+        len(symbols)
+    )
+
+
+    for index, symbol in enumerate(
+        symbols,
+        start=1
+    ):
+
 
         try:
-            update_symbol(symbol)
+
+            print(
+                f"\n[{index}/{len(symbols)}]",
+                symbol["name"]
+            )
+
+
+            result = update_symbol(
+                symbol
+            )
+
+
+            print(
+                "Added:",
+                result["added"]
+            )
+
+
+            total_added += result["added"]
+
+            success += 1
+
+
 
         except Exception as e:
+
+
             print(
                 "ERROR:",
                 symbol["name"],
                 e
             )
 
+
+            errors.append(
+                {
+                    "name": symbol["name"],
+                    "id": symbol["id"],
+                    "error": str(e)
+                }
+            )
+
+
         time.sleep(1)
 
 
-    print("\n=== FINISHED ===")
+
+    save_safe(
+        ERROR_FILE,
+        errors
+    )
+
+
+    print("")
+    print("======================")
+    print(
+        "SUCCESS:",
+        success
+    )
+    print(
+        "ERRORS:",
+        len(errors)
+    )
+    print(
+        "NEW CANDLES:",
+        total_added
+    )
+    print("======================")
+
 
 
 if __name__ == "__main__":
+
     main()
