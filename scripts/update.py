@@ -4,8 +4,6 @@ import urllib.request
 
 TOKEN = os.environ.get("RV_TOKEN", "")
 
-API = "https://rahavard365.com/api/v2"
-
 HEADERS = {
     "Authorization": "Bearer " + TOKEN,
     "Accept": "application/json",
@@ -22,25 +20,9 @@ TEST_SYMBOLS = [
 ]
 
 
-def get_json(url):
-
-    req = urllib.request.Request(
-        url,
-        headers=HEADERS
-    )
-
-    with urllib.request.urlopen(req, timeout=60) as r:
-        return json.loads(
-            r.read().decode("utf-8")
-        )
-
-
 def load_old(symbol_id):
 
-    path = os.path.join(
-        RAW_DIR,
-        symbol_id + ".json"
-    )
+    path = f"{RAW_DIR}/{symbol_id}.json"
 
     if not os.path.exists(path):
         return []
@@ -49,28 +31,9 @@ def load_old(symbol_id):
         return json.load(f)
 
 
-def save_data(symbol_id, data):
-
-    path = os.path.join(
-        RAW_DIR,
-        symbol_id + ".json"
-    )
-
-    with open(
-        path,
-        "w",
-        encoding="utf-8"
-    ) as f:
-        json.dump(
-            data,
-            f,
-            ensure_ascii=False
-        )
-
-
 def get_last_time(data):
 
-    if not data:
+    if len(data) == 0:
         return 0
 
     return data[-1]["time"]
@@ -78,20 +41,16 @@ def get_last_time(data):
 
 def update_symbol(item):
 
-    symbol_id = item["id"]
-
-    old = load_old(symbol_id)
+    old = load_old(item["id"])
 
     last_time = get_last_time(old)
 
-    print("\nUpdating", item["name"])
-    print("Old:", len(old))
+    print("\nSymbol:", item["name"])
+    print("Old candles:", len(old))
     print("Last time:", last_time)
 
-    # مرحله اتصال API جدید اینجا قرار می‌گیرد
-    # فعلاً فقط تست تشخیص آخرین کندل
-
-    return True
+    # مرحله بعد:
+    # درخواست API جدید اینجا اضافه می‌شود
 
 
 def main():
