@@ -1,47 +1,120 @@
 import os
 import json
+import urllib.request
+from datetime import datetime
+
+TOKEN = os.environ.get("RV_TOKEN", "")
+
+API = "https://rahavard365.com/api/v2"
+
+HEADERS = {
+    "Authorization": "Bearer " + TOKEN,
+    "Accept": "application/json",
+    "User-Agent": "Mozilla/5.0"
+}
 
 RAW_DIR = "data/raw"
 
 TEST_SYMBOLS = [
-    "453",
-    "484",
-    "35",
-    "253",
-    "505"
+    {
+        "name": "فولاد",
+        "id": "453"
+    },
+    {
+        "name": "غچین",
+        "id": "35"
+    },
+    {
+        "name": "فسرب",
+        "id": "253"
+    },
+    {
+        "name": "کیسون",
+        "id": "505"
+    }
 ]
 
 
-def check_data():
+def get_json(url):
 
-    print("=== UPDATE TEST ===")
+    req = urllib.request.Request(
+        url,
+        headers=HEADERS
+    )
 
-    for symbol in TEST_SYMBOLS:
-
-        file_path = os.path.join(
-            RAW_DIR,
-            f"{symbol}.json"
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return json.loads(
+            r.read().decode("utf-8")
         )
 
-        if os.path.exists(file_path):
 
-            with open(file_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
+def load_old(symbol_id):
 
-            print(
-                symbol,
-                "candles:",
-                len(data)
-            )
+    path = os.path.join(
+        RAW_DIR,
+        symbol_id + ".json"
+    )
 
-        else:
-            print(
-                symbol,
-                "NOT FOUND"
-            )
+    if not os.path.exists(path):
+        return []
 
-    print("===================")
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def save_data(symbol_id, data):
+
+    path = os.path.join(
+        RAW_DIR,
+        symbol_id + ".json"
+    )
+
+    with open(
+        path,
+        "w",
+        encoding="utf-8"
+    ) as f:
+
+        json.dump(
+            data,
+            f,
+            ensure_ascii=False
+        )
+
+
+def update_symbol(item):
+
+    symbol_id = item["id"]
+
+    old = load_old(symbol_id)
+
+    print(
+        "\nUpdating",
+        item["name"],
+        symbol_id
+    )
+
+    print(
+        "Old candles:",
+        len(old)
+    )
+
+    # فعلاً فقط بررسی ساختار
+    # دریافت واقعی در مرحله بعد اضافه می‌شود
+
+    return True
+
+
+def main():
+
+    print("=== UPDATE START ===")
+
+    for item in TEST_SYMBOLS:
+
+        update_symbol(item)
+
+    print("\n=== UPDATE FINISHED ===")
 
 
 if __name__ == "__main__":
-    check_data()
+    main()
