@@ -37,7 +37,7 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radiu
 #chart{width:100%;height:100%}
 #load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(19,23,34,.85);color:#aed581;font-size:13px;z-index:200;font-family:monospace}
 #load.off{display:none}
-#err{position:absolute;bottom:10px;left:10px;right:10px;background:#ef5350;color:#fff;padding:10px 14px;border-radius:3px;font-family:monospace;font-size:12px;z-index:300;display:none}
+#err{position:absolute;bottom:10px;left:10px;right:10px;background:#ef5350;color:#fff;padding:10px 14px;border-radius:3px;font-family:monospace;font-size:11px;z-index:300;display:none;direction:ltr;word-break:break-all}
 #err.on{display:block}
 </style>
 </head>
@@ -113,7 +113,6 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radiu
     var e = $('err');
     e.textContent = '❌ ' + msg;
     e.classList.add('on');
-    setTimeout(function(){ e.classList.remove('on'); }, 5000);
     console.error(msg);
   }
 
@@ -203,21 +202,48 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radiu
       });
     } catch(e){
       console.error('Vela error:', e);
-      showErr('خطا: ' + e.message);
+      showErr('خطا در Vela: ' + e.message);
     }
   }
 
   function analyze(){
     if(!SYMBOLS.length){ showErr('لیست نمادها آماده نیست'); return; }
     setLoad('دریافت داده...');
-    // ★★★ تغییر اصلی: استفاده از data/raw/{id}.json ★★★
-    var url1 = BASE + 'data/raw/' + SYMBOLS[sym1Idx].id + '.json?v=' + Date.now();
-    var url2 = BASE + 'data/raw/' + SYMBOLS[sym2Idx].id + '.json?v=' + Date.now();
+
+    var id1 = SYMBOLS[sym1Idx].id;
+    var id2 = SYMBOLS[sym2Idx].id;
+    var url1 = BASE + 'data/raw/' + id1 + '.json?v=' + Date.now();
+    var url2 = BASE + 'data/raw/' + id2 + '.json?v=' + Date.now();
+
+    console.log('[analyze] urls:', url1, url2);
+
     Promise.all([
-      fetch(url1).then(function(r){ return r.json(); }),
-      fetch(url2).then(function(r){ return r.json(); })
-    ]).then(function(res){
-      raw1 = res[0]; raw2 = res[1];
+      fetch(url1).then(function(r){
+        if(!r.ok) throw new Error('HTTP ' + r.status + ' for ' + url1);
+        return r.text();
+      }),
+      fetch(url2).then(function(r){
+        if(!r.ok) throw new Error('HTTP ' + r.status + ' for ' + url2);
+        return r.text();
+      })
+    ]).then(function(texts){
+      // پارس امن JSON
+      function safeJSON(t, label){
+        try {
+          return JSON.parse(t);
+        } catch(e){
+          var snippet = t.substring(0, 80).replace(/\n/g, ' ');
+          throw new Error('JSON خرابه در ' + label + ': ' + e.message + ' | شروع فایل: ' + snippet);
+        }
+      }
+      raw1 = safeJSON(texts[0], 'data/raw/' + id1 + '.json');
+      raw2 = safeJSON(texts[1], 'data/raw/' + id2 + '.json');
+
+      if(!Array.isArray(raw1)) throw new Error('data/raw/' + id1 + '.json آرایه نیست');
+      if(!Array.isArray(raw2)) throw new Error('data/raw/' + id2 + '.json آرایه نیست');
+
+      console.log('[data] raw1:', raw1.length, 'raw2:', raw2.length);
+
       var a1 = aggregate(raw1, curTF), a2 = aggregate(raw2, curTF);
       allBars = buildRatio(a1, a2);
       if(!allBars.length){ showErr('داده کافی نیست'); setLoad(false); return; }
@@ -227,7 +253,7 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radiu
         setLoad(false);
       }, 50);
     }).catch(function(e){
-      showErr('خطا: ' + e.message);
+      showErr(e.message);
       setLoad(false);
     });
   }
