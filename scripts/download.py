@@ -2,10 +2,11 @@ import urllib.request
 import json
 import os
 import time
-from datetime import datetime, timezone
+
+
+API = "https://rahavard365.com/api/v2"
 
 TOKEN = os.environ.get("RV_TOKEN", "")
-API = "https://rahavard365.com/api/v2"
 
 HEADERS = {
     "Authorization": "Bearer " + TOKEN,
@@ -13,138 +14,143 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0"
 }
 
-RAW_DIR = "data/raw"
-SYMBOL_FILE = "data/symbols.json"
 
-def get_json(url):
-    req = urllib.request.Request(url, headers=HEADERS)
-    with urllib.request.urlopen(req, timeout=60) as r:
-        return json.loads(r.read().decode("utf-8"))
+def get_bars(asset_id):
 
-
-def get_bars(symbol_id, countback=5000):
     url = (
-        API +
-        "/chart/bars?countback=" + str(countback) +
-        "&symbol=exchange.asset:" +
-        str(symbol_id) +
-        ":real_close:type0" +
-        "&resolution=D"
+        API
+        + "/chart/bars?countback=5000"
+        + "&symbol=exchange.asset:"
+        + str(asset_id)
+        + ":real_close:type0"
+        + "&resolution=D"
+        + "&from=2000-01-01T00:00:00Z"
+        + "&to=2030-01-01T00:00:00Z"
     )
 
-    return get_json(url)
-
-
-def load_old(symbol_id):
-    path = f"{RAW_DIR}/{symbol_id}.json"
-
-    if os.path.exists(path):
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-
-    return []
-
-
-def save(symbol_id, data):
-    os.makedirs(RAW_DIR, exist_ok=True)
-
-    with open(
-        f"{RAW_DIR}/{symbol_id}.json",
-        "w",
-        encoding="utf-8"
-    ) as f:
-        json.dump(data, f, ensure_ascii=False)
-
-
-def update_symbol(name, symbol_id):
-
-    old = load_old(symbol_id)
-
-    new = get_bars(symbol_id)
-
-    if "data" not in new or not new["data"]:
-        print("EMPTY:", name)
-        return False
-
-    candles = new["data"]
-
-    # حذف تکراری‌ها بر اساس زمان
-    merged = {}
-
-    for c in old:
-        merged[c["time"]] = c
-
-    for c in candles:
-        merged[c["time"]] = c
-
-    result = sorted(
-        merged.values(),
-        key=lambda x: x["time"]
+    req = urllib.request.Request(
+        url,
+        headers=HEADERS
     )
 
-    save(symbol_id, result)
-
-    print(
-        name,
-        "| old:",
-        len(old),
-        "| new:",
-        len(result)
-    )
-
-    return True
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return json.loads(
+            r.read().decode("utf-8")
+        )
 
 
 def main():
 
+    print("=== RAHAVARD FULL DOWNLOAD ===")
+
     with open(
-        SYMBOL_FILE,
+        "data/symbols.json",
         "r",
         encoding="utf-8"
     ) as f:
         symbols = json.load(f)
 
 
+    print("Total symbols:", len(symbols))
+
+
+    os.makedirs(
+        "data/raw",
+        exist_ok=True
+    )
+
+
+    errors = []
     success = 0
-    errors = 0
-
-    print("======================")
-    print("RAHAVARD DAILY UPDATE")
-    print("TOTAL:", len(symbols))
-    print("======================")
 
 
-    for i, s in enumerate(symbols, 1):
+    for index, s in enumerate(symbols, start=1):
+
+        name = s["name"]
+        asset_id = s["id"]
+
+        print(
+            f"[{index}/{len(symbols)}] {name} ({asset_id})"
+        )
 
         try:
 
+            result = get_bars(asset_id)
+
+
+            if "data" not in result or not result["data"]:
+
+                print("  NO DATA")
+
+                errors.append({
+                    "name": name,
+                    "id": asset_id,
+                    "error": "no data"
+                })
+
+                continue
+
+
+            bars = result["data"]
+
+
+            with open(
+                f"data/raw/{asset_id}.json",
+                "w",
+                encoding="utf-8"
+            ) as f:
+
+                json.dump(
+                    bars,
+                    f,
+                    ensure_ascii=False
+                )
+
+
+            success += 1
+
             print(
-                f"[{i}/{len(symbols)}]",
-                s["name"],
-                s["id"]
+                "  candles:",
+                len(bars)
             )
 
-            if update_symbol(
-                s["name"],
-                s["id"]
-            ):
-                success += 1
 
         except Exception as e:
 
-            errors += 1
             print(
-                "ERROR:",
-                s["name"],
+                "  ERROR:",
                 e
             )
 
-        time.sleep(0.5)
+            errors.append({
+                "name": name,
+                "id": asset_id,
+                "error": str(e)
+            })
 
 
+        time.sleep(1)
+
+
+
+    with open(
+        "data/errors.json",
+        "w",
+        encoding="utf-8"
+    ) as f:
+
+        json.dump(
+            errors,
+            f,
+            ensure_ascii=False,
+            indent=2
+        )
+
+
+    print("")
     print("======================")
     print("SUCCESS:", success)
-    print("ERRORS:", errors)
+    print("ERRORS:", len(errors))
     print("======================")
 
 
