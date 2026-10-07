@@ -1,10 +1,12 @@
-import os
-import json
 import urllib.request
+import json
+import os
+import time
 
-TOKEN = os.environ.get("RV_TOKEN", "")
 
 API = "https://rahavard365.com/api/v2"
+
+TOKEN = os.environ.get("RV_TOKEN", "")
 
 HEADERS = {
     "Authorization": "Bearer " + TOKEN,
@@ -12,17 +14,31 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0"
 }
 
+
 RAW_DIR = "data/raw"
 
+
 TEST_SYMBOLS = [
-    {"name": "فولاد", "id": "453"},
-    {"name": "غچین", "id": "35"},
-    {"name": "فسرب", "id": "253"},
-    {"name": "کیسون", "id": "505"}
+    {"name": "فولاد", "id": 453},
+    {"name": "غچین", "id": 35},
+    {"name": "فسرب", "id": 253},
+    {"name": "کیسون", "id": 505},
+    {"name": "فاما", "id": 147}
 ]
 
 
-def get_json(url):
+def get_bars(asset_id):
+
+    url = (
+        API
+        + "/chart/bars?countback=5000"
+        + "&symbol=exchange.asset:"
+        + str(asset_id)
+        + ":real_close:type0"
+        + "&resolution=D"
+        + "&from=2000-01-01T00:00:00Z"
+        + "&to=2030-01-01T00:00:00Z"
+    )
 
     req = urllib.request.Request(
         url,
@@ -35,62 +51,109 @@ def get_json(url):
         )
 
 
-def load_old(symbol_id):
+def load_old(asset_id):
 
-    path = f"{RAW_DIR}/{symbol_id}.json"
+    path = f"{RAW_DIR}/{asset_id}.json"
 
     if not os.path.exists(path):
         return []
 
-    with open(path, "r", encoding="utf-8") as f:
+    with open(
+        path,
+        "r",
+        encoding="utf-8"
+    ) as f:
         return json.load(f)
 
 
-def get_last_time(data):
+def save_data(asset_id, data):
 
-    if not data:
-        return 0
+    path = f"{RAW_DIR}/{asset_id}.json"
 
-    return data[-1]["time"]
+    with open(
+        path,
+        "w",
+        encoding="utf-8"
+    ) as f:
+        json.dump(
+            data,
+            f,
+            ensure_ascii=False
+        )
 
 
-def update_symbol(item):
+def update_symbol(symbol):
 
-    old = load_old(item["id"])
+    asset_id = symbol["id"]
 
-    last_time = get_last_time(old)
+    print("\nUpdating:", symbol["name"])
 
-    print("\nSymbol:", item["name"])
+    old = load_old(asset_id)
+
     print("Old candles:", len(old))
-    print("Last time:", last_time)
-
-    # درخواست تست API
-    url = f"{API}/market-data/stocks/{item['id']}/history"
-
-    try:
-
-        new_data = get_json(url)
-
-        print("API response received")
-
-        if isinstance(new_data, dict):
-            print("Keys:", list(new_data.keys()))
-
-        else:
-            print("Records:", len(new_data))
 
 
-    except Exception as e:
+    result = get_bars(asset_id)
 
-        print("API ERROR:", e)
+    if "data" not in result:
+        print("No data")
+        return
+
+
+    new = result["data"]
+
+    print("Downloaded:", len(new))
+
+
+    old_times = set()
+
+    for candle in old:
+        old_times.add(candle["time"])
+
+
+    added = 0
+
+    for candle in new:
+
+        if candle["time"] not in old_times:
+            old.append(candle)
+            added += 1
+
+
+    old.sort(
+        key=lambda x: x["time"]
+    )
+
+
+    save_data(
+        asset_id,
+        old
+    )
+
+
+    print("Added:", added)
+    print("Final:", len(old))
 
 
 def main():
 
-    print("=== UPDATE API TEST ===")
+    print("=== DAILY UPDATE TEST ===")
 
-    for item in TEST_SYMBOLS:
-        update_symbol(item)
+
+    for symbol in TEST_SYMBOLS:
+
+        try:
+            update_symbol(symbol)
+
+        except Exception as e:
+            print(
+                "ERROR:",
+                symbol["name"],
+                e
+            )
+
+        time.sleep(1)
+
 
     print("\n=== FINISHED ===")
 
