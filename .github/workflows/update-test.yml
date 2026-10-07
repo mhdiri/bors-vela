@@ -12,5 +12,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run update test
+        env:
+          RV_TOKEN: ${{ secrets.RV_TOKEN }}
         run: |
           python scripts/update.py
