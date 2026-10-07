@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="fa">
 <head>
 <meta charset="UTF-8">
 <title>نسبت‌سنجی</title>
@@ -7,158 +7,86 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;overflow:hidden;background:#131722;color:#d1d4dc;font-family:-apple-system,Tahoma,Arial,sans-serif;font-size:12px}
 button{background:none;border:none;color:#787b86;cursor:pointer;font-family:inherit;font-size:12px;padding:6px 10px;border-radius:2px}
-button:hover{background:rgba(255,255,255,.05);color:#d1d4dc}
+button:hover{background:rgba(255,255,255,.06);color:#d1d4dc}
 button.on{color:#2962FF}
-select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radius:2px;font-family:inherit;font-size:12px;cursor:pointer;outline:none;font-weight:600}
+input[type=text]{background:transparent;border:none;color:inherit;outline:none;font-family:inherit;font-size:12px}
 
-.app{display:grid;grid-template-rows:40px 1fr 26px;height:100vh}
+.app{display:grid;grid-template-rows:42px 1fr;height:100vh}
+.topbar{display:flex;align-items:center;padding:0 6px;background:#131722;border-bottom:1px solid #2a2e39;height:42px;gap:4px;direction:ltr}
+.div{width:1px;height:22px;background:#2a2e39;margin:0 4px}
 
-/* ===== نوار بالا ===== */
-.topbar{display:flex;align-items:center;gap:4px;padding:0 8px;background:#131722;border-bottom:1px solid #2a2e39;overflow-x:auto}
-.topbar::-webkit-scrollbar{height:0}
-.div{width:1px;height:20px;background:#2a2e39;margin:0 4px;flex-shrink:0}
-.spacer{flex:1}
+.search-wrap{position:relative;display:flex;align-items:center;background:#2a2e39;border-radius:2px;height:28px;padding:0 8px}
+.search-wrap input{width:140px}
+.search-results{position:absolute;top:100%;left:0;right:0;margin-top:4px;background:#1e222d;border:1px solid #2a2e39;border-radius:2px;max-height:300px;overflow-y:auto;z-index:9999;display:none;direction:rtl}
+.search-results.on{display:block}
+.search-item{padding:8px 12px;cursor:pointer;font-size:12px;display:flex;justify-content:space-between;gap:12px;color:#d1d4dc}
+.search-item:hover{background:#2a2e39}
 
-.symbox{display:flex;align-items:center;gap:2px;padding:3px 6px;background:#2a2e39;border-radius:2px}
-.symbox select{background:transparent;padding:3px 6px}
-.symbox .vs{color:#787b86;padding:0 2px;font-size:11px}
-.symbox .go{background:#2962FF;color:#fff;padding:4px 12px;font-weight:600;font-size:11px;border-radius:2px}
+.symbox{display:flex;align-items:center;background:#2a2e39;border-radius:2px;height:28px;padding:0 2px}
+.sym-pick{padding:0 10px;height:28px;display:flex;align-items:center;font-weight:600;cursor:pointer;color:#d1d4dc;white-space:nowrap}
+.sym-pick:hover{background:rgba(255,255,255,.06)}
+.sym-pick.active{outline:1px solid #2962FF}
+.symbox .vs{color:#787b86;padding:0 3px}
+.symbox .go{background:#2962FF;color:#fff;padding:0 12px;height:22px;font-weight:600;font-size:11px;border-radius:2px;margin-left:2px}
 .symbox .go:hover{background:#1e4fd8;color:#fff}
 
-/* dropdown */
-.dd{position:relative;display:inline-block}
-.dd>button{padding:5px 10px;border-radius:2px;color:#d1d4dc;font-size:11px}
-.dd>button:hover{background:#2a2e39}
-.dd-menu{position:absolute;top:100%;right:0;margin-top:4px;background:#1e222d;border:1px solid #2a2e39;border-radius:2px;padding:4px;min-width:120px;z-index:999;display:none}
-.dd-menu.on{display:block}
-.dd-menu .it{padding:6px 10px;cursor:pointer;font-size:11px;color:#d1d4dc;border-radius:2px}
-.dd-menu .it:hover{background:#2a2e39}
-.dd-menu .it.on{color:#2962FF}
+select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radius:2px;font-family:inherit;font-size:12px;cursor:pointer;outline:none;height:28px}
 
-/* ===== بدنه ===== */
-.main{position:relative;overflow:hidden}
-#chartWrap{position:absolute;inset:0}
+.main{position:relative;overflow:hidden;background:#131722}
+#chartWrap{position:absolute;inset:0;background:#131722}
 #chart{width:100%;height:100%}
-
-/* ===== پنهان کردن UI داخلی Vela ===== */
-#chartWrap [data-testid="drawing-toolbar"],
-#chartWrap [data-testid="left-toolbar"],
-#chartWrap [data-testid="watchlist"],
-#chartWrap [data-testid="right-panel"],
-#chartWrap [data-testid="symbol-details"],
-#chartWrap .vela-drawing-toolbar,
-#chartWrap .vela-watchlist,
-#chartWrap .vela-toolbar-left,
-#chartWrap .vela-toolbar-right{display:none !important}
-
-/* پنل آمار */
-#stats{position:absolute;top:8px;right:8px;background:#1e222d;border:1px solid #2a2e39;padding:10px 12px;font-size:11px;font-family:monospace;color:#d1d4dc;z-index:99;min-width:200px;display:none}
-#stats.on{display:block}
-#stats .h{font-weight:700;font-size:11px;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #2a2e39;color:#787b86;text-transform:uppercase;letter-spacing:.5px}
-#stats .r{display:flex;justify-content:space-between;padding:2px 0;gap:16px}
-#stats .k{color:#787b86}
-#stats .v{font-weight:600}
-
-/* سیگنال - پایین-چپ، بیرون از چارت */
-#sig{position:fixed;bottom:34px;left:12px;font-size:11px;font-family:monospace;font-weight:600;z-index:9999;display:none;padding:4px 10px;background:#1e222d;border:1px solid #2a2e39;border-radius:2px}
-#sig.on{display:block}
-#sig.buy{color:#26a69a;border-color:#26a69a}
-#sig.sell{color:#ef5350;border-color:#ef5350}
-#sig.neu{color:#f7b600;border-color:#f7b600}
-
-/* لودینگ */
-#load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(19,23,34,.95);color:#787b86;font-size:13px;z-index:200;gap:10px}
+#load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(19,23,34,.85);color:#aed581;font-size:13px;z-index:200;font-family:monospace}
 #load.off{display:none}
-.spin{width:24px;height:24px;border:2px solid #2a2e39;border-top-color:#2962FF;border-radius:50%;animation:sp .8s linear infinite}
-@keyframes sp{to{transform:rotate(360deg)}}
-
-/* ===== نوار پایین ===== */
-.botbar{display:flex;align-items:center;gap:2px;padding:0 8px;background:#131722;border-top:1px solid #2a2e39;font-size:11px;color:#787b86;font-family:monospace}
-.botbar button{padding:3px 8px;font-size:11px}
-.botbar button.on{color:#2962FF;font-weight:600}
-.botbar .time{margin-right:auto;font-family:monospace;font-size:11px;color:#787b86}
-.botbar .sep{color:#3a3e4a;padding:0 4px}
+#err{position:absolute;bottom:10px;left:10px;right:10px;background:#ef5350;color:#fff;padding:10px 14px;border-radius:3px;font-family:monospace;font-size:12px;z-index:300;display:none}
+#err.on{display:block}
 </style>
 </head>
 <body>
 
 <div class="app">
-
-<!-- ===== نوار بالا ===== -->
-<div class="topbar">
-  <div class="symbox">
-    <select id="sym1"></select>
-    <span class="vs">÷</span>
-    <select id="sym2"></select>
-    <button class="go" id="btnAnalyze">تحلیل</button>
-  </div>
-
-  <div class="div"></div>
-
-  <select id="tfSelect" title="تایم‌فریم">
-    <option value="1D">روزانه</option>
-    <option value="1W" selected>هفتگی</option>
-    <option value="1M">ماهانه</option>
-  </select>
-
-  <!-- نوع چارت -->
-  <div class="dd">
-    <button id="chartTypeBtn">کندل ▾</button>
-    <div class="dd-menu" id="chartTypeMenu">
-      <div class="it on" data-type="candles">کندل</div>
-      <div class="it" data-type="line">خط</div>
-      <div class="it" data-type="area">ناحیه</div>
-      <div class="it" data-type="bars">میله‌ای</div>
+  <div class="topbar">
+    <div class="search-wrap">
+      <input type="text" id="searchInput" placeholder="جستجو..." autocomplete="off">
+      <div class="search-results" id="searchResults"></div>
     </div>
-  </div>
 
-  <div class="spacer"></div>
-
-  <button id="btnLog" title="مقیاس لگاریتمی">log</button>
-  <button id="btnStats" title="آمار">▦</button>
-  <button id="btnCSV" title="CSV">⇩</button>
-</div>
-
-<!-- ===== بدنه ===== -->
-<div class="main">
-  <div id="chartWrap"><div id="chart"></div></div>
-
-  <div id="stats">
-    <div class="h">Ratio Analysis</div>
-    <div class="r"><span class="k">Current</span><span class="v" id="vCur" style="color:#2962FF">-</span></div>
-    <div class="r"><span class="k">Change</span><span class="v" id="vChg">-</span></div>
-    <div class="r"><span class="k">Mean</span><span class="v" id="vMean">-</span></div>
-    <div class="r"><span class="k">Std Dev</span><span class="v" id="vStd">-</span></div>
-    <div class="r"><span class="k">Z-Score</span><span class="v" id="vZ" style="color:#f7b600">-</span></div>
-    <div class="r"><span class="k">Percentile</span><span class="v" id="vPct">-</span></div>
-    <div class="r"><span class="k">Half-Life</span><span class="v" id="vHl" style="color:#9C27B0">-</span></div>
-    <div class="r"><span class="k">Hurst</span><span class="v" id="vHurst">-</span></div>
-    <div class="r"><span class="k">Bars</span><span class="v" id="vN">-</span></div>
-  </div>
-
-  <div id="sig"></div>
-  <div id="load" class="off"></div>
-</div>
-
-<!-- ===== نوار پایین ===== -->
-<div class="botbar">
-  <div class="dd">
-    <button id="rangeBtn">همه ▾</button>
-    <div class="dd-menu" id="rangeMenu">
-      <div class="it" data-range="90">۳ ماه</div>
-      <div class="it" data-range="180">۶ ماه</div>
-      <div class="it" data-range="365">۱ سال</div>
-      <div class="it" data-range="1825">۵ سال</div>
-      <div class="it on" data-range="0">همه</div>
+    <div class="symbox">
+      <div class="sym-pick" id="sym1Pick">—</div>
+      <span class="vs">/</span>
+      <div class="sym-pick" id="sym2Pick">—</div>
+      <button class="go" id="btnAnalyze">تحلیل</button>
     </div>
-  </div>
-  <span class="sep">|</span>
-  <span class="time" id="clock">--:--:--</span>
-  <span class="sep">|</span>
-  <button id="btnPercent">%</button>
-  <button id="btnAuto" class="on">auto</button>
-</div>
 
+    <div class="div"></div>
+
+    <select id="tfSelect">
+      <option value="1D">روزانه</option>
+      <option value="1W" selected>هفتگی</option>
+      <option value="1M">ماهانه</option>
+    </select>
+
+    <select id="rangeSelect">
+      <option value="30">۱ ماه</option>
+      <option value="90">۳ ماه</option>
+      <option value="180">۶ ماه</option>
+      <option value="365">۱ سال</option>
+      <option value="1825">۵ سال</option>
+      <option value="0" selected>همه</option>
+    </select>
+
+    <select id="typeSelect">
+      <option value="candles">کندل</option>
+      <option value="line">خط</option>
+      <option value="area">ناحیه</option>
+      <option value="bars">میله‌ای</option>
+    </select>
+  </div>
+
+  <div class="main">
+    <div id="chartWrap"><div id="chart"></div></div>
+    <div id="load" class="off">در حال بارگذاری...</div>
+    <div id="err"></div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@luxalgo/vela@latest/dist/vela.global.min.js"></script>
@@ -170,30 +98,44 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radiu
   var SYMBOLS = [];
   var raw1 = null, raw2 = null;
   var allBars = [], curBars = [];
+  var sym1Idx = 0, sym2Idx = 1;
   var curTF = '1W', curRange = 0, chartType = 'candles';
-  var isLog = false;
   var velaChart = null;
+  var editingSlot = 0;
 
-  /* ساعت */
-  setInterval(function(){
-    var d = new Date();
-    $('clock').textContent = d.toLocaleTimeString('en-GB') + ' UTC' + (d.getTimezoneOffset() <= 0 ? '+' : '-') + Math.abs(d.getTimezoneOffset()/60);
-  }, 1000);
+  function setLoad(msg){
+    var el = $('load');
+    if(msg === false){ el.classList.add('off'); return; }
+    el.classList.remove('off');
+    el.textContent = msg || 'در حال بارگذاری...';
+  }
+  function showErr(msg){
+    var e = $('err');
+    e.textContent = '❌ ' + msg;
+    e.classList.add('on');
+    setTimeout(function(){ e.classList.remove('on'); }, 5000);
+    console.error(msg);
+  }
 
-  /* لیست نمادها */
-  fetch(BASE + 'data/symbols.json')
+  // ===== لود لیست نمادها =====
+  fetch(BASE + 'data/symbols.json?v=' + Date.now())
     .then(function(r){ return r.json(); })
     .then(function(data){
       SYMBOLS = data;
-      var s1 = $('sym1'), s2 = $('sym2');
-      s1.innerHTML = ''; s2.innerHTML = '';
-      SYMBOLS.forEach(function(s, i){
-        s1.innerHTML += '<option value="' + i + '">' + s.name + '</option>';
-        s2.innerHTML += '<option value="' + i + '">' + s.name + '</option>';
-      });
-      s1.value = 0; s2.value = 1;
-      analyze();
+      console.log('[symbols] loaded:', SYMBOLS.length);
+      updateSymLabels();
+      setTimeout(analyze, 100);
+    })
+    .catch(function(e){
+      showErr('خطا در لیست نمادها: ' + e.message);
     });
+
+  function updateSymLabels(){
+    if(SYMBOLS.length){
+      $('sym1Pick').textContent = SYMBOLS[sym1Idx] ? SYMBOLS[sym1Idx].name : '—';
+      $('sym2Pick').textContent = SYMBOLS[sym2Idx] ? SYMBOLS[sym2Idx].name : '—';
+    }
+  }
 
   function aggregate(bars, tf){
     if(!bars.length || tf === '1D') return bars.slice();
@@ -208,9 +150,7 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radiu
         mon.setUTCDate(d.getUTCDate() - day + 1);
         mon.setUTCHours(0,0,0,0);
         key = mon.getTime();
-      } else {
-        key = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1);
-      }
+      } else { key = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1); }
       if(!bucket || bucket.time !== key){
         if(bucket) out.push(bucket);
         bucket = { time: key, open: b.open, high: b.high, low: b.low, close: b.close, volume: b.volume };
@@ -243,168 +183,48 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radiu
     return out;
   }
 
-  function calcStats(d){
-    var v = d.map(function(b){ return b.close; });
-    var n = v.length; if(!n) return null;
-    var mean = 0; for(var i = 0; i < n; i++) mean += v[i]; mean /= n;
-    var vp = 0; for(var i = 0; i < n; i++) vp += Math.pow(v[i]-mean, 2);
-    var sd = Math.sqrt(vp/n);
-    var sorted = v.slice().sort(function(a,b){ return a-b; });
-    var cur = v[n-1];
-    var z = sd > 0 ? (cur-mean)/sd : 0;
-    var pct = (sorted.filter(function(x){ return x <= cur; }).length / n * 100).toFixed(1);
-    return { mean: mean, std: sd, cur: cur, z: z, pct: pct, n: n, first: v[0] };
-  }
-  function calcHalfLife(d){
-    var n = d.length; if(n < 10) return null;
-    var dr = [], rl = [];
-    for(var i = 1; i < n; i++){ dr.push(d[i].close - d[i-1].close); rl.push(d[i-1].close); }
-    var m = dr.length, mx = 0, my = 0;
-    for(var i = 0; i < m; i++){ mx += rl[i]; my += dr[i]; }
-    mx /= m; my /= m;
-    var sxy = 0, sxx = 0;
-    for(var i = 0; i < m; i++){ sxy += (rl[i]-mx)*(dr[i]-my); sxx += Math.pow(rl[i]-mx, 2); }
-    var beta = sxx > 0 ? sxy/sxx : 0;
-    if(beta >= 0) return { hl: Infinity };
-    return { hl: -Math.log(2)/Math.log(1+beta) };
-  }
-  function calcHurst(d){
-    var v = d.map(function(b){ return b.close; });
-    var n = v.length; if(n < 20) return null;
-    var sizes = []; for(var s = 8; s <= Math.floor(n/2); s *= 2) sizes.push(s);
-    if(sizes.length < 2) return null;
-    var logRS = [], logN = [];
-    for(var si = 0; si < sizes.length; si++){
-      var size = sizes[si], chunks = Math.floor(n/size), rsSum = 0, cnt = 0;
-      for(var c = 0; c < chunks; c++){
-        var ch = v.slice(c*size, (c+1)*size);
-        var mn = 0; for(var i = 0; i < size; i++) mn += ch[i]; mn /= size;
-        var cum = 0, mnC = 0, mxC = 0;
-        for(var i = 0; i < size; i++){
-          cum += ch[i] - mn;
-          if(cum < mnC) mnC = cum;
-          if(cum > mxC) mxC = cum;
-        }
-        var R = mxC - mnC;
-        var vv = 0; for(var i = 0; i < size; i++) vv += Math.pow(ch[i]-mn, 2);
-        var S = Math.sqrt(vv/size);
-        if(S > 0){ rsSum += R/S; cnt++; }
-      }
-      if(cnt > 0){ logRS.push(Math.log(rsSum/cnt)); logN.push(Math.log(size)); }
-    }
-    if(logN.length < 2) return null;
-    var m = logN.length, mx = 0, my = 0;
-    for(var i = 0; i < m; i++){ mx += logN[i]; my += logRS[i]; }
-    mx /= m; my /= m;
-    var sxy = 0, sxx = 0;
-    for(var i = 0; i < m; i++){ sxy += (logN[i]-mx)*(logRS[i]-my); sxx += Math.pow(logN[i]-mx, 2); }
-    return sxx > 0 ? sxy/sxx : null;
-  }
-
-  function updateStats(){
-    if(!curBars.length) return;
-    var st = calcStats(curBars);
-    var chg = ((st.cur - st.first) / st.first * 100).toFixed(2);
-    $('vCur').textContent = st.cur.toFixed(4);
-    var vc = $('vChg');
-    vc.textContent = (chg >= 0 ? '+' : '') + chg + '%';
-    vc.style.color = chg >= 0 ? '#26a69a' : '#ef5350';
-    $('vMean').textContent = st.mean.toFixed(4);
-    $('vStd').textContent = st.std.toFixed(4);
-    $('vZ').textContent = st.z.toFixed(2);
-    $('vPct').textContent = st.pct + '%';
-    $('vN').textContent = st.n;
-    var hl = calcHalfLife(curBars);
-    if(hl) $('vHl').textContent = hl.hl === Infinity ? '∞' : hl.hl.toFixed(1);
-    var h = calcHurst(curBars);
-    if(h !== null){
-      var lbl = h.toFixed(3);
-      if(h > 0.55) lbl += ' (trend)';
-      else if(h < 0.45) lbl += ' (revert)';
-      else lbl += ' (random)';
-      $('vHurst').textContent = lbl;
-    }
-    var sig = $('sig');
-    sig.classList.add('on');
-    var t, c;
-    if(st.z > 2){ t = 'OVERBOUGHT | Z=' + st.z.toFixed(2); c = 'sell'; }
-    else if(st.z < -2){ t = 'OVERSOLD | Z=' + st.z.toFixed(2); c = 'buy'; }
-    else if(st.z > 1){ t = 'Above Mean'; c = 'neu'; }
-    else if(st.z < -1){ t = 'Below Mean'; c = 'neu'; }
-    else { t = 'Normal | Z=' + st.z.toFixed(2); c = 'neu'; }
-    sig.textContent = t;
-    sig.className = 'on ' + c;
-  }
-
   function renderVela(){
     try {
       if(velaChart){
-        try {
-          if(typeof velaChart.destroy === 'function') velaChart.destroy();
-          else if(typeof velaChart.dispose === 'function') velaChart.dispose();
-        } catch(e){}
+        try { if(velaChart.destroy) velaChart.destroy(); else if(velaChart.dispose) velaChart.dispose(); } catch(e){}
         velaChart = null;
       }
       var wrap = $('chartWrap');
       wrap.innerHTML = '<div id="chart"></div>';
 
-      if(typeof window.Vela === 'undefined') throw new Error('Vela لود نشد');
+      if(typeof window.Vela === 'undefined'){ showErr('Vela لود نشد'); return; }
       var VC = window.Vela.Vela || window.Vela;
 
-      var opts = {
+      velaChart = new VC('#chart', {
         data: curBars,
-        timeframe: curTF,
         theme: 'dark',
         priceStyle: chartType
-      };
-      if(isLog) opts.logScale = true;
-
-      velaChart = new VC('#chart', opts);
-
-      // ===== پنهان کردن UI داخلی Vela =====
-      setTimeout(function(){
-        var wrapEl = $('chartWrap');
-        var all = wrapEl.querySelectorAll('*');
-        all.forEach(function(el){
-          var cls = (el.className && typeof el.className === 'string') ? el.className.toLowerCase() : '';
-          var tag = el.tagName.toLowerCase();
-          // حذف نوار سمت چپ (drawing tools)
-          if(cls.indexOf('toolbar') > -1 && cls.indexOf('bottom') === -1 && cls.indexOf('top') === -1 && el.querySelectorAll('button,svg').length > 3){
-            el.style.display = 'none';
-          }
-          // حذف پنل راست (watchlist/symbol info)
-          if((cls.indexOf('watchlist') > -1 || cls.indexOf('symbol-info') > -1 || cls.indexOf('symbolinfo') > -1)){
-            el.style.display = 'none';
-          }
-        });
-      }, 800);
+      });
     } catch(e){
       console.error('Vela error:', e);
-      $('chartWrap').innerHTML = '<div style="padding:40px;color:#ef5350;text-align:center">خطا: ' + e.message + '</div>';
+      showErr('خطا: ' + e.message);
     }
   }
 
   function analyze(){
-    $('load').classList.remove('off');
-    $('load').innerHTML = '<div class="spin"></div><span>Loading...</span>';
-    var f1 = SYMBOLS[+$('sym1').value].file;
-    var f2 = SYMBOLS[+$('sym2').value].file;
+    if(!SYMBOLS.length){ showErr('لیست نمادها آماده نیست'); return; }
+    setLoad('دریافت داده...');
     Promise.all([
-      fetch(BASE + f1).then(function(r){ return r.json(); }),
-      fetch(BASE + f2).then(function(r){ return r.json(); })
+      fetch(BASE + SYMBOLS[sym1Idx].file + '?v=' + Date.now()).then(function(r){ return r.json(); }),
+      fetch(BASE + SYMBOLS[sym2Idx].file + '?v=' + Date.now()).then(function(r){ return r.json(); })
     ]).then(function(res){
       raw1 = res[0]; raw2 = res[1];
-      if(!raw1.length || !raw2.length) throw new Error('no data');
-      var a1 = aggregate(raw1, curTF);
-      var a2 = aggregate(raw2, curTF);
+      var a1 = aggregate(raw1, curTF), a2 = aggregate(raw2, curTF);
       allBars = buildRatio(a1, a2);
-      if(allBars.length < 2) throw new Error('not enough data');
+      if(!allBars.length){ showErr('داده کافی نیست'); setLoad(false); return; }
       applyRange();
-      renderVela();
-      updateStats();
-      $('load').classList.add('off');
+      setTimeout(function(){
+        renderVela();
+        setLoad(false);
+      }, 50);
     }).catch(function(e){
-      $('load').innerHTML = '<span style="color:#ef5350">Error: ' + e.message + '</span>';
+      showErr('خطا: ' + e.message);
+      setLoad(false);
     });
   }
 
@@ -415,91 +235,94 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radiu
     curBars = allBars.filter(function(b){ return b.time >= lastT - curRange*86400000; });
   }
 
-  /* دکمه‌ها */
+  // ===== جستجو =====
+  var sInput = $('searchInput');
+  var sResults = $('searchResults');
+
+  sInput.addEventListener('input', function(){
+    var q = this.value.trim();
+    if(!q){ sResults.classList.remove('on'); sResults.innerHTML = ''; return; }
+    if(!SYMBOLS.length){ 
+      sResults.innerHTML = '<div class="search-item">در حال بارگذاری نمادها...</div>';
+      sResults.classList.add('on');
+      return;
+    }
+    var matches = SYMBOLS.filter(function(s){ return s.name.indexOf(q) > -1; }).slice(0, 20);
+    if(!matches.length){
+      sResults.innerHTML = '<div class="search-item">یافت نشد</div>';
+      sResults.classList.add('on');
+      return;
+    }
+    sResults.innerHTML = matches.map(function(s){
+      var idx = SYMBOLS.findIndex(function(x){ return x.name === s.name; });
+      return '<div class="search-item" data-idx="' + idx + '"><span>' + s.name + '</span></div>';
+    }).join('');
+    sResults.classList.add('on');
+  });
+
+  sResults.addEventListener('mousedown', function(e){ e.preventDefault(); });
+
+  sResults.addEventListener('click', function(e){
+    var item = e.target.closest('.search-item[data-idx]');
+    if(!item) return;
+    var idx = +item.dataset.idx;
+    if(editingSlot === 1) sym1Idx = idx;
+    else if(editingSlot === 2) sym2Idx = idx;
+    else sym1Idx = idx;
+    updateSymLabels();
+    editingSlot = 0;
+    $('sym1Pick').classList.remove('active');
+    $('sym2Pick').classList.remove('active');
+    sInput.value = '';
+    sResults.classList.remove('on');
+    sInput.blur();
+    analyze();
+  });
+
+  sInput.addEventListener('blur', function(){
+    setTimeout(function(){
+      sResults.classList.remove('on');
+      editingSlot = 0;
+      $('sym1Pick').classList.remove('active');
+      $('sym2Pick').classList.remove('active');
+    }, 200);
+  });
+
+  $('sym1Pick').addEventListener('click', function(){
+    editingSlot = 1;
+    $('sym1Pick').classList.add('active');
+    $('sym2Pick').classList.remove('active');
+    sInput.placeholder = 'جستجوی نماد ۱...';
+    sInput.focus();
+  });
+  $('sym2Pick').addEventListener('click', function(){
+    editingSlot = 2;
+    $('sym2Pick').classList.add('active');
+    $('sym1Pick').classList.remove('active');
+    sInput.placeholder = 'جستجوی نماد ۲...';
+    sInput.focus();
+  });
+
+  // ===== رویدادها =====
   $('btnAnalyze').addEventListener('click', analyze);
+
   $('tfSelect').addEventListener('change', function(){
     curTF = this.value;
     if(!raw1) return;
-    var a1 = aggregate(raw1, curTF);
-    var a2 = aggregate(raw2, curTF);
+    var a1 = aggregate(raw1, curTF), a2 = aggregate(raw2, curTF);
     allBars = buildRatio(a1, a2);
-    applyRange(); renderVela(); updateStats();
+    applyRange(); renderVela();
   });
 
-  // نوع چارت dropdown
-  $('chartTypeBtn').addEventListener('click', function(e){
-    e.stopPropagation();
-    $('chartTypeMenu').classList.toggle('on');
-  });
-  document.querySelectorAll('#chartTypeMenu .it').forEach(function(it){
-    it.addEventListener('click', function(){
-      chartType = this.dataset.type;
-      $('chartTypeBtn').textContent = this.textContent + ' ▾';
-      document.querySelectorAll('#chartTypeMenu .it').forEach(function(x){ x.classList.remove('on'); });
-      this.classList.add('on');
-      $('chartTypeMenu').classList.remove('on');
-      if(allBars.length) renderVela();
-    });
+  $('rangeSelect').addEventListener('change', function(){
+    curRange = +this.value;
+    if(!allBars.length) return;
+    applyRange(); renderVela();
   });
 
-  // بازه dropdown
-  $('rangeBtn').addEventListener('click', function(e){
-    e.stopPropagation();
-    $('rangeMenu').classList.toggle('on');
-  });
-  document.querySelectorAll('#rangeMenu .it').forEach(function(it){
-    it.addEventListener('click', function(){
-      curRange = +this.dataset.range;
-      $('rangeBtn').textContent = this.textContent + ' ▾';
-      document.querySelectorAll('#rangeMenu .it').forEach(function(x){ x.classList.remove('on'); });
-      this.classList.add('on');
-      $('rangeMenu').classList.remove('on');
-      if(!allBars.length) return;
-      applyRange(); renderVela(); updateStats();
-    });
-  });
-
-  // بستن dropdown‌ها با کلیک بیرون
-  document.addEventListener('click', function(){
-    $('chartTypeMenu').classList.remove('on');
-    $('rangeMenu').classList.remove('on');
-  });
-
-  // log
-  $('btnLog').addEventListener('click', function(){
-    isLog = !isLog;
-    this.classList.toggle('on', isLog);
+  $('typeSelect').addEventListener('change', function(){
+    chartType = this.value;
     if(allBars.length) renderVela();
-  });
-
-  // auto
-  $('btnAuto').addEventListener('click', function(){
-    isLog = false;
-    $('btnLog').classList.remove('on');
-    this.classList.add('on');
-    if(allBars.length) renderVela();
-  });
-
-  // stats
-  $('btnStats').addEventListener('click', function(){
-    $('stats').classList.toggle('on');
-    this.classList.toggle('on');
-  });
-
-  // CSV
-  $('btnCSV').addEventListener('click', function(){
-    if(!curBars.length){ alert('load data first'); return; }
-    var s1 = SYMBOLS[+$('sym1').value].name;
-    var s2 = SYMBOLS[+$('sym2').value].name;
-    var csv = 'date,open,high,low,close\n';
-    curBars.forEach(function(r){
-      csv += new Date(r.time).toISOString().slice(0,10) + ',' + r.open + ',' + r.high + ',' + r.low + ',' + r.close + '\n';
-    });
-    var b = new Blob([csv], {type:'text/csv;charset=utf-8'});
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(b);
-    a.download = s1 + '_' + s2 + '.csv';
-    a.click();
   });
 
 })();
