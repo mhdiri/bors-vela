@@ -28,18 +28,18 @@ def get_bars(asset_id):
 
     req = urllib.request.Request(
         url,
-        headers=HEADERS,
-        method="GET"
+        headers=HEADERS
     )
 
-    with urllib.request.urlopen(req, timeout=60) as response:
+    with urllib.request.urlopen(req, timeout=60) as r:
         return json.loads(
-            response.read().decode("utf-8")
+            r.read().decode("utf-8")
         )
 
 
 def main():
-    print("=== STEP 2: TEST HISTORICAL DATA ===")
+
+    print("=== RAHAVARD DATA TEST ===")
 
     with open(
         "data/symbols.json",
@@ -49,51 +49,34 @@ def main():
         symbols = json.load(f)
 
     print("Total symbols:", len(symbols))
-    print("Testing first 10 symbols...")
-    print("")
 
     os.makedirs("data/test", exist_ok=True)
 
     success = 0
 
-    for item in symbols[:10]:
+    # فعلا فقط 10 نماد اول برای تست
+    for s in symbols[:10]:
 
-        name = item["name"]
-        asset_id = item["id"]
+        name = s["name"]
+        asset_id = s["id"]
 
-        print(
-            "Testing:",
-            name,
-            "| ID:",
-            asset_id
-        )
+        print("")
+        print("Downloading:", name, asset_id)
 
         try:
+
             result = get_bars(asset_id)
 
-            if "data" not in result or not result["data"]:
-                print("  ERROR: no data")
+            if "data" not in result:
+                print("NO DATA")
                 continue
 
             bars = result["data"]
 
-            print(
-                "  candles:",
-                len(bars)
-            )
-
-            print(
-                "  first:",
-                bars[0]
-            )
-
-            print(
-                "  last:",
-                bars[-1]
-            )
+            print("Candles:", len(bars))
 
             with open(
-                "data/test/" + str(asset_id) + ".json",
+                f"data/test/{asset_id}.json",
                 "w",
                 encoding="utf-8"
             ) as f:
@@ -106,17 +89,15 @@ def main():
             success += 1
 
         except Exception as e:
-            print(
-                "  ERROR:",
-                str(e)
-            )
+            print("ERROR:", e)
 
         time.sleep(1)
 
+
     print("")
-    print("=== TEST COMPLETE ===")
+    print("====================")
     print("Successful:", success)
-    print("Test files: data/test/")
+    print("====================")
 
 
 if __name__ == "__main__":
