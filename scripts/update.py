@@ -4,6 +4,8 @@ import urllib.request
 
 TOKEN = os.environ.get("RV_TOKEN", "")
 
+API = "https://rahavard365.com/api/v2"
+
 HEADERS = {
     "Authorization": "Bearer " + TOKEN,
     "Accept": "application/json",
@@ -20,6 +22,19 @@ TEST_SYMBOLS = [
 ]
 
 
+def get_json(url):
+
+    req = urllib.request.Request(
+        url,
+        headers=HEADERS
+    )
+
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return json.loads(
+            r.read().decode("utf-8")
+        )
+
+
 def load_old(symbol_id):
 
     path = f"{RAW_DIR}/{symbol_id}.json"
@@ -33,7 +48,7 @@ def load_old(symbol_id):
 
 def get_last_time(data):
 
-    if len(data) == 0:
+    if not data:
         return 0
 
     return data[-1]["time"]
@@ -49,18 +64,35 @@ def update_symbol(item):
     print("Old candles:", len(old))
     print("Last time:", last_time)
 
-    # مرحله بعد:
-    # درخواست API جدید اینجا اضافه می‌شود
+    # درخواست تست API
+    url = f"{API}/market-data/stocks/{item['id']}/history"
+
+    try:
+
+        new_data = get_json(url)
+
+        print("API response received")
+
+        if isinstance(new_data, dict):
+            print("Keys:", list(new_data.keys()))
+
+        else:
+            print("Records:", len(new_data))
+
+
+    except Exception as e:
+
+        print("API ERROR:", e)
 
 
 def main():
 
-    print("=== UPDATE START ===")
+    print("=== UPDATE API TEST ===")
 
     for item in TEST_SYMBOLS:
         update_symbol(item)
 
-    print("\n=== UPDATE FINISHED ===")
+    print("\n=== FINISHED ===")
 
 
 if __name__ == "__main__":
