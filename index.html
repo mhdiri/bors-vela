@@ -153,11 +153,12 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radiu
       } else { key = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1); }
       if(!bucket || bucket.time !== key){
         if(bucket) out.push(bucket);
-        bucket = { time: key, open: b.open, high: b.high, low: b.low, close: b.close, volume: b.volume };
+        bucket = { time: key, open: b.open, high: b.high, low: b.low, close: b.close, volume: b.volume || 0 };
       } else {
         if(b.high > bucket.high) bucket.high = b.high;
         if(b.low < bucket.low) bucket.low = b.low;
-        bucket.close = b.close; bucket.volume += b.volume;
+        bucket.close = b.close;
+        bucket.volume += (b.volume || 0);
       }
     }
     if(bucket) out.push(bucket);
@@ -209,9 +210,12 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radiu
   function analyze(){
     if(!SYMBOLS.length){ showErr('لیست نمادها آماده نیست'); return; }
     setLoad('دریافت داده...');
+    // ★★★ تغییر اصلی: استفاده از data/raw/{id}.json ★★★
+    var url1 = BASE + 'data/raw/' + SYMBOLS[sym1Idx].id + '.json?v=' + Date.now();
+    var url2 = BASE + 'data/raw/' + SYMBOLS[sym2Idx].id + '.json?v=' + Date.now();
     Promise.all([
-      fetch(BASE + SYMBOLS[sym1Idx].file + '?v=' + Date.now()).then(function(r){ return r.json(); }),
-      fetch(BASE + SYMBOLS[sym2Idx].file + '?v=' + Date.now()).then(function(r){ return r.json(); })
+      fetch(url1).then(function(r){ return r.json(); }),
+      fetch(url2).then(function(r){ return r.json(); })
     ]).then(function(res){
       raw1 = res[0]; raw2 = res[1];
       var a1 = aggregate(raw1, curTF), a2 = aggregate(raw2, curTF);
@@ -242,12 +246,12 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radiu
   sInput.addEventListener('input', function(){
     var q = this.value.trim();
     if(!q){ sResults.classList.remove('on'); sResults.innerHTML = ''; return; }
-    if(!SYMBOLS.length){ 
+    if(!SYMBOLS.length){
       sResults.innerHTML = '<div class="search-item">در حال بارگذاری نمادها...</div>';
       sResults.classList.add('on');
       return;
     }
-    var matches = SYMBOLS.filter(function(s){ return s.name.indexOf(q) > -1; }).slice(0, 20);
+    var matches = SYMBOLS.filter(function(s){ return s.name.indexOf(q) > -1; }).slice(0, 30);
     if(!matches.length){
       sResults.innerHTML = '<div class="search-item">یافت نشد</div>';
       sResults.classList.add('on');
