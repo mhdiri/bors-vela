@@ -1,7 +1,6 @@
 import os
 import json
 import urllib.request
-from datetime import datetime
 
 TOKEN = os.environ.get("RV_TOKEN", "")
 
@@ -16,22 +15,10 @@ HEADERS = {
 RAW_DIR = "data/raw"
 
 TEST_SYMBOLS = [
-    {
-        "name": "فولاد",
-        "id": "453"
-    },
-    {
-        "name": "غچین",
-        "id": "35"
-    },
-    {
-        "name": "فسرب",
-        "id": "253"
-    },
-    {
-        "name": "کیسون",
-        "id": "505"
-    }
+    {"name": "فولاد", "id": "453"},
+    {"name": "غچین", "id": "35"},
+    {"name": "فسرب", "id": "253"},
+    {"name": "کیسون", "id": "505"}
 ]
 
 
@@ -74,12 +61,19 @@ def save_data(symbol_id, data):
         "w",
         encoding="utf-8"
     ) as f:
-
         json.dump(
             data,
             f,
             ensure_ascii=False
         )
+
+
+def get_last_time(data):
+
+    if not data:
+        return 0
+
+    return data[-1]["time"]
 
 
 def update_symbol(item):
@@ -88,19 +82,14 @@ def update_symbol(item):
 
     old = load_old(symbol_id)
 
-    print(
-        "\nUpdating",
-        item["name"],
-        symbol_id
-    )
+    last_time = get_last_time(old)
 
-    print(
-        "Old candles:",
-        len(old)
-    )
+    print("\nUpdating", item["name"])
+    print("Old:", len(old))
+    print("Last time:", last_time)
 
-    # فعلاً فقط بررسی ساختار
-    # دریافت واقعی در مرحله بعد اضافه می‌شود
+    # مرحله اتصال API جدید اینجا قرار می‌گیرد
+    # فعلاً فقط تست تشخیص آخرین کندل
 
     return True
 
@@ -110,7 +99,6 @@ def main():
     print("=== UPDATE START ===")
 
     for item in TEST_SYMBOLS:
-
         update_symbol(item)
 
     print("\n=== UPDATE FINISHED ===")
