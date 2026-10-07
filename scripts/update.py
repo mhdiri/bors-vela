@@ -2,6 +2,7 @@ import urllib.request
 import json
 import os
 import time
+from datetime import datetime
 
 
 API = "https://rahavard365.com/api/v2"
@@ -14,16 +15,43 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0"
 }
 
+
 RAW_DIR = "data/raw"
 
 SYMBOL_FILE = "data/symbols.json"
 
 ERROR_FILE = "data/update_errors.json"
 
+REPORT_FILE = "data/update_report.json"
 
-def request_json(url, retry=3):
 
-    for attempt in range(retry):
+# فقط برای تست اولیه
+# بعد از موفقیت تغییر بده به False
+TEST_MODE = True
+
+
+TEST_SYMBOLS = [
+    "فولاد",
+    "غچین",
+    "فسرب",
+    "کیسون",
+    "فاما"
+]
+
+
+MAX_RETRY = 3
+
+REQUEST_TIMEOUT = 60
+
+SLEEP_TIME = 1
+
+
+
+def request_json(url):
+
+    last_error = None
+
+    for attempt in range(1, MAX_RETRY + 1):
 
         try:
 
@@ -34,7 +62,7 @@ def request_json(url, retry=3):
 
             with urllib.request.urlopen(
                 req,
-                timeout=60
+                timeout=REQUEST_TIMEOUT
             ) as r:
 
                 return json.loads(
@@ -44,10 +72,13 @@ def request_json(url, retry=3):
 
         except Exception as e:
 
-            if attempt == retry - 1:
-                raise e
+            last_error = e
 
-            time.sleep(3)
+            if attempt < MAX_RETRY:
+                time.sleep(attempt * 3)
+
+
+    raise last_error
 
 
 
@@ -71,21 +102,41 @@ def get_bars(asset_id):
 def load_json(path):
 
     if not os.path.exists(path):
+
         return []
 
-    with open(
-        path,
-        "r",
-        encoding="utf-8"
-    ) as f:
 
-        return json.load(f)
+    try:
+
+        with open(
+            path,
+            "r",
+            encoding="utf-8"
+        ) as f:
+
+            return json.load(f)
+
+
+    except Exception:
+
+        return []
 
 
 
 def save_safe(path, data):
 
+    folder = os.path.dirname(path)
+
+    if folder:
+
+        os.makedirs(
+            folder,
+            exist_ok=True
+        )
+
+
     temp = path + ".tmp"
+
 
     with open(
         temp,
@@ -107,11 +158,47 @@ def save_safe(path, data):
 
 
 
+def validate_candle(c):
+
+    required = [
+        "time"
+    ]
+
+    for r in required:
+
+        if r not in c:
+
+            return False
+
+
+    return True
+
+
+
+def validate_data(data):
+
+    if not data:
+
+        return False
+
+
+    for c in data:
+
+        if not validate_candle(c):
+
+            return False
+
+
+    return True
+
+
+
 def update_symbol(symbol):
 
     asset_id = symbol["id"]
 
     name = symbol["name"]
+
 
     path = f"{RAW_DIR}/{asset_id}.json"
 
@@ -132,13 +219,36 @@ def update_symbol(symbol):
     new = result["data"]
 
 
+    if not validate_data(new):
+
+        raise Exception(
+            "Invalid candle data"
+        )
+
+
+    if old and len(new) < len(old) * 0.5:
+
+        raise Exception(
+            "Suspicious data reduction"
+        )
+
+
+
     old_times = set()
 
+
     for c in old:
-        old_times.add(c["time"])
+
+        if "time" in c:
+
+            old_times.add(
+                c["time"]
+            )
+
 
 
     added = 0
+
 
 
     for candle in new:
@@ -150,9 +260,11 @@ def update_symbol(symbol):
             added += 1
 
 
+
     old.sort(
         key=lambda x: x["time"]
     )
+
 
 
     save_safe(
@@ -161,26 +273,57 @@ def update_symbol(symbol):
     )
 
 
+
     return {
+
         "name": name,
+
         "id": asset_id,
-        "old": len(old)-added,
+
+        "old": len(old) - added,
+
         "downloaded": len(new),
+
         "added": added,
+
         "final": len(old)
+
     }
 
 
 
 def main():
 
+    start = time.time()
 
-    print("=== DAILY UPDATE START ===")
+
+    print(
+        "=== DAILY UPDATE START ==="
+    )
 
 
     symbols = load_json(
         SYMBOL_FILE
     )
+
+
+    if TEST_MODE:
+
+        symbols = [
+
+            s for s in symbols
+
+            if s["name"] in TEST_SYMBOLS
+
+        ]
+
+
+        print(
+            "TEST MODE:",
+            len(symbols),
+            "symbols"
+        )
+
 
 
     errors = []
@@ -190,10 +333,12 @@ def main():
     total_added = 0
 
 
+
     print(
-        "TOTAL SYMBOLS:",
+        "TOTAL:",
         len(symbols)
     )
+
 
 
     for index, symbol in enumerate(
@@ -204,10 +349,12 @@ def main():
 
         try:
 
+
             print(
-                f"\n[{index}/{len(symbols)}]",
+                f"[{index}/{len(symbols)}]",
                 symbol["name"]
             )
+
 
 
             result = update_symbol(
@@ -238,15 +385,26 @@ def main():
 
 
             errors.append(
+
                 {
+
                     "name": symbol["name"],
+
                     "id": symbol["id"],
-                    "error": str(e)
+
+                    "error": str(e),
+
+                    "time": datetime.now().isoformat()
+
                 }
+
             )
 
 
-        time.sleep(1)
+
+        time.sleep(
+            SLEEP_TIME
+        )
 
 
 
@@ -256,20 +414,54 @@ def main():
     )
 
 
+
+    report = {
+
+        "time": datetime.now().isoformat(),
+
+        "symbols": len(symbols),
+
+        "success": success,
+
+        "errors": len(errors),
+
+        "new_candles": total_added,
+
+        "duration_seconds": round(
+            time.time() - start,
+            2
+        )
+
+    }
+
+
+
+    save_safe(
+        REPORT_FILE,
+        report
+    )
+
+
+
     print("")
+
     print("======================")
+
     print(
         "SUCCESS:",
         success
     )
+
     print(
         "ERRORS:",
         len(errors)
     )
+
     print(
         "NEW CANDLES:",
         total_added
     )
+
     print("======================")
 
 
