@@ -3,60 +3,292 @@
 <head>
 <meta charset="UTF-8">
 <title>نسبت‌سنجی</title>
+
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;overflow:hidden;background:#131722;color:#d1d4dc;font-family:-apple-system,Tahoma,Arial,sans-serif;font-size:12px}
-button{background:none;border:none;color:#787b86;cursor:pointer;font-family:inherit;font-size:12px;padding:6px 10px;border-radius:2px}
-button:hover{background:rgba(255,255,255,.06);color:#d1d4dc}
-button.on{color:#2962FF}
-button.active-mode{background:#2962FF;color:#fff}
-input[type=text]{background:transparent;border:none;color:inherit;outline:none;font-family:inherit;font-size:12px}
 
-.app{display:grid;grid-template-rows:42px 1fr;height:100vh}
-.topbar{display:flex;align-items:center;padding:0 6px;background:#131722;border-bottom:1px solid #2a2e39;height:42px;gap:4px;direction:ltr;overflow-x:auto;white-space:nowrap}
-.topbar::-webkit-scrollbar{height:0}
-.div{width:1px;height:22px;background:#2a2e39;margin:0 4px;flex-shrink:0}
+html,body{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#131722;
+  color:#d1d4dc;
+  font-family:-apple-system,Tahoma,Arial,sans-serif;
+  font-size:12px
+}
 
-.search-wrap{position:relative;display:flex;align-items:center;background:#2a2e39;border-radius:2px;height:28px;padding:0 8px;min-width:160px}
-.search-wrap input{width:120px}
-.search-results{position:absolute;top:100%;left:0;right:0;margin-top:4px;background:#1e222d;border:1px solid #2a2e39;border-radius:2px;max-height:300px;overflow-y:auto;z-index:9999;display:none;direction:rtl}
-.search-results.on{display:block}
-.search-item{padding:8px 12px;cursor:pointer;font-size:12px;display:flex;justify-content:space-between;gap:12px;color:#d1d4dc}
-.search-item:hover{background:#2a2e39}
+button{
+  background:none;
+  border:none;
+  color:#787b86;
+  cursor:pointer;
+  font-family:inherit;
+  font-size:12px;
+  padding:6px 10px;
+  border-radius:2px
+}
 
-.symbox{display:flex;align-items:center;background:#2a2e39;border-radius:2px;height:28px;padding:0 2px;flex-shrink:0}
-.sym-pick{padding:0 10px;height:28px;display:flex;align-items:center;font-weight:600;cursor:pointer;color:#d1d4dc;white-space:nowrap}
-.sym-pick:hover{background:rgba(255,255,255,.06)}
-.sym-pick.active{outline:1px solid #2962FF}
-.symbox .vs{color:#787b86;padding:0 3px}
-.symbox .go{background:#2962FF;color:#fff;padding:0 12px;height:22px;font-weight:600;font-size:11px;border-radius:2px;margin-left:2px}
-.symbox .go:hover{background:#1e4fd8;color:#fff}
+button:hover{
+  background:rgba(255,255,255,.06);
+  color:#d1d4dc
+}
 
-select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radius:2px;font-family:inherit;font-size:12px;cursor:pointer;outline:none;height:28px}
+button.on{
+  color:#2962FF
+}
 
-.main{position:relative;overflow:hidden;background:#131722}
-#chartWrap{position:absolute;inset:0;background:#131722}
-#chart{width:100%;height:100%}
-#load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(19,23,34,.85);color:#aed581;font-size:13px;z-index:200;font-family:monospace}
-#load.off{display:none}
-#err{position:absolute;bottom:10px;left:10px;right:10px;background:#ef5350;color:#fff;padding:10px 14px;border-radius:3px;font-family:monospace;font-size:11px;z-index:300;display:none;direction:ltr;word-break:break-all}
-#err.on{display:block}
+button.active-mode{
+  background:#2962FF;
+  color:#fff
+}
+
+input[type=text]{
+  background:transparent;
+  border:none;
+  color:inherit;
+  outline:none;
+  font-family:inherit;
+  font-size:12px
+}
+
+.app{
+  display:grid;
+  grid-template-rows:42px 1fr;
+  height:100vh
+}
+
+.topbar{
+  display:flex;
+  align-items:center;
+  padding:0 6px;
+  background:#131722;
+  border-bottom:1px solid #2a2e39;
+  height:42px;
+  gap:4px;
+  direction:ltr;
+  overflow-x:auto;
+  white-space:nowrap
+}
+
+.topbar::-webkit-scrollbar{
+  height:0
+}
+
+.div{
+  width:1px;
+  height:22px;
+  background:#2a2e39;
+  margin:0 4px;
+  flex-shrink:0
+}
+
+.search-wrap{
+  position:relative;
+  display:flex;
+  align-items:center;
+  background:#2a2e39;
+  border-radius:2px;
+  height:28px;
+  padding:0 8px;
+  min-width:160px
+}
+
+.search-wrap input{
+  width:120px
+}
+
+.search-results{
+  position:absolute;
+  top:100%;
+  left:0;
+  right:0;
+  margin-top:4px;
+  background:#1e222d;
+  border:1px solid #2a2e39;
+  border-radius:2px;
+  max-height:300px;
+  overflow-y:auto;
+  z-index:9999;
+  display:none;
+  direction:rtl
+}
+
+.search-results.on{
+  display:block
+}
+
+.search-item{
+  padding:8px 12px;
+  cursor:pointer;
+  font-size:12px;
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  color:#d1d4dc
+}
+
+.search-item:hover{
+  background:#2a2e39
+}
+
+.symbox{
+  display:flex;
+  align-items:center;
+  background:#2a2e39;
+  border-radius:2px;
+  height:28px;
+  padding:0 2px;
+  flex-shrink:0
+}
+
+.sym-pick{
+  padding:0 10px;
+  height:28px;
+  display:flex;
+  align-items:center;
+  font-weight:600;
+  cursor:pointer;
+  color:#d1d4dc;
+  white-space:nowrap
+}
+
+.sym-pick:hover{
+  background:rgba(255,255,255,.06)
+}
+
+.sym-pick.active{
+  outline:1px solid #2962FF
+}
+
+.symbox .vs{
+  color:#787b86;
+  padding:0 3px
+}
+
+.symbox .go{
+  background:#2962FF;
+  color:#fff;
+  padding:0 12px;
+  height:22px;
+  font-weight:600;
+  font-size:11px;
+  border-radius:2px;
+  margin-left:2px
+}
+
+.symbox .go:hover{
+  background:#1e4fd8;
+  color:#fff
+}
+
+select{
+  background:#2a2e39;
+  border:none;
+  color:#d1d4dc;
+  padding:4px 8px;
+  border-radius:2px;
+  font-family:inherit;
+  font-size:12px;
+  cursor:pointer;
+  outline:none;
+  height:28px
+}
+
+.main{
+  position:relative;
+  overflow:hidden;
+  background:#131722
+}
+
+#chartWrap{
+  position:absolute;
+  inset:0;
+  background:#131722
+}
+
+#chart{
+  width:100%;
+  height:100%
+}
+
+#load{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(19,23,34,.85);
+  color:#aed581;
+  font-size:13px;
+  z-index:200;
+  font-family:monospace
+}
+
+#load.off{
+  display:none
+}
+
+#err{
+  position:absolute;
+  bottom:10px;
+  left:10px;
+  right:10px;
+  background:#ef5350;
+  color:#fff;
+  padding:10px 14px;
+  border-radius:3px;
+  font-family:monospace;
+  font-size:11px;
+  z-index:300;
+  display:none;
+  direction:ltr;
+  word-break:break-all
+}
+
+#err.on{
+  display:block
+}
 </style>
 </head>
+
 <body>
 
 <div class="app">
+
   <div class="topbar">
+
     <div class="search-wrap">
-      <input type="text" id="searchInput" placeholder="جستجو..." autocomplete="off">
-      <div class="search-results" id="searchResults"></div>
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="جستجو..."
+        autocomplete="off"
+      >
+      <div
+        class="search-results"
+        id="searchResults"
+      ></div>
     </div>
 
     <div class="symbox">
-      <div class="sym-pick" id="sym1Pick">—</div>
+
+      <div
+        class="sym-pick"
+        id="sym1Pick"
+      >—</div>
+
       <span class="vs">/</span>
-      <div class="sym-pick" id="sym2Pick">—</div>
-      <button class="go" id="btnAnalyze">تحلیل</button>
+
+      <div
+        class="sym-pick"
+        id="sym2Pick"
+      >—</div>
+
+      <button
+        class="go"
+        id="btnAnalyze"
+      >تحلیل</button>
+
     </div>
 
     <div class="div"></div>
@@ -85,356 +317,1467 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radiu
 
     <div class="div"></div>
 
-    <button id="btnAdjusted" title="حالت عملکردی (تعدیل‌شده)">عملکردی</button>
-    <button id="btnRaw" class="active-mode" title="حالت خام (تعدیل‌نشده)">خام</button>
+    <button
+      id="btnAdjusted"
+      title="حالت عملکردی (تعدیل‌شده)"
+    >عملکردی</button>
+
+    <button
+      id="btnRaw"
+      class="active-mode"
+      title="حالت خام (تعدیل‌نشده)"
+    >خام</button>
+
   </div>
 
   <div class="main">
-    <div id="chartWrap"><div id="chart"></div></div>
-    <div id="load" class="off">در حال بارگذاری...</div>
+
+    <div id="chartWrap">
+      <div id="chart"></div>
+    </div>
+
+    <div id="load" class="off">
+      در حال بارگذاری...
+    </div>
+
     <div id="err"></div>
+
   </div>
+
 </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/@luxalgo/vela@latest/dist/vela.global.min.js"></script>
 
 <script>
 (function(){
-  var $ = function(id){ return document.getElementById(id); };
-  var BASE = 'https://raw.githubusercontent.com/mhdiri/bors-vela/main/';
+
+  var $ = function(id){
+    return document.getElementById(id);
+  };
+
+  /*
+   * IMPORTANT:
+   * Data is now served from the same Cloudflare Pages domain.
+   * This keeps the frontend independent from GitHub RAW.
+   */
+  var BASE = '/';
+
   var SYMBOLS = [];
-  var raw1 = null, raw2 = null;
-  var allBars = [], curBars = [];
-  var sym1Idx = 0, sym2Idx = 1;
-  var curTF = '1W', curRange = 0, chartType = 'candles';
+
+  var raw1 = null;
+  var raw2 = null;
+
+  var allBars = [];
+  var curBars = [];
+
+  var sym1Idx = 0;
+  var sym2Idx = 1;
+
+  var curTF = '1W';
+  var curRange = 0;
+  var chartType = 'candles';
+
   var velaChart = null;
+
   var editingSlot = 0;
-  var adjustMode = false; // false = خام، true = تعدیل‌شده
+
+  var adjustMode = false;
 
   var THRESHOLD_HIGH = 1.4;
   var THRESHOLD_LOW = 0.7;
   var MAX_PASSES = 5;
 
+
   function setLoad(msg){
+
     var el = $('load');
-    if(msg === false){ el.classList.add('off'); return; }
+
+    if(msg === false){
+      el.classList.add('off');
+      return;
+    }
+
     el.classList.remove('off');
-    el.textContent = msg || 'در حال بارگذاری...';
+
+    el.textContent =
+      msg ||
+      'در حال بارگذاری...';
   }
+
+
   function showErr(msg){
+
     var e = $('err');
-    e.textContent = '❌ ' + msg;
+
+    e.textContent =
+      '❌ ' + msg;
+
     e.classList.add('on');
+
     console.error(msg);
   }
 
-  // ===== لود لیست نمادها =====
-  fetch(BASE + 'data/symbols.json?v=' + Date.now())
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      SYMBOLS = data;
-      console.log('[symbols] loaded:', SYMBOLS.length);
-      updateSymLabels();
-      setTimeout(analyze, 100);
+
+  /*
+   * ===== LOAD SYMBOL LIST =====
+   *
+   * No Date.now() cache-bypass is used.
+   * Cloudflare CDN can therefore cache the file efficiently.
+   */
+  fetch(
+    BASE + 'data/symbols.json'
+  )
+    .then(function(r){
+
+      if(!r.ok){
+        throw new Error(
+          'HTTP ' +
+          r.status +
+          ' for symbols.json'
+        );
+      }
+
+      return r.json();
     })
+
+    .then(function(data){
+
+      if(!Array.isArray(data)){
+        throw new Error(
+          'symbols.json آرایه نیست'
+        );
+      }
+
+      SYMBOLS = data;
+
+      console.log(
+        '[symbols] loaded:',
+        SYMBOLS.length
+      );
+
+      updateSymLabels();
+
+      setTimeout(
+        analyze,
+        100
+      );
+    })
+
     .catch(function(e){
-      showErr('خطا در لیست نمادها: ' + e.message);
+
+      showErr(
+        'خطا در لیست نمادها: ' +
+        e.message
+      );
+
     });
 
+
   function updateSymLabels(){
-    if(SYMBOLS.length){
-      $('sym1Pick').textContent = SYMBOLS[sym1Idx] ? SYMBOLS[sym1Idx].name : '—';
-      $('sym2Pick').textContent = SYMBOLS[sym2Idx] ? SYMBOLS[sym2Idx].name : '—';
+
+    if(!SYMBOLS.length){
+      return;
     }
+
+    $('sym1Pick').textContent =
+      SYMBOLS[sym1Idx]
+        ? SYMBOLS[sym1Idx].name
+        : '—';
+
+    $('sym2Pick').textContent =
+      SYMBOLS[sym2Idx]
+        ? SYMBOLS[sym2Idx].name
+        : '—';
   }
 
-  // ===== تعدیل داده یک نماد (در مرورگر) =====
+
+  /*
+   * ===== RAW DATA ADJUSTMENT =====
+   *
+   * Raw files are NEVER modified.
+   * Adjustment happens only in browser memory.
+   */
+
   function findGaps(bars){
+
     var gaps = [];
-    for(var i = 1; i < bars.length; i++){
-      var p = bars[i-1].close;
+
+    for(
+      var i = 1;
+      i < bars.length;
+      i++
+    ){
+
+      var p = bars[i - 1].close;
       var c = bars[i].close;
-      if(p && c && p > 0 && c > 0){
+
+      if(
+        p &&
+        c &&
+        p > 0 &&
+        c > 0
+      ){
+
         var r = c / p;
-        if(r > THRESHOLD_HIGH || r < THRESHOLD_LOW){
-          gaps.push({ idx: i, ratio: r });
+
+        if(
+          r > THRESHOLD_HIGH ||
+          r < THRESHOLD_LOW
+        ){
+
+          gaps.push({
+            idx: i,
+            ratio: r
+          });
         }
       }
     }
+
     return gaps;
   }
 
+
   function adjustSymbol(bars){
-    // کپی عمیق
-    var out = bars.map(function(b){ return {
-      time: b.time, open: b.open, high: b.high, low: b.low, close: b.close, volume: b.volume || 0
-    }; });
 
-    for(var pass = 0; pass < MAX_PASSES; pass++){
-      var gaps = findGaps(out);
-      if(!gaps.length) break;
+    var out = bars.map(function(b){
 
-      for(var g = gaps.length - 1; g >= 0; g--){
-        var idx = gaps[g].idx;
-        var ratio = gaps[g].ratio;
-        for(var j = 0; j < idx; j++){
-          out[j].open  = +(out[j].open  * ratio).toFixed(6);
-          out[j].high  = +(out[j].high  * ratio).toFixed(6);
-          out[j].low   = +(out[j].low   * ratio).toFixed(6);
-          out[j].close = +(out[j].close * ratio).toFixed(6);
+      return {
+        time: b.time,
+        open: b.open,
+        high: b.high,
+        low: b.low,
+        close: b.close,
+        volume: b.volume || 0
+      };
+
+    });
+
+
+    for(
+      var pass = 0;
+      pass < MAX_PASSES;
+      pass++
+    ){
+
+      var gaps =
+        findGaps(out);
+
+      if(!gaps.length){
+        break;
+      }
+
+
+      for(
+        var g = gaps.length - 1;
+        g >= 0;
+        g--
+      ){
+
+        var idx =
+          gaps[g].idx;
+
+        var ratio =
+          gaps[g].ratio;
+
+
+        for(
+          var j = 0;
+          j < idx;
+          j++
+        ){
+
+          out[j].open =
+            +(
+              out[j].open *
+              ratio
+            ).toFixed(6);
+
+          out[j].high =
+            +(
+              out[j].high *
+              ratio
+            ).toFixed(6);
+
+          out[j].low =
+            +(
+              out[j].low *
+              ratio
+            ).toFixed(6);
+
+          out[j].close =
+            +(
+              out[j].close *
+              ratio
+            ).toFixed(6);
         }
       }
     }
+
+
     return out;
   }
 
-  function aggregate(bars, tf){
-    if(!bars.length || tf === '1D') return bars.slice();
-    var out = [], bucket = null;
-    for(var i = 0; i < bars.length; i++){
+
+  /*
+   * ===== TIMEFRAME AGGREGATION =====
+   */
+
+  function aggregate(
+    bars,
+    tf
+  ){
+
+    if(
+      !bars.length ||
+      tf === '1D'
+    ){
+      return bars.slice();
+    }
+
+
+    var out = [];
+    var bucket = null;
+
+
+    for(
+      var i = 0;
+      i < bars.length;
+      i++
+    ){
+
       var b = bars[i];
-      var d = new Date(b.time);
+
+      var d =
+        new Date(b.time);
+
       var key;
+
+
       if(tf === '1W'){
-        var day = d.getUTCDay() || 7;
-        var mon = new Date(d);
-        mon.setUTCDate(d.getUTCDate() - day + 1);
-        mon.setUTCHours(0,0,0,0);
-        key = mon.getTime();
-      } else { key = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1); }
-      if(!bucket || bucket.time !== key){
-        if(bucket) out.push(bucket);
-        bucket = { time: key, open: b.open, high: b.high, low: b.low, close: b.close, volume: b.volume || 0 };
-      } else {
-        if(b.high > bucket.high) bucket.high = b.high;
-        if(b.low < bucket.low) bucket.low = b.low;
-        bucket.close = b.close;
-        bucket.volume += (b.volume || 0);
+
+        var day =
+          d.getUTCDay() || 7;
+
+        var mon =
+          new Date(d);
+
+        mon.setUTCDate(
+          d.getUTCDate() -
+          day +
+          1
+        );
+
+        mon.setUTCHours(
+          0,
+          0,
+          0,
+          0
+        );
+
+        key =
+          mon.getTime();
+
+      }else{
+
+        key =
+          Date.UTC(
+            d.getUTCFullYear(),
+            d.getUTCMonth(),
+            1
+          );
+      }
+
+
+      if(
+        !bucket ||
+        bucket.time !== key
+      ){
+
+        if(bucket){
+          out.push(bucket);
+        }
+
+
+        bucket = {
+
+          time: key,
+
+          open: b.open,
+
+          high: b.high,
+
+          low: b.low,
+
+          close: b.close,
+
+          volume: b.volume || 0
+        };
+
+      }else{
+
+        if(
+          b.high >
+          bucket.high
+        ){
+          bucket.high =
+            b.high;
+        }
+
+
+        if(
+          b.low <
+          bucket.low
+        ){
+          bucket.low =
+            b.low;
+        }
+
+
+        bucket.close =
+          b.close;
+
+
+        bucket.volume +=
+          (
+            b.volume || 0
+          );
       }
     }
-    if(bucket) out.push(bucket);
+
+
+    if(bucket){
+      out.push(bucket);
+    }
+
+
     return out;
   }
 
-  function buildRatio(b1, b2){
-    var m1 = {}, m2 = {};
-    b1.forEach(function(x){ m1[x.time] = x; });
-    b2.forEach(function(x){ m2[x.time] = x; });
-    var ts = Object.keys(m1).filter(function(t){ return m2[t]; }).map(Number).sort(function(a,b){ return a-b; });
-    var out = [], pc = null;
-    ts.forEach(function(t){
-      var x1 = m1[t], x2 = m2[t];
-      if(!x1 || !x2 || x1.close <= 0 || x2.close <= 0) return;
-      var rOpen = pc !== null ? pc : (x1.open / x2.open);
-      var rClose = x1.close / x2.close;
-      var rHigh = Math.max(x1.high/x2.low, x1.high/x2.close, x1.close/x2.low, rOpen, rClose);
-      var rLow = Math.min(x1.low/x2.high, x1.low/x2.close, x1.close/x2.high, rOpen, rClose);
-      out.push({ time: t, open: rOpen, high: rHigh, low: rLow, close: rClose, volume: 0 });
-      pc = rClose;
+
+  /*
+   * ===== RATIO =====
+   */
+
+  function buildRatio(
+    b1,
+    b2
+  ){
+
+    var m1 = {};
+    var m2 = {};
+
+
+    b1.forEach(function(x){
+
+      m1[x.time] = x;
+
     });
+
+
+    b2.forEach(function(x){
+
+      m2[x.time] = x;
+
+    });
+
+
+    var ts =
+      Object.keys(m1)
+        .filter(function(t){
+
+          return m2[t];
+
+        })
+        .map(Number)
+        .sort(function(a,b){
+
+          return a - b;
+
+        });
+
+
+    var out = [];
+    var pc = null;
+
+
+    ts.forEach(function(t){
+
+      var x1 = m1[t];
+      var x2 = m2[t];
+
+
+      if(
+        !x1 ||
+        !x2 ||
+        x1.close <= 0 ||
+        x2.close <= 0
+      ){
+        return;
+      }
+
+
+      var rOpen =
+        pc !== null
+          ? pc
+          : (
+              x1.open /
+              x2.open
+            );
+
+
+      var rClose =
+        x1.close /
+        x2.close;
+
+
+      var rHigh =
+        Math.max(
+          x1.high / x2.low,
+          x1.high / x2.close,
+          x1.close / x2.low,
+          rOpen,
+          rClose
+        );
+
+
+      var rLow =
+        Math.min(
+          x1.low / x2.high,
+          x1.low / x2.close,
+          x1.close / x2.high,
+          rOpen,
+          rClose
+        );
+
+
+      out.push({
+
+        time: t,
+
+        open: rOpen,
+
+        high: rHigh,
+
+        low: rLow,
+
+        close: rClose,
+
+        volume: 0
+
+      });
+
+
+      pc = rClose;
+
+    });
+
+
     return out;
   }
+
+
+  /*
+   * ===== VELA RENDER =====
+   */
 
   function renderVela(){
-    try {
+
+    try{
+
       if(velaChart){
-        try { if(velaChart.destroy) velaChart.destroy(); else if(velaChart.dispose) velaChart.dispose(); } catch(e){}
+
+        try{
+
+          if(
+            velaChart.destroy
+          ){
+
+            velaChart.destroy();
+
+          }else if(
+            velaChart.dispose
+          ){
+
+            velaChart.dispose();
+
+          }
+
+        }catch(e){}
+
         velaChart = null;
       }
-      var wrap = $('chartWrap');
-      wrap.innerHTML = '<div id="chart"></div>';
 
-      if(typeof window.Vela === 'undefined'){ showErr('Vela لود نشد'); return; }
-      var VC = window.Vela.Vela || window.Vela;
 
-      velaChart = new VC('#chart', {
-        data: curBars,
-        theme: 'dark',
-        priceStyle: chartType
-      });
-    } catch(e){
-      console.error('Vela error:', e);
-      showErr('خطا در Vela: ' + e.message);
+      var wrap =
+        $('chartWrap');
+
+
+      wrap.innerHTML =
+        '<div id="chart"></div>';
+
+
+      if(
+        typeof window.Vela ===
+        'undefined'
+      ){
+
+        showErr(
+          'Vela لود نشد'
+        );
+
+        return;
+      }
+
+
+      var VC =
+        window.Vela.Vela ||
+        window.Vela;
+
+
+      velaChart =
+        new VC(
+          '#chart',
+          {
+
+            data: curBars,
+
+            theme: 'dark',
+
+            priceStyle:
+              chartType
+
+          }
+        );
+
+
+    }catch(e){
+
+      console.error(
+        'Vela error:',
+        e
+      );
+
+      showErr(
+        'خطا در Vela: ' +
+        e.message
+      );
     }
   }
+
+
+  /*
+   * ===== REBUILD CHART =====
+   */
 
   function rebuildChart(){
-    if(!raw1 || !raw2) return;
 
-    var d1 = raw1, d2 = raw2;
-
-    if(adjustMode){
-      setLoad('اعمال تعدیل...');
-      // کپی + تعدیل هر نماد جدا
-      d1 = adjustSymbol(raw1);
-      d2 = adjustSymbol(raw2);
+    if(
+      !raw1 ||
+      !raw2
+    ){
+      return;
     }
 
-    var a1 = aggregate(d1, curTF), a2 = aggregate(d2, curTF);
-    allBars = buildRatio(a1, a2);
-    if(!allBars.length){ showErr('داده کافی نیست'); setLoad(false); return; }
+
+    var d1 = raw1;
+    var d2 = raw2;
+
+
+    if(adjustMode){
+
+      setLoad(
+        'اعمال تعدیل...'
+      );
+
+
+      d1 =
+        adjustSymbol(raw1);
+
+      d2 =
+        adjustSymbol(raw2);
+    }
+
+
+    var a1 =
+      aggregate(
+        d1,
+        curTF
+      );
+
+    var a2 =
+      aggregate(
+        d2,
+        curTF
+      );
+
+
+    allBars =
+      buildRatio(
+        a1,
+        a2
+      );
+
+
+    if(
+      !allBars.length
+    ){
+
+      showErr(
+        'داده کافی نیست'
+      );
+
+      setLoad(false);
+
+      return;
+    }
+
+
     applyRange();
 
-    setTimeout(function(){
-      renderVela();
-      setLoad(false);
-    }, 30);
+
+    setTimeout(
+      function(){
+
+        renderVela();
+
+        setLoad(false);
+
+      },
+      30
+    );
   }
 
+
+  /*
+   * ===== LOAD TWO SYMBOLS =====
+   */
+
   function analyze(){
-    if(!SYMBOLS.length){ showErr('لیست نمادها آماده نیست'); return; }
-    setLoad('دریافت داده...');
 
-    var id1 = SYMBOLS[sym1Idx].id;
-    var id2 = SYMBOLS[sym2Idx].id;
-    var url1 = BASE + 'data/raw/' + id1 + '.json?v=' + Date.now();
-    var url2 = BASE + 'data/raw/' + id2 + '.json?v=' + Date.now();
+    if(
+      !SYMBOLS.length
+    ){
 
-    console.log('[analyze] urls:', url1, url2);
+      showErr(
+        'لیست نمادها آماده نیست'
+      );
+
+      return;
+    }
+
+
+    if(
+      !SYMBOLS[sym1Idx] ||
+      !SYMBOLS[sym2Idx]
+    ){
+
+      showErr(
+        'نماد انتخابی معتبر نیست'
+      );
+
+      return;
+    }
+
+
+    setLoad(
+      'دریافت داده...'
+    );
+
+
+    var id1 =
+      SYMBOLS[sym1Idx].id;
+
+    var id2 =
+      SYMBOLS[sym2Idx].id;
+
+
+    /*
+     * IMPORTANT:
+     * No Date.now() query string.
+     * This allows CDN caching.
+     */
+
+    var url1 =
+      BASE +
+      'data/raw/' +
+      id1 +
+      '.json';
+
+
+    var url2 =
+      BASE +
+      'data/raw/' +
+      id2 +
+      '.json';
+
+
+    console.log(
+      '[analyze] urls:',
+      url1,
+      url2
+    );
+
 
     Promise.all([
-      fetch(url1).then(function(r){
-        if(!r.ok) throw new Error('HTTP ' + r.status + ' for ' + url1);
-        return r.text();
-      }),
-      fetch(url2).then(function(r){
-        if(!r.ok) throw new Error('HTTP ' + r.status + ' for ' + url2);
-        return r.text();
-      })
-    ]).then(function(texts){
-      function safeJSON(t, label){
-        try { return JSON.parse(t); }
-        catch(e){
-          var snippet = t.substring(0, 80).replace(/\n/g, ' ');
-          throw new Error('JSON خرابه در ' + label + ': ' + e.message + ' | ' + snippet);
+
+      fetch(url1)
+        .then(function(r){
+
+          if(!r.ok){
+
+            throw new Error(
+              'HTTP ' +
+              r.status +
+              ' for ' +
+              url1
+            );
+
+          }
+
+          return r.text();
+        }),
+
+
+      fetch(url2)
+        .then(function(r){
+
+          if(!r.ok){
+
+            throw new Error(
+              'HTTP ' +
+              r.status +
+              ' for ' +
+              url2
+            );
+
+          }
+
+          return r.text();
+        })
+
+    ])
+
+    .then(function(texts){
+
+      function safeJSON(
+        t,
+        label
+      ){
+
+        try{
+
+          return JSON.parse(t);
+
+        }catch(e){
+
+          var snippet =
+            t.substring(
+              0,
+              80
+            )
+            .replace(
+              /\n/g,
+              ' '
+            );
+
+
+          throw new Error(
+            'JSON خرابه در ' +
+            label +
+            ': ' +
+            e.message +
+            ' | ' +
+            snippet
+          );
         }
       }
-      raw1 = safeJSON(texts[0], 'data/raw/' + id1 + '.json');
-      raw2 = safeJSON(texts[1], 'data/raw/' + id2 + '.json');
 
-      if(!Array.isArray(raw1)) throw new Error('data/raw/' + id1 + '.json آرایه نیست');
-      if(!Array.isArray(raw2)) throw new Error('data/raw/' + id2 + '.json آرایه نیست');
 
-      console.log('[data] raw1:', raw1.length, 'raw2:', raw2.length);
+      raw1 =
+        safeJSON(
+          texts[0],
+          'data/raw/' +
+          id1 +
+          '.json'
+        );
+
+
+      raw2 =
+        safeJSON(
+          texts[1],
+          'data/raw/' +
+          id2 +
+          '.json'
+        );
+
+
+      if(
+        !Array.isArray(raw1)
+      ){
+
+        throw new Error(
+          'data/raw/' +
+          id1 +
+          '.json آرایه نیست'
+        );
+      }
+
+
+      if(
+        !Array.isArray(raw2)
+      ){
+
+        throw new Error(
+          'data/raw/' +
+          id2 +
+          '.json آرایه نیست'
+        );
+      }
+
+
+      console.log(
+        '[data] raw1:',
+        raw1.length,
+        'raw2:',
+        raw2.length
+      );
+
 
       rebuildChart();
-    }).catch(function(e){
-      showErr(e.message);
+
+    })
+
+    .catch(function(e){
+
+      showErr(
+        e.message
+      );
+
       setLoad(false);
+
     });
   }
 
+
+  /*
+   * ===== RANGE =====
+   */
+
   function applyRange(){
-    if(!allBars.length){ curBars = []; return; }
-    if(curRange === 0){ curBars = allBars.slice(); return; }
-    var lastT = allBars[allBars.length-1].time;
-    curBars = allBars.filter(function(b){ return b.time >= lastT - curRange*86400000; });
+
+    if(
+      !allBars.length
+    ){
+
+      curBars = [];
+
+      return;
+    }
+
+
+    if(
+      curRange === 0
+    ){
+
+      curBars =
+        allBars.slice();
+
+      return;
+    }
+
+
+    var lastT =
+      allBars[
+        allBars.length - 1
+      ].time;
+
+
+    curBars =
+      allBars.filter(
+        function(b){
+
+          return (
+            b.time >=
+            lastT -
+            curRange *
+            86400000
+          );
+
+        }
+      );
   }
 
-  // ===== toggle عملکردی/خام =====
+
+  /*
+   * ===== RAW / ADJUSTED =====
+   */
+
   function setMode(mode){
-    adjustMode = (mode === 'adjusted');
-    $('btnAdjusted').classList.toggle('active-mode', adjustMode);
-    $('btnRaw').classList.toggle('active-mode', !adjustMode);
-    try { localStorage.setItem('adjust_mode', adjustMode ? 'adj' : 'raw'); } catch(e){}
-    if(raw1 && raw2) rebuildChart();
+
+    adjustMode =
+      mode === 'adjusted';
+
+
+    $('btnAdjusted')
+      .classList
+      .toggle(
+        'active-mode',
+        adjustMode
+      );
+
+
+    $('btnRaw')
+      .classList
+      .toggle(
+        'active-mode',
+        !adjustMode
+      );
+
+
+    try{
+
+      localStorage.setItem(
+        'adjust_mode',
+        adjustMode
+          ? 'adj'
+          : 'raw'
+      );
+
+    }catch(e){}
+
+
+    if(
+      raw1 &&
+      raw2
+    ){
+
+      rebuildChart();
+
+    }
   }
-  $('btnAdjusted').addEventListener('click', function(){ setMode('adjusted'); });
-  $('btnRaw').addEventListener('click', function(){ setMode('raw'); });
 
-  // ===== جستجو =====
-  var sInput = $('searchInput');
-  var sResults = $('searchResults');
 
-  sInput.addEventListener('input', function(){
-    var q = this.value.trim();
-    if(!q){ sResults.classList.remove('on'); sResults.innerHTML = ''; return; }
-    if(!SYMBOLS.length){
-      sResults.innerHTML = '<div class="search-item">در حال بارگذاری نمادها...</div>';
-      sResults.classList.add('on');
-      return;
+  $('btnAdjusted')
+    .addEventListener(
+      'click',
+      function(){
+
+        setMode(
+          'adjusted'
+        );
+
+      }
+    );
+
+
+  $('btnRaw')
+    .addEventListener(
+      'click',
+      function(){
+
+        setMode(
+          'raw'
+        );
+
+      }
+    );
+
+
+  /*
+   * ===== SEARCH =====
+   */
+
+  var sInput =
+    $('searchInput');
+
+  var sResults =
+    $('searchResults');
+
+
+  sInput.addEventListener(
+    'input',
+    function(){
+
+      var q =
+        this.value.trim();
+
+
+      if(!q){
+
+        sResults
+          .classList
+          .remove('on');
+
+        sResults.innerHTML =
+          '';
+
+        return;
+      }
+
+
+      if(
+        !SYMBOLS.length
+      ){
+
+        sResults.innerHTML =
+          '<div class="search-item">در حال بارگذاری نمادها...</div>';
+
+        sResults
+          .classList
+          .add('on');
+
+        return;
+      }
+
+
+      var matches =
+        SYMBOLS
+          .filter(function(s){
+
+            return (
+              s.name
+                .indexOf(q) > -1
+            );
+
+          })
+          .slice(
+            0,
+            30
+          );
+
+
+      if(
+        !matches.length
+      ){
+
+        sResults.innerHTML =
+          '<div class="search-item">یافت نشد</div>';
+
+        sResults
+          .classList
+          .add('on');
+
+        return;
+      }
+
+
+      sResults.innerHTML =
+        matches
+          .map(function(s){
+
+            var idx =
+              SYMBOLS.findIndex(
+                function(x){
+
+                  return (
+                    x.name ===
+                    s.name
+                  );
+
+                }
+              );
+
+
+            return (
+              '<div class="search-item" data-idx="' +
+              idx +
+              '">' +
+              '<span>' +
+              s.name +
+              '</span>' +
+              '</div>'
+            );
+
+          })
+          .join('');
+
+
+      sResults
+        .classList
+        .add('on');
+
     }
-    var matches = SYMBOLS.filter(function(s){ return s.name.indexOf(q) > -1; }).slice(0, 30);
-    if(!matches.length){
-      sResults.innerHTML = '<div class="search-item">یافت نشد</div>';
-      sResults.classList.add('on');
-      return;
+  );
+
+
+  sResults.addEventListener(
+    'mousedown',
+    function(e){
+
+      e.preventDefault();
+
     }
-    sResults.innerHTML = matches.map(function(s){
-      var idx = SYMBOLS.findIndex(function(x){ return x.name === s.name; });
-      return '<div class="search-item" data-idx="' + idx + '"><span>' + s.name + '</span></div>';
-    }).join('');
-    sResults.classList.add('on');
-  });
+  );
 
-  sResults.addEventListener('mousedown', function(e){ e.preventDefault(); });
 
-  sResults.addEventListener('click', function(e){
-    var item = e.target.closest('.search-item[data-idx]');
-    if(!item) return;
-    var idx = +item.dataset.idx;
-    if(editingSlot === 1) sym1Idx = idx;
-    else if(editingSlot === 2) sym2Idx = idx;
-    else sym1Idx = idx;
-    updateSymLabels();
-    editingSlot = 0;
-    $('sym1Pick').classList.remove('active');
-    $('sym2Pick').classList.remove('active');
-    sInput.value = '';
-    sResults.classList.remove('on');
-    sInput.blur();
-    analyze();
-  });
+  sResults.addEventListener(
+    'click',
+    function(e){
 
-  sInput.addEventListener('blur', function(){
-    setTimeout(function(){
-      sResults.classList.remove('on');
+      var item =
+        e.target.closest(
+          '.search-item[data-idx]'
+        );
+
+
+      if(!item){
+        return;
+      }
+
+
+      var idx =
+        +item.dataset.idx;
+
+
+      if(
+        editingSlot === 1
+      ){
+
+        sym1Idx = idx;
+
+      }else if(
+        editingSlot === 2
+      ){
+
+        sym2Idx = idx;
+
+      }else{
+
+        sym1Idx = idx;
+      }
+
+
+      updateSymLabels();
+
+
       editingSlot = 0;
-      $('sym1Pick').classList.remove('active');
-      $('sym2Pick').classList.remove('active');
-    }, 200);
-  });
 
-  $('sym1Pick').addEventListener('click', function(){
-    editingSlot = 1;
-    $('sym1Pick').classList.add('active');
-    $('sym2Pick').classList.remove('active');
-    sInput.placeholder = 'جستجوی نماد ۱...';
-    sInput.focus();
-  });
-  $('sym2Pick').addEventListener('click', function(){
-    editingSlot = 2;
-    $('sym2Pick').classList.add('active');
-    $('sym1Pick').classList.remove('active');
-    sInput.placeholder = 'جستجوی نماد ۲...';
-    sInput.focus();
-  });
 
-  // ===== رویدادها =====
-  $('btnAnalyze').addEventListener('click', analyze);
+      $('sym1Pick')
+        .classList
+        .remove('active');
 
-  $('tfSelect').addEventListener('change', function(){
-    curTF = this.value;
-    if(raw1 && raw2) rebuildChart();
-  });
+      $('sym2Pick')
+        .classList
+        .remove('active');
 
-  $('rangeSelect').addEventListener('change', function(){
-    curRange = +this.value;
-    if(!allBars.length) return;
-    applyRange(); renderVela();
-  });
 
-  $('typeSelect').addEventListener('change', function(){
-    chartType = this.value;
-    if(allBars.length) renderVela();
-  });
+      sInput.value = '';
 
-  // بازیابی حالت از localStorage
-  try {
-    if(localStorage.getItem('adjust_mode') === 'adj') setMode('adjusted');
-  } catch(e){}
+
+      sResults
+        .classList
+        .remove('on');
+
+
+      sInput.blur();
+
+
+      analyze();
+
+    }
+  );
+
+
+  sInput.addEventListener(
+    'blur',
+    function(){
+
+      setTimeout(
+        function(){
+
+          sResults
+            .classList
+            .remove('on');
+
+          editingSlot = 0;
+
+
+          $('sym1Pick')
+            .classList
+            .remove(
+              'active'
+            );
+
+          $('sym2Pick')
+            .classList
+            .remove(
+              'active'
+            );
+
+        },
+        200
+      );
+    }
+  );
+
+
+  /*
+   * ===== SYMBOL 1 PICKER =====
+   */
+
+  $('sym1Pick')
+    .addEventListener(
+      'click',
+      function(){
+
+        editingSlot = 1;
+
+
+        $('sym1Pick')
+          .classList
+          .add('active');
+
+
+        $('sym2Pick')
+          .classList
+          .remove('active');
+
+
+        sInput.placeholder =
+          'جستجوی نماد ۱...';
+
+
+        sInput.focus();
+
+      }
+    );
+
+
+  /*
+   * ===== SYMBOL 2 PICKER =====
+   */
+
+  $('sym2Pick')
+    .addEventListener(
+      'click',
+      function(){
+
+        editingSlot = 2;
+
+
+        $('sym2Pick')
+          .classList
+          .add('active');
+
+
+        $('sym1Pick')
+          .classList
+          .remove('active');
+
+
+        sInput.placeholder =
+          'جستجوی نماد ۲...';
+
+
+        sInput.focus();
+
+      }
+    );
+
+
+  /*
+   * ===== EVENTS =====
+   */
+
+  $('btnAnalyze')
+    .addEventListener(
+      'click',
+      analyze
+    );
+
+
+  $('tfSelect')
+    .addEventListener(
+      'change',
+      function(){
+
+        curTF =
+          this.value;
+
+
+        if(
+          raw1 &&
+          raw2
+        ){
+
+          rebuildChart();
+
+        }
+
+      }
+    );
+
+
+  $('rangeSelect')
+    .addEventListener(
+      'change',
+      function(){
+
+        curRange =
+          +this.value;
+
+
+        if(
+          !allBars.length
+        ){
+
+          return;
+        }
+
+
+        applyRange();
+
+        renderVela();
+
+      }
+    );
+
+
+  $('typeSelect')
+    .addEventListener(
+      'change',
+      function(){
+
+        chartType =
+          this.value;
+
+
+        if(
+          allBars.length
+        ){
+
+          renderVela();
+
+        }
+
+      }
+    );
+
+
+  /*
+   * ===== RESTORE USER MODE =====
+   */
+
+  try{
+
+    if(
+      localStorage.getItem(
+        'adjust_mode'
+      ) === 'adj'
+    ){
+
+      setMode(
+        'adjusted'
+      );
+    }
+
+  }catch(e){}
+
 
 })();
 </script>
+
 </body>
 </html>
