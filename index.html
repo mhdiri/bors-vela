@@ -9,20 +9,22 @@ html,body{width:100%;height:100%;overflow:hidden;background:#131722;color:#d1d4d
 button{background:none;border:none;color:#787b86;cursor:pointer;font-family:inherit;font-size:12px;padding:6px 10px;border-radius:2px}
 button:hover{background:rgba(255,255,255,.06);color:#d1d4dc}
 button.on{color:#2962FF}
+button.active-mode{background:#2962FF;color:#fff}
 input[type=text]{background:transparent;border:none;color:inherit;outline:none;font-family:inherit;font-size:12px}
 
 .app{display:grid;grid-template-rows:42px 1fr;height:100vh}
-.topbar{display:flex;align-items:center;padding:0 6px;background:#131722;border-bottom:1px solid #2a2e39;height:42px;gap:4px;direction:ltr}
-.div{width:1px;height:22px;background:#2a2e39;margin:0 4px}
+.topbar{display:flex;align-items:center;padding:0 6px;background:#131722;border-bottom:1px solid #2a2e39;height:42px;gap:4px;direction:ltr;overflow-x:auto;white-space:nowrap}
+.topbar::-webkit-scrollbar{height:0}
+.div{width:1px;height:22px;background:#2a2e39;margin:0 4px;flex-shrink:0}
 
-.search-wrap{position:relative;display:flex;align-items:center;background:#2a2e39;border-radius:2px;height:28px;padding:0 8px}
-.search-wrap input{width:140px}
+.search-wrap{position:relative;display:flex;align-items:center;background:#2a2e39;border-radius:2px;height:28px;padding:0 8px;min-width:160px}
+.search-wrap input{width:120px}
 .search-results{position:absolute;top:100%;left:0;right:0;margin-top:4px;background:#1e222d;border:1px solid #2a2e39;border-radius:2px;max-height:300px;overflow-y:auto;z-index:9999;display:none;direction:rtl}
 .search-results.on{display:block}
 .search-item{padding:8px 12px;cursor:pointer;font-size:12px;display:flex;justify-content:space-between;gap:12px;color:#d1d4dc}
 .search-item:hover{background:#2a2e39}
 
-.symbox{display:flex;align-items:center;background:#2a2e39;border-radius:2px;height:28px;padding:0 2px}
+.symbox{display:flex;align-items:center;background:#2a2e39;border-radius:2px;height:28px;padding:0 2px;flex-shrink:0}
 .sym-pick{padding:0 10px;height:28px;display:flex;align-items:center;font-weight:600;cursor:pointer;color:#d1d4dc;white-space:nowrap}
 .sym-pick:hover{background:rgba(255,255,255,.06)}
 .sym-pick.active{outline:1px solid #2962FF}
@@ -80,6 +82,11 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radiu
       <option value="area">ناحیه</option>
       <option value="bars">میله‌ای</option>
     </select>
+
+    <div class="div"></div>
+
+    <button id="btnAdjusted" title="حالت عملکردی (تعدیل‌شده)">عملکردی</button>
+    <button id="btnRaw" class="active-mode" title="حالت خام (تعدیل‌نشده)">خام</button>
   </div>
 
   <div class="main">
@@ -102,6 +109,11 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radiu
   var curTF = '1W', curRange = 0, chartType = 'candles';
   var velaChart = null;
   var editingSlot = 0;
+  var adjustMode = false; // false = خام، true = تعدیل‌شده
+
+  var THRESHOLD_HIGH = 1.4;
+  var THRESHOLD_LOW = 0.7;
+  var MAX_PASSES = 5;
 
   function setLoad(msg){
     var el = $('load');
@@ -134,6 +146,46 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radiu
       $('sym1Pick').textContent = SYMBOLS[sym1Idx] ? SYMBOLS[sym1Idx].name : '—';
       $('sym2Pick').textContent = SYMBOLS[sym2Idx] ? SYMBOLS[sym2Idx].name : '—';
     }
+  }
+
+  // ===== تعدیل داده یک نماد (در مرورگر) =====
+  function findGaps(bars){
+    var gaps = [];
+    for(var i = 1; i < bars.length; i++){
+      var p = bars[i-1].close;
+      var c = bars[i].close;
+      if(p && c && p > 0 && c > 0){
+        var r = c / p;
+        if(r > THRESHOLD_HIGH || r < THRESHOLD_LOW){
+          gaps.push({ idx: i, ratio: r });
+        }
+      }
+    }
+    return gaps;
+  }
+
+  function adjustSymbol(bars){
+    // کپی عمیق
+    var out = bars.map(function(b){ return {
+      time: b.time, open: b.open, high: b.high, low: b.low, close: b.close, volume: b.volume || 0
+    }; });
+
+    for(var pass = 0; pass < MAX_PASSES; pass++){
+      var gaps = findGaps(out);
+      if(!gaps.length) break;
+
+      for(var g = gaps.length - 1; g >= 0; g--){
+        var idx = gaps[g].idx;
+        var ratio = gaps[g].ratio;
+        for(var j = 0; j < idx; j++){
+          out[j].open  = +(out[j].open  * ratio).toFixed(6);
+          out[j].high  = +(out[j].high  * ratio).toFixed(6);
+          out[j].low   = +(out[j].low   * ratio).toFixed(6);
+          out[j].close = +(out[j].close * ratio).toFixed(6);
+        }
+      }
+    }
+    return out;
   }
 
   function aggregate(bars, tf){
@@ -206,6 +258,29 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radiu
     }
   }
 
+  function rebuildChart(){
+    if(!raw1 || !raw2) return;
+
+    var d1 = raw1, d2 = raw2;
+
+    if(adjustMode){
+      setLoad('اعمال تعدیل...');
+      // کپی + تعدیل هر نماد جدا
+      d1 = adjustSymbol(raw1);
+      d2 = adjustSymbol(raw2);
+    }
+
+    var a1 = aggregate(d1, curTF), a2 = aggregate(d2, curTF);
+    allBars = buildRatio(a1, a2);
+    if(!allBars.length){ showErr('داده کافی نیست'); setLoad(false); return; }
+    applyRange();
+
+    setTimeout(function(){
+      renderVela();
+      setLoad(false);
+    }, 30);
+  }
+
   function analyze(){
     if(!SYMBOLS.length){ showErr('لیست نمادها آماده نیست'); return; }
     setLoad('دریافت داده...');
@@ -227,13 +302,11 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radiu
         return r.text();
       })
     ]).then(function(texts){
-      // پارس امن JSON
       function safeJSON(t, label){
-        try {
-          return JSON.parse(t);
-        } catch(e){
+        try { return JSON.parse(t); }
+        catch(e){
           var snippet = t.substring(0, 80).replace(/\n/g, ' ');
-          throw new Error('JSON خرابه در ' + label + ': ' + e.message + ' | شروع فایل: ' + snippet);
+          throw new Error('JSON خرابه در ' + label + ': ' + e.message + ' | ' + snippet);
         }
       }
       raw1 = safeJSON(texts[0], 'data/raw/' + id1 + '.json');
@@ -244,14 +317,7 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radiu
 
       console.log('[data] raw1:', raw1.length, 'raw2:', raw2.length);
 
-      var a1 = aggregate(raw1, curTF), a2 = aggregate(raw2, curTF);
-      allBars = buildRatio(a1, a2);
-      if(!allBars.length){ showErr('داده کافی نیست'); setLoad(false); return; }
-      applyRange();
-      setTimeout(function(){
-        renderVela();
-        setLoad(false);
-      }, 50);
+      rebuildChart();
     }).catch(function(e){
       showErr(e.message);
       setLoad(false);
@@ -264,6 +330,17 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radiu
     var lastT = allBars[allBars.length-1].time;
     curBars = allBars.filter(function(b){ return b.time >= lastT - curRange*86400000; });
   }
+
+  // ===== toggle عملکردی/خام =====
+  function setMode(mode){
+    adjustMode = (mode === 'adjusted');
+    $('btnAdjusted').classList.toggle('active-mode', adjustMode);
+    $('btnRaw').classList.toggle('active-mode', !adjustMode);
+    try { localStorage.setItem('adjust_mode', adjustMode ? 'adj' : 'raw'); } catch(e){}
+    if(raw1 && raw2) rebuildChart();
+  }
+  $('btnAdjusted').addEventListener('click', function(){ setMode('adjusted'); });
+  $('btnRaw').addEventListener('click', function(){ setMode('raw'); });
 
   // ===== جستجو =====
   var sInput = $('searchInput');
@@ -338,10 +415,7 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radiu
 
   $('tfSelect').addEventListener('change', function(){
     curTF = this.value;
-    if(!raw1) return;
-    var a1 = aggregate(raw1, curTF), a2 = aggregate(raw2, curTF);
-    allBars = buildRatio(a1, a2);
-    applyRange(); renderVela();
+    if(raw1 && raw2) rebuildChart();
   });
 
   $('rangeSelect').addEventListener('change', function(){
@@ -354,6 +428,11 @@ select{background:#2a2e39;border:none;color:#d1d4dc;padding:4px 8px;border-radiu
     chartType = this.value;
     if(allBars.length) renderVela();
   });
+
+  // بازیابی حالت از localStorage
+  try {
+    if(localStorage.getItem('adjust_mode') === 'adj') setMode('adjusted');
+  } catch(e){}
 
 })();
 </script>
