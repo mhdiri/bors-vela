@@ -99,21 +99,11 @@ select{direction:rtl}
       <option value="0" selected>همه</option>
     </select>
 
-    <select id="style" title="نوع نمودار">
-      <option value="candles" selected>کندل</option>
-      <option value="bars">میله‌ای</option>
-      <option value="line">خط</option>
-      <option value="area">ناحیه</option>
-      <option value="baseline">Baseline</option>
-    </select>
-
     <button id="adjustedBtn" class="tool" title="نمایش عملکردی؛ RAW دست‌نخورده می‌ماند">عملکردی</button>
     <button id="rawBtn" class="tool active" title="نمایش RAW">خام</button>
     <button id="logBtn" class="tool" title="مقیاس لگاریتمی">Log</button>
     <button id="resetBtn" class="tool" title="بازنشانی محدوده نمودار">بازنشانی</button>
-    <button id="shareBtn" class="tool" title="کپی لینک تنظیمات فعلی">اشتراک</button>
     <button id="fullscreenBtn" class="tool" title="تمام صفحه">⛶</button>
-    <button id="shotBtn" class="tool" title="تصویر نمودار">PNG</button>
 
     <div id="status" class="status">در حال آماده‌سازی...</div>
   </div>
@@ -129,10 +119,18 @@ select{direction:rtl}
 
 <div id="results" class="results" role="listbox" aria-label="نتایج جستجو"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@luxalgo/vela@0.8.3/dist/vela.global.min.js"></script>
-<script>
-(() => {
+<script type="module">
+(async () => {
   'use strict';
+  let VelaWorkspace = null;
+  try{
+    ({VelaWorkspace} = await import('https://cdn.jsdelivr.net/npm/@luxalgo/vela@0.8.3/workspace/+esm'));
+  }catch(e){
+    const box=document.getElementById('error');
+    if(box){ box.textContent='خطا: Vela Workspace بارگذاری نشد. اتصال اینترنت یا CDN را بررسی کنید.'; box.classList.add('on'); }
+    console.error(e);
+    return;
+  }
   if('serviceWorker' in navigator){ navigator.serviceWorker.register('/sw.js').catch(()=>{}); }
 
 
@@ -140,7 +138,6 @@ select{direction:rtl}
   const BASE = '/';
   const SYMBOLS_URL = BASE + 'data/symbols.json';
   const VERSION_URL = BASE + 'data/version.json';
-  const VELA = window.Vela && (window.Vela.Vela || window.Vela);
   const STORAGE_KEY = 'MHDI_RATIO_STATE_V2';
   const RANGE_VALUES = new Set([0,30,90,180,365,1825]);
   const TF_VALUES = new Set(['1D','1W','1M']);
@@ -163,6 +160,7 @@ select{direction:rtl}
     adjustedCache: new Map(),
     ratioCache: new Map(),
     chart: null,
+    workspace: null,
     searchResults: [],
     searchCursor: -1,
     buildSerial: 0,
@@ -615,7 +613,6 @@ select{direction:rtl}
   function syncControls(){
     $('timeframe').value = state.timeframe;
     $('range').value = String(state.rangeDays);
-    $('style').value = state.priceStyle;
     $('adjustedBtn').classList.toggle('active', state.adjusted);
     $('rawBtn').classList.toggle('active', !state.adjusted);
     $('logBtn').classList.toggle('active', state.logScale);
@@ -886,11 +883,12 @@ select{direction:rtl}
   }
 
   async function ensureChart(bars,serial){
-    if(!VELA) throw new Error('کتابخانه Vela بارگذاری نشده است.');
+    if(typeof VelaWorkspace !== 'function') throw new Error('کتابخانه Vela Workspace بارگذاری نشده است.');
     if(serial !== state.buildSerial) return false;
     if(!bars.length) throw new Error('داده‌ای برای نمودار وجود ندارد.');
 
     const chartOptions = {
+      layout:false,
       data:bars,
       timeframe:state.timeframe,
       theme:'dark',
@@ -902,23 +900,42 @@ select{direction:rtl}
       nativeBackend:'auto',
       animations:{zoom:true,pan:true},
       drawings:{toolbar:true},
-      settings:{hidden:[]},
-      volume:false
+      drawingToolbar:true,
+      statusline:true,
+      watermark:true,
+      bottombar:false,
+      autofocus:true,
+      topbar:{
+        left:['indicators','undo-redo'],
+        right:['alerts','panels','screenshot']
+      }
     };
 
-    if(!state.chart){
-      state.chart = new VELA('#chart',chartOptions);
+    syncRendererStateFromWorkspace();
+
+    if(!state.workspace){
+      if(typeof VelaWorkspace !== 'function') throw new Error('Vela Workspace بارگذاری نشده است.');
+      state.workspace = new VelaWorkspace('#chart',chartOptions);
+      state.chart = state.workspace.chart;
       await state.chart.ready();
       restoreRendererConfig();
       restoreDrawingsForCurrentPair();
       attachChartPersistence();
+      try{
+        state.workspace.on('state:changed',() => {
+          syncRendererStateFromWorkspace();
+          saveRendererConfig();
+          scheduleDrawingSave();
+        });
+      }catch(e){}
     }else{
       saveDrawingsForCurrentPair();
-      await state.chart.setMarket({
+      await state.workspace.chart.setMarket({
         data:bars,
         timeframe:state.timeframe,
         visibleRange:currentVisibleRange(bars)
       });
+      state.chart = state.workspace.chart;
       await state.chart.ready();
       restoreDrawingsForCurrentPair();
     }
@@ -956,6 +973,15 @@ select{direction:rtl}
       showError(message);
       setStatus('خطا در دریافت یا پردازش داده');
     }
+  }
+
+  function syncRendererStateFromWorkspace(){
+    try{
+      const cfg = state.chart?.renderer?.getConfig?.();
+      if(!cfg || typeof cfg !== 'object') return;
+      if(STYLE_VALUES.has(String(cfg.priceStyle))) state.priceStyle = String(cfg.priceStyle);
+      if(typeof cfg.logScale === 'boolean') state.logScale = cfg.logScale;
+    }catch(e){}
   }
 
   function applyRendererChange(){
@@ -998,31 +1024,6 @@ select{direction:rtl}
     updatePairUI();
     persistState();
     buildAndRender();
-  }
-
-  async function copyShareLink(){
-    persistState(true);
-    const url = location.href;
-    try{
-      await navigator.clipboard.writeText(url);
-      setStatus('لینک تنظیمات کپی شد');
-      setTimeout(() => setStatus(state.lastRatioBars.length.toLocaleString('fa-IR') + ' کندل نسبت'),1400);
-    }catch(e){
-      showError('مرورگر اجازه کپی خودکار نداد. لینک فعلی را از نوار آدرس کپی کنید.');
-    }
-  }
-
-  async function takeScreenshot(){
-    if(!state.chart?.renderer?.screenshot){
-      showError('خروجی PNG این renderer در دسترس نیست.');
-      return;
-    }
-    const dataURL = state.chart.renderer.screenshot();
-    if(!dataURL){showError('ساخت تصویر نمودار ناموفق بود.');return;}
-    const a = document.createElement('a');
-    a.href = dataURL;
-    a.download = 'MHDI-' + (state.a?.name||'A') + '-' + (state.b?.name||'B') + '-' + state.timeframe + '.png';
-    document.body.appendChild(a); a.click(); a.remove();
   }
 
   async function toggleFullscreen(){
@@ -1075,13 +1076,6 @@ select{direction:rtl}
     persistState();
     resetView();
   });
-  $('style').addEventListener('change',(e) => {
-    const value = e.target.value;
-    if(!STYLE_VALUES.has(value)) return;
-    state.priceStyle = value;
-    applyRendererChange();
-    persistState();
-  });
   $('adjustedBtn').addEventListener('click',() => changeMode(true));
   $('rawBtn').addEventListener('click',() => changeMode(false));
   $('logBtn').addEventListener('click',() => {
@@ -1091,9 +1085,7 @@ select{direction:rtl}
     persistState();
   });
   $('resetBtn').addEventListener('click',resetView);
-  $('shareBtn').addEventListener('click',copyShareLink);
   $('fullscreenBtn').addEventListener('click',toggleFullscreen);
-  $('shotBtn').addEventListener('click',takeScreenshot);
   window.addEventListener('resize',() => {positionResults();state.chart?.resize?.();});
   document.addEventListener('visibilitychange',() => { if(document.visibilityState==='hidden'){saveDrawingsForCurrentPair();saveRendererConfig();} });
   window.addEventListener('beforeunload',() => {saveDrawingsForCurrentPair();saveRendererConfig();try{dataWorker?.terminate();}catch(e){}});
@@ -1165,7 +1157,7 @@ select{direction:rtl}
 
   (async function boot(){
     try{
-      if(!VELA) throw new Error('کتابخانه Vela بارگذاری نشده است.');
+      if(typeof VelaWorkspace !== 'function') throw new Error('کتابخانه Vela Workspace بارگذاری نشده است.');
       setLoading(true,'در حال بارگذاری فهرست نمادها...');
       await loadDataVersion();
       await loadSymbols();
