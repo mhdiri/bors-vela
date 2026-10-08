@@ -1,305 +1,86 @@
 <!DOCTYPE html>
-<html lang="fa">
+<html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>نسبت‌سنجی</title>
-
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#131722">
+<title>MHDI Ratio</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-
-html,body{
-  width:100%;
-  height:100%;
-  overflow:hidden;
-  background:#131722;
-  color:#d1d4dc;
-  font-family:-apple-system,Tahoma,Arial,sans-serif;
-  font-size:12px
-}
-
-button{
-  background:none;
-  border:none;
-  color:#787b86;
-  cursor:pointer;
-  font-family:inherit;
-  font-size:12px;
-  padding:6px 10px;
-  border-radius:2px
-}
-
-button:hover{
-  background:rgba(255,255,255,.06);
-  color:#d1d4dc
-}
-
-button.on{
-  color:#2962FF
-}
-
-button.active-mode{
-  background:#2962FF;
-  color:#fff
-}
-
-input[type=text]{
-  background:transparent;
-  border:none;
-  color:inherit;
-  outline:none;
-  font-family:inherit;
-  font-size:12px
-}
-
-.app{
-  display:grid;
-  grid-template-rows:42px 1fr;
-  height:100vh
-}
-
-.topbar{
-  display:flex;
-  align-items:center;
-  padding:0 6px;
-  background:#131722;
-  border-bottom:1px solid #2a2e39;
-  height:42px;
-  gap:4px;
-  direction:ltr;
-  overflow-x:auto;
-  white-space:nowrap
-}
-
-.topbar::-webkit-scrollbar{
-  height:0
-}
-
-.div{
-  width:1px;
-  height:22px;
-  background:#2a2e39;
-  margin:0 4px;
-  flex-shrink:0
-}
-
-.search-wrap{
-  position:relative;
-  display:flex;
-  align-items:center;
-  background:#2a2e39;
-  border-radius:2px;
-  height:28px;
-  padding:0 8px;
-  min-width:160px
-}
-
-.search-wrap input{
-  width:120px
-}
-
-.search-results{
-  position:absolute;
-  top:100%;
-  left:0;
-  right:0;
-  margin-top:4px;
-  background:#1e222d;
-  border:1px solid #2a2e39;
-  border-radius:2px;
-  max-height:300px;
-  overflow-y:auto;
-  z-index:9999;
-  display:none;
-  direction:rtl
-}
-
-.search-results.on{
-  display:block
-}
-
-.search-item{
-  padding:8px 12px;
-  cursor:pointer;
-  font-size:12px;
-  display:flex;
-  justify-content:space-between;
-  gap:12px;
-  color:#d1d4dc
-}
-
-.search-item:hover{
-  background:#2a2e39
-}
-
-.symbox{
-  display:flex;
-  align-items:center;
-  background:#2a2e39;
-  border-radius:2px;
-  height:28px;
-  padding:0 2px;
-  flex-shrink:0
-}
-
-.sym-pick{
-  padding:0 10px;
-  height:28px;
-  display:flex;
-  align-items:center;
-  font-weight:600;
-  cursor:pointer;
-  color:#d1d4dc;
-  white-space:nowrap
-}
-
-.sym-pick:hover{
-  background:rgba(255,255,255,.06)
-}
-
-.sym-pick.active{
-  outline:1px solid #2962FF
-}
-
-.symbox .vs{
-  color:#787b86;
-  padding:0 3px
-}
-
-.symbox .go{
-  background:#2962FF;
-  color:#fff;
-  padding:0 12px;
-  height:22px;
-  font-weight:600;
-  font-size:11px;
-  border-radius:2px;
-  margin-left:2px
-}
-
-.symbox .go:hover{
-  background:#1e4fd8;
-  color:#fff
-}
-
-select{
-  background:#2a2e39;
-  border:none;
-  color:#d1d4dc;
-  padding:4px 8px;
-  border-radius:2px;
-  font-family:inherit;
-  font-size:12px;
-  cursor:pointer;
-  outline:none;
-  height:28px
-}
-
-.main{
-  position:relative;
-  overflow:hidden;
-  background:#131722
-}
-
-#chartWrap{
-  position:absolute;
-  inset:0;
-  background:#131722
-}
-
-#chart{
-  width:100%;
-  height:100%
-}
-
-#load{
-  position:absolute;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:rgba(19,23,34,.85);
-  color:#aed581;
-  font-size:13px;
-  z-index:200;
-  font-family:monospace
-}
-
-#load.off{
-  display:none
-}
-
-#err{
-  position:absolute;
-  bottom:10px;
-  left:10px;
-  right:10px;
-  background:#ef5350;
-  color:#fff;
-  padding:10px 14px;
-  border-radius:3px;
-  font-family:monospace;
-  font-size:11px;
-  z-index:300;
-  display:none;
-  direction:ltr;
-  word-break:break-all
-}
-
-#err.on{
-  display:block
-}
+:root{color-scheme:dark;--bg:#131722;--panel:#1e222d;--border:#2a2e39;--text:#d1d4dc;--muted:#787b86;--accent:#2962ff;--danger:#ef5350}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,Tahoma,Arial,sans-serif;font-size:12px}
+body{touch-action:none}
+button,input,select{font:inherit}
+button{border:0;background:transparent;color:var(--muted);cursor:pointer;border-radius:3px}
+button:hover{background:rgba(255,255,255,.06);color:var(--text)}
+button.active{background:var(--accent);color:#fff}
+button:disabled{opacity:.45;cursor:default}
+input{outline:none}
+.app{height:100vh;display:grid;grid-template-rows:44px 1fr;background:var(--bg)}
+.topbar{height:44px;display:flex;align-items:center;gap:5px;padding:0 7px;border-bottom:1px solid var(--border);background:var(--bg);direction:ltr;white-space:nowrap;overflow-x:auto}
+.topbar::-webkit-scrollbar{display:none}
+.separator{width:1px;height:24px;background:var(--border);margin:0 3px;flex:0 0 auto}
+.brand{font-weight:800;color:#fff;letter-spacing:.5px;padding:5px 7px;flex:0 0 auto}
+.search{position:relative;width:220px;height:30px;display:flex;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:3px;flex:0 0 auto}
+.search input{width:100%;height:100%;padding:0 10px;background:transparent;border:0;color:var(--text);direction:rtl}
+.search input::placeholder{color:#5f636d}
+.results{position:absolute;left:0;right:0;top:34px;display:none;max-height:340px;overflow:auto;background:#1e222d;border:1px solid var(--border);border-radius:3px;z-index:10000;direction:rtl;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.results.open{display:block}
+.result{padding:9px 11px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.03)}
+.result:last-child{border-bottom:0}
+.result:hover,.result.selected{background:#2a2e39}
+.result .name{font-weight:700;color:#e6e8eb}
+.result .id{font-size:10px;color:var(--muted);direction:ltr}
+.pair{display:flex;align-items:center;gap:2px;background:var(--panel);border:1px solid var(--border);border-radius:3px;height:30px;flex:0 0 auto}
+.pair-slot{min-width:74px;max-width:120px;height:28px;padding:0 9px;display:flex;align-items:center;justify-content:center;color:#e5e7eb;font-weight:700;cursor:pointer;overflow:hidden;text-overflow:ellipsis;direction:rtl}
+.pair-slot:hover{background:rgba(255,255,255,.05)}
+.pair-slot.active{background:rgba(41,98,255,.18);outline:1px solid var(--accent)}
+.pair-sep{color:var(--muted);padding:0 2px}
+.go{height:24px;padding:0 11px;background:var(--accent);color:#fff!important;font-weight:700;margin-left:3px}
+.go:hover{background:#1f55e5}
+.control,select{height:30px;padding:0 8px;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:3px;cursor:pointer;outline:none}
+select{direction:rtl}
+.tool{height:30px;padding:0 9px}
+.status{margin-left:auto;height:30px;display:flex;align-items:center;padding:0 8px;color:var(--muted);direction:rtl;max-width:300px;overflow:hidden;text-overflow:ellipsis}
+.main{position:relative;min-width:0;min-height:0;overflow:hidden;background:var(--bg)}
+#chartWrap{position:absolute;inset:0}
+#chart{width:100%;height:100%}
+#loading{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(19,23,34,.82);z-index:9000;color:#aed581;font-family:monospace;font-size:13px;direction:rtl}
+#loading.on{display:flex}
+#error{position:absolute;left:10px;right:10px;bottom:10px;display:none;padding:10px 12px;border-radius:3px;background:var(--danger);color:#fff;z-index:9500;direction:rtl;white-space:pre-wrap;word-break:break-word}
+#error.on{display:block}
+#pairTitle{position:absolute;top:9px;right:12px;z-index:7000;padding:5px 8px;border-radius:3px;background:rgba(19,23,34,.72);border:1px solid rgba(255,255,255,.06);pointer-events:none;direction:rtl;backdrop-filter:blur(4px)}
+#pairTitle b{color:#fff}
+@media(max-width:900px){.brand{display:none}.search{width:190px}.status{display:none}.pair-slot{min-width:68px}}
 </style>
 </head>
-
 <body>
-
 <div class="app">
-
   <div class="topbar">
+    <div class="brand">MHDI</div>
 
-    <div class="search-wrap">
-      <input
-        type="text"
-        id="searchInput"
-        placeholder="جستجو..."
-        autocomplete="off"
-      >
-      <div
-        class="search-results"
-        id="searchResults"
-      ></div>
+    <div class="search" id="searchBox">
+      <input id="searchInput" type="text" autocomplete="off" spellcheck="false" placeholder="جستجوی نماد...">
+      <div id="results" class="results"></div>
     </div>
 
-    <div class="symbox">
-
-      <div
-        class="sym-pick"
-        id="sym1Pick"
-      >—</div>
-
-      <span class="vs">/</span>
-
-      <div
-        class="sym-pick"
-        id="sym2Pick"
-      >—</div>
-
-      <button
-        class="go"
-        id="btnAnalyze"
-      >تحلیل</button>
-
+    <div class="pair">
+      <button id="slotA" class="pair-slot active" title="انتخاب نماد اول">—</button>
+      <span class="pair-sep">/</span>
+      <button id="slotB" class="pair-slot" title="انتخاب نماد دوم">—</button>
+      <button id="swapBtn" class="control" title="جابه‌جایی دو نماد">⇄</button>
+      <button id="analyzeBtn" class="go" title="نمایش نسبت">تحلیل</button>
     </div>
 
-    <div class="div"></div>
+    <div class="separator"></div>
 
-    <select id="tfSelect">
+    <select id="timeframe" title="تایم‌فریم">
       <option value="1D">روزانه</option>
       <option value="1W" selected>هفتگی</option>
       <option value="1M">ماهانه</option>
     </select>
 
-    <select id="rangeSelect">
+    <select id="range" title="بازه نمایش">
       <option value="30">۱ ماه</option>
       <option value="90">۳ ماه</option>
       <option value="180">۶ ماه</option>
@@ -308,1476 +89,578 @@ select{
       <option value="0" selected>همه</option>
     </select>
 
-    <select id="typeSelect">
-      <option value="candles">کندل</option>
+    <select id="style" title="نوع نمودار">
+      <option value="candles" selected>کندل</option>
+      <option value="bars">میله‌ای</option>
       <option value="line">خط</option>
       <option value="area">ناحیه</option>
-      <option value="bars">میله‌ای</option>
     </select>
 
-    <div class="div"></div>
+    <button id="adjustedBtn" class="tool" title="نمایش عملکردی؛ RAW دست‌نخورده می‌ماند">عملکردی</button>
+    <button id="rawBtn" class="tool active" title="نمایش RAW">خام</button>
+    <button id="logBtn" class="tool" title="مقیاس لگاریتمی">Log</button>
+    <button id="resetBtn" class="tool" title="بازنشانی محدوده نمودار">بازنشانی</button>
+    <button id="fullscreenBtn" class="tool" title="تمام صفحه">⛶</button>
+    <button id="shotBtn" class="tool" title="تصویر نمودار">PNG</button>
 
-    <button
-      id="btnAdjusted"
-      title="حالت عملکردی (تعدیل‌شده)"
-    >عملکردی</button>
-
-    <button
-      id="btnRaw"
-      class="active-mode"
-      title="حالت خام (تعدیل‌نشده)"
-    >خام</button>
-
+    <div id="status" class="status">در حال آماده‌سازی...</div>
   </div>
 
-  <div class="main">
-
-    <div id="chartWrap">
-      <div id="chart"></div>
-    </div>
-
-    <div id="load" class="off">
-      در حال بارگذاری...
-    </div>
-
-    <div id="err"></div>
-
-  </div>
-
+  <main class="main">
+    <div id="chartWrap"><div id="chart"></div></div>
+    <div id="pairTitle"><b>—</b> / <b>—</b></div>
+    <div id="loading"><span>در حال بارگذاری...</span></div>
+    <div id="error"></div>
+  </main>
 </div>
 
-
-<script src="https://cdn.jsdelivr.net/npm/@luxalgo/vela@latest/dist/vela.global.min.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/@luxalgo/vela@0.8.3/dist/vela.global.min.js"></script>
 <script>
-(function(){
+(() => {
+  'use strict';
 
-  var $ = function(id){
-    return document.getElementById(id);
+  const $ = (id) => document.getElementById(id);
+
+  const BASE = '/';
+  const SYMBOLS_URL = BASE + 'data/symbols.json';
+  const VELA = window.Vela && (window.Vela.Vela || window.Vela);
+
+  const state = {
+    symbols: [],
+    symbolIndex: new Map(),
+    targetSlot: 'A',
+    a: null,
+    b: null,
+    timeframe: '1W',
+    rangeDays: 0,
+    lastRatioBars: [],
+    priceStyle: 'candles',
+    adjusted: false,
+    logScale: false,
+    rawCache: new Map(),
+    adjustedCache: new Map(),
+    ratioCache: new Map(),
+    chart: null,
+    searchResults: [],
+    searchCursor: -1
   };
 
-  /*
-   * IMPORTANT:
-   * Data is now served from the same Cloudflare Pages domain.
-   * This keeps the frontend independent from GitHub RAW.
-   */
-  var BASE = '/';
+  function setStatus(text){ $('status').textContent = text || ''; }
 
-  var SYMBOLS = [];
+  function setLoading(on, text){
+    const box = $('loading');
+    box.classList.toggle('on', !!on);
+    if(on) box.firstElementChild.textContent = text || 'در حال بارگذاری...';
+  }
 
-  var raw1 = null;
-  var raw2 = null;
+  function clearError(){
+    $('error').textContent = '';
+    $('error').classList.remove('on');
+  }
 
-  var allBars = [];
-  var curBars = [];
+  function showError(message){
+    $('error').textContent = 'خطا: ' + message;
+    $('error').classList.add('on');
+    console.error(message);
+  }
 
-  var sym1Idx = 0;
-  var sym2Idx = 1;
+  function normalizeText(value){
+    return String(value ?? '')
+      .replace(/[يى]/g, 'ی')
+      .replace(/ك/g, 'ک')
+      .replace(/ۀ/g, 'ه')
+      .replace(/[۰-۹]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+      .replace(/[\u200c\u200f\u200e]/g, '')
+      .trim()
+      .toLowerCase();
+  }
 
-  var curTF = '1W';
-  var curRange = 0;
-  var chartType = 'candles';
+  function toNumber(v){
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
 
-  var velaChart = null;
+  function toEpochMs(v){
+    if(typeof v === 'number' && Number.isFinite(v)){
+      return v < 100000000000 ? v * 1000 : v;
+    }
+    if(typeof v === 'string'){
+      const numeric = Number(v);
+      if(Number.isFinite(numeric)) return numeric < 100000000000 ? numeric * 1000 : numeric;
+      const parsed = Date.parse(v);
+      if(Number.isFinite(parsed)) return parsed;
+    }
+    return null;
+  }
 
-  var editingSlot = 0;
+  function normalizeBars(data){
+    if(!Array.isArray(data)) throw new Error('ساختار فایل RAW معتبر نیست.');
 
-  var adjustMode = false;
+    const map = new Map();
+    for(const row of data){
+      if(!row || typeof row !== 'object') continue;
+      const time = toEpochMs(row.time ?? row.timestamp ?? row.t ?? row.date);
+      const open = toNumber(row.open);
+      const high = toNumber(row.high);
+      const low = toNumber(row.low);
+      const close = toNumber(row.close);
+      const volume = toNumber(row.volume) ?? 0;
+      if(time === null || open === null || high === null || low === null || close === null) continue;
+      if(close <= 0) continue;
+      map.set(time, { time, open, high, low, close, volume });
+    }
 
-  var THRESHOLD_HIGH = 1.4;
-  var THRESHOLD_LOW = 0.7;
-  var MAX_PASSES = 5;
+    return [...map.values()].sort((x,y) => x.time - y.time);
+  }
 
+  async function fetchJSON(url){
+    const response = await fetch(url, { cache: 'default' });
+    if(!response.ok) throw new Error('HTTP ' + response.status + ' — ' + url);
+    return response.json();
+  }
 
-  function setLoad(msg){
+  async function loadSymbols(){
+    const data = await fetchJSON(SYMBOLS_URL);
+    if(!Array.isArray(data) || data.length === 0) throw new Error('symbols.json خالی یا نامعتبر است.');
 
-    var el = $('load');
+    state.symbols = data
+      .filter((s) => s && s.name !== undefined && s.id !== undefined)
+      .map((s) => ({
+        name: String(s.name),
+        id: String(s.id),
+        key: normalizeText(s.name)
+      }));
 
-    if(msg === false){
-      el.classList.add('off');
+    state.symbolIndex.clear();
+    state.symbols.forEach((s, i) => state.symbolIndex.set(s.id, { ...s, index: i }));
+
+    const find = (name) => state.symbols.find((s) => s.name === name);
+    state.a = find('فولاد') || state.symbols[0];
+    state.b = find('فملی') || state.symbols[1] || state.symbols[0];
+
+    updatePairUI();
+    setStatus(state.symbols.length + ' نماد آماده');
+  }
+
+  function updatePairUI(){
+    $('slotA').textContent = state.a?.name || '—';
+    $('slotB').textContent = state.b?.name || '—';
+    $('slotA').classList.toggle('active', state.targetSlot === 'A');
+    $('slotB').classList.toggle('active', state.targetSlot === 'B');
+    const a = state.a?.name || '—';
+    const b = state.b?.name || '—';
+    $('pairTitle').innerHTML = '<b>' + escapeHTML(a) + '</b> / <b>' + escapeHTML(b) + '</b>';
+  }
+
+  function escapeHTML(value){
+    return String(value).replace(/[&<>'"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  }
+
+  function openSearch(slot){
+    state.targetSlot = slot;
+    updatePairUI();
+    $('searchInput').value = '';
+    $('searchInput').placeholder = slot === 'A' ? 'جستجوی نماد اول...' : 'جستجوی نماد دوم...';
+    $('searchInput').focus();
+    renderSearch('');
+  }
+
+  function closeSearch(){
+    $('results').classList.remove('open');
+    state.searchResults = [];
+    state.searchCursor = -1;
+  }
+
+  function renderSearch(query){
+    const q = normalizeText(query);
+    let matches;
+    if(!q){
+      matches = state.symbols.slice(0, 20);
+    } else {
+      matches = state.symbols
+        .map((s) => ({s, score: s.key === q ? 0 : (s.key.startsWith(q) ? 1 : (s.key.includes(q) ? 2 : 99))}))
+        .filter((x) => x.score < 99)
+        .sort((x,y) => x.score - y.score || x.s.name.localeCompare(y.s.name, 'fa'))
+        .slice(0, 30)
+        .map((x) => x.s);
+    }
+
+    state.searchResults = matches;
+    state.searchCursor = matches.length ? 0 : -1;
+
+    const box = $('results');
+    if(!matches.length){
+      box.innerHTML = '<div class="result"><span class="name">یافت نشد</span></div>';
+      box.classList.add('open');
       return;
     }
 
-    el.classList.remove('off');
-
-    el.textContent =
-      msg ||
-      'در حال بارگذاری...';
+    box.innerHTML = matches.map((s, i) =>
+      '<div class="result' + (i === 0 ? ' selected' : '') + '" data-id="' + escapeHTML(s.id) + '" data-i="' + i + '">' +
+      '<span class="name">' + escapeHTML(s.name) + '</span>' +
+      '<span class="id">' + escapeHTML(s.id) + '</span>' +
+      '</div>'
+    ).join('');
+    box.classList.add('open');
   }
 
-
-  function showErr(msg){
-
-    var e = $('err');
-
-    e.textContent =
-      '❌ ' + msg;
-
-    e.classList.add('on');
-
-    console.error(msg);
-  }
-
-
-  /*
-   * ===== LOAD SYMBOL LIST =====
-   *
-   * No Date.now() cache-bypass is used.
-   * Cloudflare CDN can therefore cache the file efficiently.
-   */
-  fetch(
-    BASE + 'data/symbols.json'
-  )
-    .then(function(r){
-
-      if(!r.ok){
-        throw new Error(
-          'HTTP ' +
-          r.status +
-          ' for symbols.json'
-        );
-      }
-
-      return r.json();
-    })
-
-    .then(function(data){
-
-      if(!Array.isArray(data)){
-        throw new Error(
-          'symbols.json آرایه نیست'
-        );
-      }
-
-      SYMBOLS = data;
-
-      console.log(
-        '[symbols] loaded:',
-        SYMBOLS.length
-      );
-
-      updateSymLabels();
-
-      setTimeout(
-        analyze,
-        100
-      );
-    })
-
-    .catch(function(e){
-
-      showErr(
-        'خطا در لیست نمادها: ' +
-        e.message
-      );
-
-    });
-
-
-  function updateSymLabels(){
-
-    if(!SYMBOLS.length){
-      return;
+  function highlightSearch(){
+    document.querySelectorAll('.result').forEach((el) => el.classList.remove('selected'));
+    const el = document.querySelector('.result[data-i="' + state.searchCursor + '"]');
+    if(el){
+      el.classList.add('selected');
+      el.scrollIntoView({block:'nearest'});
     }
-
-    $('sym1Pick').textContent =
-      SYMBOLS[sym1Idx]
-        ? SYMBOLS[sym1Idx].name
-        : '—';
-
-    $('sym2Pick').textContent =
-      SYMBOLS[sym2Idx]
-        ? SYMBOLS[sym2Idx].name
-        : '—';
   }
 
+  function chooseSymbolById(id){
+    const sym = state.symbolIndex.get(String(id));
+    if(!sym) return;
+    if(state.targetSlot === 'A') state.a = sym;
+    else state.b = sym;
+    updatePairUI();
+    closeSearch();
+    $('searchInput').value = '';
+    setStatus('در حال ساخت نسبت...');
+    buildAndRender().catch((e) => showError(e.message));
+  }
 
-  /*
-   * ===== RAW DATA ADJUSTMENT =====
-   *
-   * Raw files are NEVER modified.
-   * Adjustment happens only in browser memory.
-   */
+  function cacheKey(){
+    return [state.a?.id, state.b?.id, state.timeframe, state.adjusted ? 'A' : 'R'].join('|');
+  }
+
+  async function loadRaw(symbol){
+    const id = String(symbol.id);
+    if(state.rawCache.has(id)) return state.rawCache.get(id);
+
+    const promise = fetchJSON(BASE + 'data/raw/' + encodeURIComponent(id) + '.json')
+      .then(normalizeBars)
+      .then((bars) => {
+        if(bars.length < 2) throw new Error('داده کافی برای ' + symbol.name + ' وجود ندارد.');
+        return bars;
+      });
+
+    state.rawCache.set(id, promise);
+    try{
+      const bars = await promise;
+      state.rawCache.set(id, bars);
+      return bars;
+    }catch(e){
+      state.rawCache.delete(id);
+      throw e;
+    }
+  }
 
   function findGaps(bars){
-
-    var gaps = [];
-
-    for(
-      var i = 1;
-      i < bars.length;
-      i++
-    ){
-
-      var p = bars[i - 1].close;
-      var c = bars[i].close;
-
-      if(
-        p &&
-        c &&
-        p > 0 &&
-        c > 0
-      ){
-
-        var r = c / p;
-
-        if(
-          r > THRESHOLD_HIGH ||
-          r < THRESHOLD_LOW
-        ){
-
-          gaps.push({
-            idx: i,
-            ratio: r
-          });
-        }
+    const gaps = [];
+    for(let i=1; i<bars.length; i++){
+      const p = bars[i-1].close;
+      const c = bars[i].close;
+      if(p > 0 && c > 0){
+        const ratio = c / p;
+        if(ratio > 1.4 || ratio < 0.7) gaps.push({ idx:i, ratio });
       }
     }
-
     return gaps;
   }
 
+  function adjustedBars(id, bars){
+    if(state.adjustedCache.has(id)) return state.adjustedCache.get(id);
 
-  function adjustSymbol(bars){
-
-    var out = bars.map(function(b){
-
-      return {
-        time: b.time,
-        open: b.open,
-        high: b.high,
-        low: b.low,
-        close: b.close,
-        volume: b.volume || 0
-      };
-
-    });
-
-
-    for(
-      var pass = 0;
-      pass < MAX_PASSES;
-      pass++
-    ){
-
-      var gaps =
-        findGaps(out);
-
-      if(!gaps.length){
-        break;
-      }
-
-
-      for(
-        var g = gaps.length - 1;
-        g >= 0;
-        g--
-      ){
-
-        var idx =
-          gaps[g].idx;
-
-        var ratio =
-          gaps[g].ratio;
-
-
-        for(
-          var j = 0;
-          j < idx;
-          j++
-        ){
-
-          out[j].open =
-            +(
-              out[j].open *
-              ratio
-            ).toFixed(6);
-
-          out[j].high =
-            +(
-              out[j].high *
-              ratio
-            ).toFixed(6);
-
-          out[j].low =
-            +(
-              out[j].low *
-              ratio
-            ).toFixed(6);
-
-          out[j].close =
-            +(
-              out[j].close *
-              ratio
-            ).toFixed(6);
+    const out = bars.map((b) => ({...b}));
+    for(let pass=0; pass<5; pass++){
+      const gaps = findGaps(out);
+      if(!gaps.length) break;
+      for(let g=gaps.length-1; g>=0; g--){
+        const {idx, ratio} = gaps[g];
+        for(let j=0; j<idx; j++){
+          out[j].open *= ratio;
+          out[j].high *= ratio;
+          out[j].low *= ratio;
+          out[j].close *= ratio;
         }
       }
     }
-
-
+    state.adjustedCache.set(id, out);
     return out;
   }
 
+  function getWorkingBars(symbol, raw){
+    return state.adjusted ? adjustedBars(String(symbol.id), raw) : raw;
+  }
 
-  /*
-   * ===== TIMEFRAME AGGREGATION =====
-   */
+  function aggregate(bars, tf){
+    if(tf === '1D') return bars;
+    const out = [];
+    let bucket = null;
 
-  function aggregate(
-    bars,
-    tf
-  ){
-
-    if(
-      !bars.length ||
-      tf === '1D'
-    ){
-      return bars.slice();
-    }
-
-
-    var out = [];
-    var bucket = null;
-
-
-    for(
-      var i = 0;
-      i < bars.length;
-      i++
-    ){
-
-      var b = bars[i];
-
-      var d =
-        new Date(b.time);
-
-      var key;
-
-
+    for(const b of bars){
+      const d = new Date(b.time);
+      let key;
       if(tf === '1W'){
-
-        var day =
-          d.getUTCDay() || 7;
-
-        var mon =
-          new Date(d);
-
-        mon.setUTCDate(
-          d.getUTCDate() -
-          day +
-          1
-        );
-
-        mon.setUTCHours(
-          0,
-          0,
-          0,
-          0
-        );
-
-        key =
-          mon.getTime();
-
-      }else{
-
-        key =
-          Date.UTC(
-            d.getUTCFullYear(),
-            d.getUTCMonth(),
-            1
-          );
+        const day = d.getUTCDay() || 7;
+        const monday = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - day + 1));
+        key = monday.getTime();
+      } else {
+        key = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1);
       }
 
-
-      if(
-        !bucket ||
-        bucket.time !== key
-      ){
-
-        if(bucket){
-          out.push(bucket);
-        }
-
-
-        bucket = {
-
-          time: key,
-
-          open: b.open,
-
-          high: b.high,
-
-          low: b.low,
-
-          close: b.close,
-
-          volume: b.volume || 0
-        };
-
-      }else{
-
-        if(
-          b.high >
-          bucket.high
-        ){
-          bucket.high =
-            b.high;
-        }
-
-
-        if(
-          b.low <
-          bucket.low
-        ){
-          bucket.low =
-            b.low;
-        }
-
-
-        bucket.close =
-          b.close;
-
-
-        bucket.volume +=
-          (
-            b.volume || 0
-          );
+      if(!bucket || bucket.time !== key){
+        if(bucket) out.push(bucket);
+        bucket = {time:key, open:b.open, high:b.high, low:b.low, close:b.close, volume:b.volume || 0};
+      } else {
+        if(b.high > bucket.high) bucket.high = b.high;
+        if(b.low < bucket.low) bucket.low = b.low;
+        bucket.close = b.close;
+        bucket.volume += b.volume || 0;
       }
     }
-
-
-    if(bucket){
-      out.push(bucket);
-    }
-
-
+    if(bucket) out.push(bucket);
     return out;
   }
 
+  function buildRatio(a, b){
+    const key = [state.a.id, state.b.id, state.timeframe, state.adjusted ? 'A' : 'R'].join('|');
+    if(state.ratioCache.has(key)) return state.ratioCache.get(key);
 
-  /*
-   * ===== RATIO =====
-   */
+    const m1 = new Map(a.map((x) => [x.time, x]));
+    const m2 = new Map(b.map((x) => [x.time, x]));
+    const out = [];
+    let prevClose = null;
 
-  function buildRatio(
-    b1,
-    b2
-  ){
+    for(const [time, x1] of m1){
+      const x2 = m2.get(time);
+      if(!x2 || x1.close <= 0 || x2.close <= 0) continue;
 
-    var m1 = {};
-    var m2 = {};
+      const open = prevClose ?? (x1.open / x2.open);
+      const close = x1.close / x2.close;
+      const high = Math.max(x1.high / x2.low, x1.high / x2.close, x1.close / x2.low, open, close);
+      const low = Math.min(x1.low / x2.high, x1.low / x2.close, x1.close / x2.high, open, close);
 
+      out.push({time, open, high, low, close, volume:0});
+      prevClose = close;
+    }
 
-    b1.forEach(function(x){
+    state.ratioCache.set(key, out);
+    return out;
+  }
 
-      m1[x.time] = x;
+  function applyRange(bars){
+    if(!bars.length || state.rangeDays === 0) return bars;
+    const last = bars[bars.length - 1].time;
+    const from = last - state.rangeDays * 86400000;
+    return bars.filter((b) => b.time >= from);
+  }
 
-    });
+  function currentVisibleRange(bars){
+    if(!bars.length) return undefined;
+    if(state.rangeDays === 0) return { from:bars[0].time, to:bars[bars.length-1].time };
+    const last = bars[bars.length - 1].time;
+    const from = last - state.rangeDays * 86400000;
+    const first = bars.find((b) => b.time >= from) || bars[0];
+    return { from:first.time, to:bars[bars.length-1].time };
+  }
 
+  async function ensureChart(bars){
+    if(!VELA) throw new Error('کتابخانه Vela بارگذاری نشده است.');
 
-    b2.forEach(function(x){
+    if(!bars.length) throw new Error('داده‌ای برای نمودار وجود ندارد.');
 
-      m2[x.time] = x;
-
-    });
-
-
-    var ts =
-      Object.keys(m1)
-        .filter(function(t){
-
-          return m2[t];
-
-        })
-        .map(Number)
-        .sort(function(a,b){
-
-          return a - b;
-
-        });
-
-
-    var out = [];
-    var pc = null;
-
-
-    ts.forEach(function(t){
-
-      var x1 = m1[t];
-      var x2 = m2[t];
-
-
-      if(
-        !x1 ||
-        !x2 ||
-        x1.close <= 0 ||
-        x2.close <= 0
-      ){
-        return;
-      }
-
-
-      var rOpen =
-        pc !== null
-          ? pc
-          : (
-              x1.open /
-              x2.open
-            );
-
-
-      var rClose =
-        x1.close /
-        x2.close;
-
-
-      var rHigh =
-        Math.max(
-          x1.high / x2.low,
-          x1.high / x2.close,
-          x1.close / x2.low,
-          rOpen,
-          rClose
-        );
-
-
-      var rLow =
-        Math.min(
-          x1.low / x2.high,
-          x1.low / x2.close,
-          x1.close / x2.high,
-          rOpen,
-          rClose
-        );
-
-
-      out.push({
-
-        time: t,
-
-        open: rOpen,
-
-        high: rHigh,
-
-        low: rLow,
-
-        close: rClose,
-
-        volume: 0
-
+    if(!state.chart){
+      state.chart = new VELA('#chart', {
+        data:bars,
+        timeframe: state.timeframe,
+        theme:'dark',
+        priceStyle:state.priceStyle,
+        logScale:state.logScale,
+        currentPriceLine:true,
+        nativeBackend:'auto',
+        animations:{zoom:true, pan:true},
+        drawings:{toolbar:true, tools:['trendline','hline','ray','box','text']}
       });
+      await state.chart.ready();
+      return;
+    }
 
-
-      pc = rClose;
-
-    });
-
-
-    return out;
+    await state.chart.setMarket({
+      data:bars,
+      timeframe:state.timeframe,
+      visibleRange:currentVisibleRange(bars)
+    }).then(() => state.chart.ready());
   }
 
+  async function buildAndRender(){
+    if(!state.a || !state.b) throw new Error('دو نماد را انتخاب کنید.');
+    if(String(state.a.id) === String(state.b.id)) throw new Error('دو نماد باید متفاوت باشند.');
 
-  /*
-   * ===== VELA RENDER =====
-   */
+    clearError();
+    setLoading(true, 'دریافت داده‌های ' + state.a.name + ' و ' + state.b.name + '...');
 
-  function renderVela(){
+    const [rawA, rawB] = await Promise.all([loadRaw(state.a), loadRaw(state.b)]);
+    const barsA = aggregate(getWorkingBars(state.a, rawA), state.timeframe);
+    const barsB = aggregate(getWorkingBars(state.b, rawB), state.timeframe);
+    const ratio = buildRatio(barsA, barsB);
+    state.lastRatioBars = ratio;
 
+    if(ratio.length < 2) throw new Error('تقاطع زمانی دو نماد داده کافی ندارد.');
+
+    await ensureChart(ratio);
+
+    if(state.chart?.renderer?.set){
+      state.chart.renderer.set({priceStyle:state.priceStyle, logScale:state.logScale});
+    }
+
+    updatePairUI();
+    setStatus(ratio.length.toLocaleString('fa-IR') + ' کندل نسبت');
+    setLoading(false);
+  }
+
+  function applyRendererChange(){
+    if(!state.chart) return;
+    state.chart.renderer.set({priceStyle:state.priceStyle, logScale:state.logScale});
+  }
+
+  function resetView(){
+    if(!state.chart || !state.lastRatioBars.length) return;
+    const range = currentVisibleRange(state.lastRatioBars);
+    if(range) state.chart.setVisibleRange(range);
+  }
+
+  async function changeTimeframe(value){
+    state.timeframe = value;
+    state.ratioCache.clear();
     try{
+      await buildAndRender();
+    }catch(e){ setLoading(false); showError(e.message); }
+  }
 
-      if(velaChart){
+  async function changeMode(adjusted){
+    if(state.adjusted === adjusted) return;
+    state.adjusted = adjusted;
+    updateModeUI();
+    state.ratioCache.clear();
+    try{
+      await buildAndRender();
+    }catch(e){ setLoading(false); showError(e.message); }
+  }
 
-        try{
+  function updateModeUI(){
+    $('adjustedBtn').classList.toggle('active', state.adjusted);
+    $('rawBtn').classList.toggle('active', !state.adjusted);
+  }
 
-          if(
-            velaChart.destroy
-          ){
+  function swapSymbols(){
+    const temp = state.a;
+    state.a = state.b;
+    state.b = temp;
+    state.ratioCache.clear();
+    updatePairUI();
+    buildAndRender().catch((e) => { setLoading(false); showError(e.message); });
+  }
 
-            velaChart.destroy();
+  async function takeScreenshot(){
+    if(!state.chart?.renderer?.screenshot) return;
+    const dataURL = state.chart.renderer.screenshot();
+    if(!dataURL) return;
+    const a = document.createElement('a');
+    a.href = dataURL;
+    a.download = 'MHDI-' + (state.a?.name || 'A') + '-' + (state.b?.name || 'B') + '.png';
+    a.click();
+  }
 
-          }else if(
-            velaChart.dispose
-          ){
-
-            velaChart.dispose();
-
-          }
-
-        }catch(e){}
-
-        velaChart = null;
-      }
-
-
-      var wrap =
-        $('chartWrap');
-
-
-      wrap.innerHTML =
-        '<div id="chart"></div>';
-
-
-      if(
-        typeof window.Vela ===
-        'undefined'
-      ){
-
-        showErr(
-          'Vela لود نشد'
-        );
-
-        return;
-      }
-
-
-      var VC =
-        window.Vela.Vela ||
-        window.Vela;
-
-
-      velaChart =
-        new VC(
-          '#chart',
-          {
-
-            data: curBars,
-
-            theme: 'dark',
-
-            priceStyle:
-              chartType
-
-          }
-        );
-
-
+  async function toggleFullscreen(){
+    const root = document.documentElement;
+    try{
+      if(!document.fullscreenElement) await root.requestFullscreen();
+      else await document.exitFullscreen();
+      setTimeout(() => state.chart?.resize?.(), 50);
     }catch(e){
-
-      console.error(
-        'Vela error:',
-        e
-      );
-
-      showErr(
-        'خطا در Vela: ' +
-        e.message
-      );
+      showError('تمام‌صفحه در این مرورگر در دسترس نیست.');
     }
   }
 
-
-  /*
-   * ===== REBUILD CHART =====
-   */
-
-  function rebuildChart(){
-
-    if(
-      !raw1 ||
-      !raw2
-    ){
-      return;
-    }
-
-
-    var d1 = raw1;
-    var d2 = raw2;
-
-
-    if(adjustMode){
-
-      setLoad(
-        'اعمال تعدیل...'
-      );
-
-
-      d1 =
-        adjustSymbol(raw1);
-
-      d2 =
-        adjustSymbol(raw2);
-    }
-
-
-    var a1 =
-      aggregate(
-        d1,
-        curTF
-      );
-
-    var a2 =
-      aggregate(
-        d2,
-        curTF
-      );
-
-
-    allBars =
-      buildRatio(
-        a1,
-        a2
-      );
-
-
-    if(
-      !allBars.length
-    ){
-
-      showErr(
-        'داده کافی نیست'
-      );
-
-      setLoad(false);
-
-      return;
-    }
-
-
-    applyRange();
-
-
-    setTimeout(
-      function(){
-
-        renderVela();
-
-        setLoad(false);
-
-      },
-      30
-    );
-  }
-
-
-  /*
-   * ===== LOAD TWO SYMBOLS =====
-   */
-
-  function analyze(){
-
-    if(
-      !SYMBOLS.length
-    ){
-
-      showErr(
-        'لیست نمادها آماده نیست'
-      );
-
-      return;
-    }
-
-
-    if(
-      !SYMBOLS[sym1Idx] ||
-      !SYMBOLS[sym2Idx]
-    ){
-
-      showErr(
-        'نماد انتخابی معتبر نیست'
-      );
-
-      return;
-    }
-
-
-    setLoad(
-      'دریافت داده...'
-    );
-
-
-    var id1 =
-      SYMBOLS[sym1Idx].id;
-
-    var id2 =
-      SYMBOLS[sym2Idx].id;
-
-
-    /*
-     * IMPORTANT:
-     * No Date.now() query string.
-     * This allows CDN caching.
-     */
-
-    var url1 =
-      BASE +
-      'data/raw/' +
-      id1 +
-      '.json';
-
-
-    var url2 =
-      BASE +
-      'data/raw/' +
-      id2 +
-      '.json';
-
-
-    console.log(
-      '[analyze] urls:',
-      url1,
-      url2
-    );
-
-
-    Promise.all([
-
-      fetch(url1)
-        .then(function(r){
-
-          if(!r.ok){
-
-            throw new Error(
-              'HTTP ' +
-              r.status +
-              ' for ' +
-              url1
-            );
-
-          }
-
-          return r.text();
-        }),
-
-
-      fetch(url2)
-        .then(function(r){
-
-          if(!r.ok){
-
-            throw new Error(
-              'HTTP ' +
-              r.status +
-              ' for ' +
-              url2
-            );
-
-          }
-
-          return r.text();
-        })
-
-    ])
-
-    .then(function(texts){
-
-      function safeJSON(
-        t,
-        label
-      ){
-
-        try{
-
-          return JSON.parse(t);
-
-        }catch(e){
-
-          var snippet =
-            t.substring(
-              0,
-              80
-            )
-            .replace(
-              /\n/g,
-              ' '
-            );
-
-
-          throw new Error(
-            'JSON خرابه در ' +
-            label +
-            ': ' +
-            e.message +
-            ' | ' +
-            snippet
-          );
-        }
-      }
-
-
-      raw1 =
-        safeJSON(
-          texts[0],
-          'data/raw/' +
-          id1 +
-          '.json'
-        );
-
-
-      raw2 =
-        safeJSON(
-          texts[1],
-          'data/raw/' +
-          id2 +
-          '.json'
-        );
-
-
-      if(
-        !Array.isArray(raw1)
-      ){
-
-        throw new Error(
-          'data/raw/' +
-          id1 +
-          '.json آرایه نیست'
-        );
-      }
-
-
-      if(
-        !Array.isArray(raw2)
-      ){
-
-        throw new Error(
-          'data/raw/' +
-          id2 +
-          '.json آرایه نیست'
-        );
-      }
-
-
-      console.log(
-        '[data] raw1:',
-        raw1.length,
-        'raw2:',
-        raw2.length
-      );
-
-
-      rebuildChart();
-
-    })
-
-    .catch(function(e){
-
-      showErr(
-        e.message
-      );
-
-      setLoad(false);
-
-    });
-  }
-
-
-  /*
-   * ===== RANGE =====
-   */
-
-  function applyRange(){
-
-    if(
-      !allBars.length
-    ){
-
-      curBars = [];
-
-      return;
-    }
-
-
-    if(
-      curRange === 0
-    ){
-
-      curBars =
-        allBars.slice();
-
-      return;
-    }
-
-
-    var lastT =
-      allBars[
-        allBars.length - 1
-      ].time;
-
-
-    curBars =
-      allBars.filter(
-        function(b){
-
-          return (
-            b.time >=
-            lastT -
-            curRange *
-            86400000
-          );
-
-        }
-      );
-  }
-
-
-  /*
-   * ===== RAW / ADJUSTED =====
-   */
-
-  function setMode(mode){
-
-    adjustMode =
-      mode === 'adjusted';
-
-
-    $('btnAdjusted')
-      .classList
-      .toggle(
-        'active-mode',
-        adjustMode
-      );
-
-
-    $('btnRaw')
-      .classList
-      .toggle(
-        'active-mode',
-        !adjustMode
-      );
-
-
-    try{
-
-      localStorage.setItem(
-        'adjust_mode',
-        adjustMode
-          ? 'adj'
-          : 'raw'
-      );
-
-    }catch(e){}
-
-
-    if(
-      raw1 &&
-      raw2
-    ){
-
-      rebuildChart();
-
-    }
-  }
-
-
-  $('btnAdjusted')
-    .addEventListener(
-      'click',
-      function(){
-
-        setMode(
-          'adjusted'
-        );
-
-      }
-    );
-
-
-  $('btnRaw')
-    .addEventListener(
-      'click',
-      function(){
-
-        setMode(
-          'raw'
-        );
-
-      }
-    );
-
-
-  /*
-   * ===== SEARCH =====
-   */
-
-  var sInput =
-    $('searchInput');
-
-  var sResults =
-    $('searchResults');
-
-
-  sInput.addEventListener(
-    'input',
-    function(){
-
-      var q =
-        this.value.trim();
-
-
-      if(!q){
-
-        sResults
-          .classList
-          .remove('on');
-
-        sResults.innerHTML =
-          '';
-
-        return;
-      }
-
-
-      if(
-        !SYMBOLS.length
-      ){
-
-        sResults.innerHTML =
-          '<div class="search-item">در حال بارگذاری نمادها...</div>';
-
-        sResults
-          .classList
-          .add('on');
-
-        return;
-      }
-
-
-      var matches =
-        SYMBOLS
-          .filter(function(s){
-
-            return (
-              s.name
-                .indexOf(q) > -1
-            );
-
-          })
-          .slice(
-            0,
-            30
-          );
-
-
-      if(
-        !matches.length
-      ){
-
-        sResults.innerHTML =
-          '<div class="search-item">یافت نشد</div>';
-
-        sResults
-          .classList
-          .add('on');
-
-        return;
-      }
-
-
-      sResults.innerHTML =
-        matches
-          .map(function(s){
-
-            var idx =
-              SYMBOLS.findIndex(
-                function(x){
-
-                  return (
-                    x.name ===
-                    s.name
-                  );
-
-                }
-              );
-
-
-            return (
-              '<div class="search-item" data-idx="' +
-              idx +
-              '">' +
-              '<span>' +
-              s.name +
-              '</span>' +
-              '</div>'
-            );
-
-          })
-          .join('');
-
-
-      sResults
-        .classList
-        .add('on');
-
-    }
-  );
-
-
-  sResults.addEventListener(
-    'mousedown',
-    function(e){
-
+  $('slotA').addEventListener('click', () => openSearch('A'));
+  $('slotB').addEventListener('click', () => openSearch('B'));
+  $('swapBtn').addEventListener('click', swapSymbols);
+  $('analyzeBtn').addEventListener('click', () => buildAndRender().catch((e) => { setLoading(false); showError(e.message); }));
+
+  $('searchInput').addEventListener('input', (e) => renderSearch(e.target.value));
+  $('searchInput').addEventListener('focus', (e) => renderSearch(e.target.value));
+  $('searchInput').addEventListener('keydown', (e) => {
+    if(e.key === 'Escape') { closeSearch(); return; }
+    if(e.key === 'ArrowDown'){
       e.preventDefault();
-
+      if(!state.searchResults.length) return;
+      state.searchCursor = Math.min(state.searchCursor + 1, state.searchResults.length - 1);
+      highlightSearch();
     }
-  );
-
-
-  sResults.addEventListener(
-    'click',
-    function(e){
-
-      var item =
-        e.target.closest(
-          '.search-item[data-idx]'
-        );
-
-
-      if(!item){
-        return;
-      }
-
-
-      var idx =
-        +item.dataset.idx;
-
-
-      if(
-        editingSlot === 1
-      ){
-
-        sym1Idx = idx;
-
-      }else if(
-        editingSlot === 2
-      ){
-
-        sym2Idx = idx;
-
-      }else{
-
-        sym1Idx = idx;
-      }
-
-
-      updateSymLabels();
-
-
-      editingSlot = 0;
-
-
-      $('sym1Pick')
-        .classList
-        .remove('active');
-
-      $('sym2Pick')
-        .classList
-        .remove('active');
-
-
-      sInput.value = '';
-
-
-      sResults
-        .classList
-        .remove('on');
-
-
-      sInput.blur();
-
-
-      analyze();
-
+    if(e.key === 'ArrowUp'){
+      e.preventDefault();
+      if(!state.searchResults.length) return;
+      state.searchCursor = Math.max(state.searchCursor - 1, 0);
+      highlightSearch();
     }
-  );
-
-
-  sInput.addEventListener(
-    'blur',
-    function(){
-
-      setTimeout(
-        function(){
-
-          sResults
-            .classList
-            .remove('on');
-
-          editingSlot = 0;
-
-
-          $('sym1Pick')
-            .classList
-            .remove(
-              'active'
-            );
-
-          $('sym2Pick')
-            .classList
-            .remove(
-              'active'
-            );
-
-        },
-        200
-      );
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      const sym = state.searchResults[state.searchCursor];
+      if(sym) chooseSymbolById(sym.id);
     }
-  );
+  });
 
+  $('results').addEventListener('mousedown', (e) => e.preventDefault());
+  $('results').addEventListener('click', (e) => {
+    const row = e.target.closest('.result[data-id]');
+    if(row) chooseSymbolById(row.dataset.id);
+  });
 
-  /*
-   * ===== SYMBOL 1 PICKER =====
-   */
+  document.addEventListener('click', (e) => {
+    if(!$('searchBox').contains(e.target)) closeSearch();
+  });
 
-  $('sym1Pick')
-    .addEventListener(
-      'click',
-      function(){
-
-        editingSlot = 1;
-
-
-        $('sym1Pick')
-          .classList
-          .add('active');
-
-
-        $('sym2Pick')
-          .classList
-          .remove('active');
-
-
-        sInput.placeholder =
-          'جستجوی نماد ۱...';
-
-
-        sInput.focus();
-
-      }
-    );
-
-
-  /*
-   * ===== SYMBOL 2 PICKER =====
-   */
-
-  $('sym2Pick')
-    .addEventListener(
-      'click',
-      function(){
-
-        editingSlot = 2;
-
-
-        $('sym2Pick')
-          .classList
-          .add('active');
-
-
-        $('sym1Pick')
-          .classList
-          .remove('active');
-
-
-        sInput.placeholder =
-          'جستجوی نماد ۲...';
-
-
-        sInput.focus();
-
-      }
-    );
-
-
-  /*
-   * ===== EVENTS =====
-   */
-
-  $('btnAnalyze')
-    .addEventListener(
-      'click',
-      analyze
-    );
-
-
-  $('tfSelect')
-    .addEventListener(
-      'change',
-      function(){
-
-        curTF =
-          this.value;
-
-
-        if(
-          raw1 &&
-          raw2
-        ){
-
-          rebuildChart();
-
-        }
-
-      }
-    );
-
-
-  $('rangeSelect')
-    .addEventListener(
-      'change',
-      function(){
-
-        curRange =
-          +this.value;
-
-
-        if(
-          !allBars.length
-        ){
-
-          return;
-        }
-
-
-        applyRange();
-
-        renderVela();
-
-      }
-    );
-
-
-  $('typeSelect')
-    .addEventListener(
-      'change',
-      function(){
-
-        chartType =
-          this.value;
-
-
-        if(
-          allBars.length
-        ){
-
-          renderVela();
-
-        }
-
-      }
-    );
-
-
-  /*
-   * ===== RESTORE USER MODE =====
-   */
-
-  try{
-
-    if(
-      localStorage.getItem(
-        'adjust_mode'
-      ) === 'adj'
-    ){
-
-      setMode(
-        'adjusted'
-      );
+  $('timeframe').addEventListener('change', (e) => changeTimeframe(e.target.value));
+  $('range').addEventListener('change', (e) => {
+    state.rangeDays = Number(e.target.value);
+    if(!state.chart){ return; }
+    if(state.chart && state.lastRatioBars.length){
+      const range = currentVisibleRange(state.lastRatioBars);
+      if(range) state.chart.setVisibleRange(range);
     }
+  });
 
-  }catch(e){}
+  $('style').addEventListener('change', (e) => {
+    state.priceStyle = e.target.value;
+    applyRendererChange();
+  });
 
+  $('adjustedBtn').addEventListener('click', () => changeMode(true));
+  $('rawBtn').addEventListener('click', () => changeMode(false));
 
+  $('logBtn').addEventListener('click', () => {
+    state.logScale = !state.logScale;
+    $('logBtn').classList.toggle('active', state.logScale);
+    applyRendererChange();
+  });
+
+  $('resetBtn').addEventListener('click', resetView);
+  $('fullscreenBtn').addEventListener('click', toggleFullscreen);
+  $('shotBtn').addEventListener('click', takeScreenshot);
+
+  window.addEventListener('resize', () => state.chart?.resize?.());
+
+  (async function boot(){
+    try{
+      if(!VELA) throw new Error('Vela بارگذاری نشده است.');
+      setLoading(true, 'در حال بارگذاری فهرست نمادها...');
+      await loadSymbols();
+      updateModeUI();
+      await buildAndRender();
+    }catch(e){
+      setLoading(false);
+      showError(e.message);
+      setStatus('نیاز به بررسی داده یا مسیر فایل‌ها');
+    }
+  })();
 })();
 </script>
-
 </body>
 </html>
