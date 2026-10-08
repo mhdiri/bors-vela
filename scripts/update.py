@@ -1,6 +1,6 @@
 """
-Rahavard365 Data Update - V5
-با تعدیل خودکار (بدون گپ)
+Rahavard365 Data Update - V5.1
+با تعدیل چند-پاس (multi-pass) برای حذف کامل گپ‌ها
 """
 
 import urllib.request
@@ -45,6 +45,7 @@ MAX_DATA_AGE_HOURS = 6
 ADJUST_GAPS = True
 THRESHOLD_HIGH = 1.4
 THRESHOLD_LOW = 0.7
+MAX_ADJUST_PASSES = 5
 
 
 def acquire_lock():
@@ -197,16 +198,20 @@ def find_gaps(bars):
 
 
 def adjust_bars(bars):
+    """تعدیل چند-پاس تا همه گپ‌ها از بین برن"""
     adjusted = [dict(b) for b in bars]
-    gaps = find_gaps(adjusted)
-    for gap in reversed(gaps):
-        idx = gap["idx"]
-        r = gap["ratio"]
-        for j in range(idx):
-            for key in ["open", "high", "low", "close"]:
-                v = adjusted[j].get(key)
-                if v is not None:
-                    adjusted[j][key] = round(v * r, 6)
+    for pass_num in range(MAX_ADJUST_PASSES):
+        gaps = find_gaps(adjusted)
+        if not gaps:
+            break
+        for gap in reversed(gaps):
+            idx = gap["idx"]
+            r = gap["ratio"]
+            for j in range(idx):
+                for key in ["open", "high", "low", "close"]:
+                    v = adjusted[j].get(key)
+                    if v is not None:
+                        adjusted[j][key] = round(v * r, 6)
     return adjusted
 
 
@@ -235,7 +240,6 @@ def update_symbol(symbol):
     # ★★★ تعدیل خودکار ★★★
     if ADJUST_GAPS:
         new_raw = adjust_bars(new_raw)
-        # وقتی تعدیل روشنه، کل داده از نو جایگزین می‌شه
         merged = list(new_raw)
         added = len(new_raw)
     else:
@@ -282,7 +286,7 @@ def update_symbol(symbol):
 def main():
     start = datetime.now()
     print("=" * 60)
-    print("RAHAVARD UPDATE V5 - with Adjust")
+    print("RAHAVARD UPDATE V5.1 - Multi-pass Adjust")
     print("=" * 60)
     print("Test mode: " + str(TEST_MODE))
     print("Adjust gaps: " + str(ADJUST_GAPS))
