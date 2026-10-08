@@ -1,389 +1,682 @@
 """
-Rahavard365 Data Update - V5.1
-با تعدیل چند-پاس (multi-pass) برای حذف کامل گپ‌ها
+Rahavard365 Chart Data Sync Engine - V6
+
+Design goals:
+- Keep data/raw as source-of-truth raw OHLCV.
+- Never adjust or rewrite raw history for chart-gap removal.
+- Incremental synchronization for existing symbols with a short lookback window.
+- Full initial download for newly discovered symbols.
+- Safe atomic writes, transient rollback backups, validation, retry/backoff, lock, reports.
+- TEST_MODE allows a 5-symbol verification without editing symbols.json.
 """
 
-import urllib.request
-import urllib.error
+from __future__ import annotations
+
 import json
+import math
 import os
-import time
 import shutil
+import socket
 import sys
-from datetime import datetime
+import tempfile
+import time
+import urllib.error
+import urllib.request
+from datetime import datetime, timezone, timedelta
+from pathlib import Path
+from typing import Any
+
 
 API = "https://rahavard365.com/api/v2"
-TOKEN = os.environ.get("RV_TOKEN", "")
+TOKEN = os.environ.get("RV_TOKEN", "").strip()
 
 HEADERS = {
     "Authorization": "Bearer " + TOKEN,
     "Accept": "application/json",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36"
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36"
+    ),
 }
 
-RAW_DIR = "data/raw"
-BACKUP_DIR = "data/backup"
-SYMBOL_FILE = "data/symbols.json"
-ERROR_FILE = "data/update_errors.json"
-REPORT_FILE = "data/update_report.json"
-STATUS_FILE = "data/symbol_status.json"
-LOCK_FILE = "data/.update.lock"
+DATA_DIR = Path("data")
+RAW_DIR = DATA_DIR / "raw"
+SYMBOL_FILE = DATA_DIR / "symbols.json"
+ERROR_FILE = DATA_DIR / "update_errors.json"
+REPORT_FILE = DATA_DIR / "update_report.json"
+STATUS_FILE = DATA_DIR / "symbol_status.json"
+LOCK_FILE = DATA_DIR / ".update.lock"
 
+# Keep backups transient. They are only used for rollback during this run.
+BACKUP_DIR = Path(tempfile.gettempdir()) / "bors_vela_update_backups"
+
+# ---------- Operating mode ----------
 TEST_MODE = True
-TEST_SYMBOLS = ["فولاد", "غچین", "فسرب", "کیسون", "فاما"]
+TEST_SYMBOLS = {"فولاد", "غچین", "فسرب", "کیسون", "فاما"}
 
-MAX_RETRY = 4
-REQUEST_TIMEOUT = 60
-SLEEP_BETWEEN = 1.0
-SLEEP_RETRY = 3.0
+# ---------- Sync policy ----------
+FULL_FROM = "2000-01-01T00:00:00Z"
+FULL_TO = "2030-01-01T00:00:00Z"
+FULL_COUNTBACK = 5000
+
+# Existing symbols: re-read a recent window so recent corrections are captured,
+# but avoid pulling the whole historical series on every run.
+INCREMENTAL_LOOKBACK_DAYS = 30
+INCREMENTAL_COUNTBACK = 500
 
 MIN_CANDLES = 10
-SUSPICIOUS_RATIO = 0.5
-MAX_DATA_AGE_HOURS = 6
+SUSPICIOUS_REDUCTION_RATIO = 0.50
 
-# ===== تعدیل =====
-ADJUST_GAPS = True
-THRESHOLD_HIGH = 1.4
-THRESHOLD_LOW = 0.7
-MAX_ADJUST_PASSES = 5
+# ---------- Reliability ----------
+MAX_RETRY = 5
+REQUEST_TIMEOUT = 60
+RETRY_BASE_SECONDS = 3.0
+SLEEP_BETWEEN_SYMBOLS = 0.50
+LOCK_STALE_HOURS = 3
+
+TRANSIENT_HTTP_CODES = {408, 425, 429, 500, 502, 503, 504}
+NON_RETRYABLE_HTTP_CODES = {401, 403, 404, 422}
 
 
-def acquire_lock():
-    os.makedirs("data", exist_ok=True)
-    if os.path.exists(LOCK_FILE):
+class UpdateError(Exception):
+    """Expected, reportable update error."""
+
+
+class LockError(UpdateError):
+    """Another update process is active."""
+
+
+class ValidationError(UpdateError):
+    """Downloaded or stored data failed validation."""
+
+
+class HTTPStatusError(UpdateError):
+    """HTTP error with a stable machine-readable message."""
+
+    def __init__(self, code: int, message: str):
+        self.code = code
+        super().__init__(message)
+
+
+# ---------- Time helpers ----------
+def utc_now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def epoch_ms_to_iso(epoch_ms: int | float) -> str:
+    dt = datetime.fromtimestamp(float(epoch_ms) / 1000.0, tz=timezone.utc)
+    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def incremental_from_iso(last_time: int | float) -> str:
+    dt = datetime.fromtimestamp(float(last_time) / 1000.0, tz=timezone.utc)
+    dt -= timedelta(days=INCREMENTAL_LOOKBACK_DAYS)
+    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+# ---------- JSON I/O ----------
+def load_json(path: Path, default: Any = None, *, strict: bool = False) -> Any:
+    if not path.exists():
+        return default
+
+    try:
+        with path.open("r", encoding="utf-8") as fh:
+            return json.load(fh)
+    except Exception as exc:
+        if strict:
+            raise UpdateError(f"INVALID_JSON: {path}: {exc}") from exc
+        return default
+
+
+def validate_json_file(path: Path) -> None:
+    try:
+        with path.open("r", encoding="utf-8") as fh:
+            json.load(fh)
+    except Exception as exc:
+        raise UpdateError(f"JSON_VERIFY_FAILED: {path}: {exc}") from exc
+
+
+def save_atomic(path: Path, data: Any) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    fd, temp_name = tempfile.mkstemp(
+        prefix=f".{path.name}.",
+        suffix=".tmp",
+        dir=str(path.parent),
+        text=True,
+    )
+    temp_path = Path(temp_name)
+
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            json.dump(
+                data,
+                fh,
+                ensure_ascii=False,
+                separators=(",", ":"),
+            )
+            fh.flush()
+            os.fsync(fh.fileno())
+
+        validate_json_file(temp_path)
+        os.replace(temp_path, path)
+        validate_json_file(path)
+    except Exception:
         try:
-            with open(LOCK_FILE, "r", encoding="utf-8") as f:
-                info = json.load(f)
-            lock_time = datetime.fromisoformat(info.get("time", ""))
-            age = (datetime.now() - lock_time).total_seconds() / 3600
-            if age < MAX_DATA_AGE_HOURS:
-                print("LOCK exists. Another update running.")
-                sys.exit(1)
-            else:
-                os.remove(LOCK_FILE)
+            temp_path.unlink(missing_ok=True)
         except Exception:
-            os.remove(LOCK_FILE)
-    with open(LOCK_FILE, "w", encoding="utf-8") as f:
-        json.dump({"time": datetime.now().isoformat(), "pid": os.getpid()}, f)
+            pass
+        raise
 
 
-def release_lock():
-    if os.path.exists(LOCK_FILE):
-        os.remove(LOCK_FILE)
+# ---------- Lock ----------
+def acquire_lock() -> None:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+    if LOCK_FILE.exists():
+        try:
+            info = load_json(LOCK_FILE, {}, strict=True)
+            raw_time = info.get("time")
+            if raw_time:
+                lock_dt = datetime.fromisoformat(raw_time.replace("Z", "+00:00"))
+                age_hours = (
+                    datetime.now(timezone.utc) - lock_dt.astimezone(timezone.utc)
+                ).total_seconds() / 3600.0
+                if age_hours < LOCK_STALE_HOURS:
+                    raise LockError(
+                        f"LOCK_EXISTS: active lock age={age_hours:.2f}h"
+                    )
+        except LockError:
+            raise
+        except Exception:
+            # Corrupt/stale lock: replace it safely.
+            pass
+
+        try:
+            LOCK_FILE.unlink()
+        except FileNotFoundError:
+            pass
+
+    payload = {
+        "time": utc_now_iso(),
+        "pid": os.getpid(),
+        "host": socket.gethostname(),
+    }
+
+    # Exclusive creation closes the race between two processes.
+    try:
+        fd = os.open(str(LOCK_FILE), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+    except FileExistsError as exc:
+        raise LockError("LOCK_EXISTS: another process acquired the lock") from exc
+
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            json.dump(payload, fh, ensure_ascii=False)
+    except Exception:
+        try:
+            LOCK_FILE.unlink(missing_ok=True)
+        except Exception:
+            pass
+        raise
 
 
-def request_json(url):
-    last = None
+def release_lock() -> None:
+    try:
+        LOCK_FILE.unlink(missing_ok=True)
+    except Exception:
+        pass
+
+
+# ---------- HTTP ----------
+def request_json(url: str) -> dict[str, Any]:
+    if not TOKEN:
+        raise UpdateError("TOKEN_MISSING: RV_TOKEN is not set")
+
+    last_error: Exception | None = None
+
     for attempt in range(1, MAX_RETRY + 1):
         try:
-            req = urllib.request.Request(url, headers=HEADERS)
-            with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT) as r:
-                return json.loads(r.read().decode("utf-8"))
-        except urllib.error.HTTPError as e:
-            last = e
-            if e.code == 401:
-                raise Exception("TOKEN_EXPIRED: 401")
-            if e.code == 404:
-                raise Exception("SYMBOL_NOT_FOUND: 404")
-            if e.code == 422:
-                raise Exception("BAD_PARAMS: 422")
-            if e.code in (429, 500, 502, 503, 504):
-                time.sleep(SLEEP_RETRY * attempt)
-                continue
-            raise Exception("HTTP_ERROR: " + str(e.code))
-        except Exception as e:
-            last = e
-            time.sleep(SLEEP_RETRY * attempt)
-    raise Exception("MAX_RETRY: " + str(last)[:100])
+            req = urllib.request.Request(url, headers=HEADERS, method="GET")
+            with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT) as response:
+                status = getattr(response, "status", 200)
+                if status < 200 or status >= 300:
+                    raise HTTPStatusError(status, f"HTTP_ERROR: {status}")
+
+                payload = response.read().decode("utf-8")
+                data = json.loads(payload)
+                if not isinstance(data, dict):
+                    raise UpdateError("API_INVALID_JSON_ROOT")
+                return data
+
+        except urllib.error.HTTPError as exc:
+            last_error = exc
+            if exc.code == 401:
+                raise HTTPStatusError(401, "TOKEN_EXPIRED: 401") from exc
+            if exc.code == 403:
+                raise HTTPStatusError(403, "FORBIDDEN: 403") from exc
+            if exc.code == 404:
+                raise HTTPStatusError(404, "SYMBOL_NOT_FOUND: 404") from exc
+            if exc.code == 422:
+                raise HTTPStatusError(422, "BAD_PARAMS: 422") from exc
+            if exc.code not in TRANSIENT_HTTP_CODES:
+                raise HTTPStatusError(exc.code, f"HTTP_ERROR: {exc.code}") from exc
+
+        except (urllib.error.URLError, TimeoutError, socket.timeout, ConnectionError) as exc:
+            last_error = exc
+
+        except json.JSONDecodeError as exc:
+            last_error = exc
+            # A malformed payload may be transient; retry before failing.
+
+        except UpdateError:
+            raise
+
+        except Exception as exc:
+            last_error = exc
+
+        if attempt < MAX_RETRY:
+            delay = RETRY_BASE_SECONDS * (2 ** (attempt - 1))
+            time.sleep(delay)
+
+    detail = str(last_error)[:200] if last_error else "unknown"
+    raise UpdateError(f"MAX_RETRY: {detail}")
 
 
-def get_bars(asset_id):
-    url = (API + "/chart/bars?countback=5000"
-           + "&symbol=exchange.asset:" + str(asset_id) + ":real_close:type0"
-           + "&resolution=D"
-           + "&from=2000-01-01T00:00:00Z"
-           + "&to=2030-01-01T00:00:00Z")
+# ---------- API ----------
+def get_bars(asset_id: int, *, last_time: int | float | None = None) -> dict[str, Any]:
+    if last_time is None:
+        countback = FULL_COUNTBACK
+        from_value = FULL_FROM
+        to_value = FULL_TO
+    else:
+        countback = INCREMENTAL_COUNTBACK
+        from_value = incremental_from_iso(last_time)
+        to_value = epoch_ms_to_iso(time.time() * 1000)
+
+    url = (
+        API
+        + f"/chart/bars?countback={countback}"
+        + "&symbol=exchange.asset:"
+        + str(asset_id)
+        + ":real_close:type0"
+        + "&resolution=D"
+        + f"&from={from_value}"
+        + f"&to={to_value}"
+    )
     return request_json(url)
 
 
-def load_json(path, default=None):
-    if not os.path.exists(path):
-        return default if default is not None else []
+# ---------- Data quality ----------
+def finite_number(value: Any) -> bool:
+    if isinstance(value, bool):
+        return False
     try:
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return default if default is not None else []
+        return math.isfinite(float(value))
+    except (TypeError, ValueError):
+        return False
 
 
-def save_safe(path, data):
-    folder = os.path.dirname(path)
-    if folder:
-        os.makedirs(folder, exist_ok=True)
-    temp = path + ".tmp"
-    with open(temp, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False)
-    with open(temp, "r", encoding="utf-8") as f:
-        json.load(f)
-    os.replace(temp, path)
+def valid_candle(candle: Any) -> bool:
+    if not isinstance(candle, dict):
+        return False
+
+    for key in ("time", "open", "high", "low", "close"):
+        if key not in candle or not finite_number(candle[key]):
+            return False
+
+    time_value = float(candle["time"])
+    if time_value <= 0:
+        return False
+
+    open_v = float(candle["open"])
+    high_v = float(candle["high"])
+    low_v = float(candle["low"])
+    close_v = float(candle["close"])
+
+    if min(open_v, high_v, low_v, close_v) < 0:
+        return False
+    if high_v < max(open_v, low_v, close_v):
+        return False
+    if low_v > min(open_v, high_v, close_v):
+        return False
+
+    if "volume" in candle and candle["volume"] is not None:
+        if not finite_number(candle["volume"]):
+            return False
+        if float(candle["volume"]) < 0:
+            return False
+
+    return True
 
 
-def backup_file(path):
-    if not os.path.exists(path):
+def clean_candles(data: Any) -> list[dict[str, Any]]:
+    if not isinstance(data, list):
+        raise ValidationError("INVALID_DATA_ROOT")
+
+    dedup: dict[int, dict[str, Any]] = {}
+    for candle in data:
+        if not valid_candle(candle):
+            raise ValidationError("INVALID_CANDLE")
+        key = int(candle["time"])
+        dedup[key] = candle
+
+    out = sorted(dedup.values(), key=lambda item: int(item["time"]))
+    if len(out) < MIN_CANDLES:
+        raise ValidationError(f"TOO_FEW_CANDLES: {len(out)}")
+
+    for idx in range(1, len(out)):
+        if int(out[idx]["time"]) <= int(out[idx - 1]["time"]):
+            raise ValidationError("TIME_ORDER_ERROR")
+
+    return out
+
+
+def load_existing_candles(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+
+    data = load_json(path, None, strict=True)
+    try:
+        return clean_candles(data)
+    except ValidationError as exc:
+        raise ValidationError(f"EXISTING_DATA_INVALID: {path.name}: {exc}") from exc
+
+
+def merge_candles(old: list[dict[str, Any]], new: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], int, bool]:
+    by_time = {int(c["time"]): c for c in old}
+    before = dict(by_time)
+
+    for candle in new:
+        by_time[int(candle["time"])] = candle
+
+    merged = sorted(by_time.values(), key=lambda item: int(item["time"]))
+    added = sum(1 for key in by_time if key not in before)
+    changed = merged != old
+    return merged, added, changed
+
+
+# ---------- Safe per-symbol persistence ----------
+def backup_for_rollback(path: Path) -> Path | None:
+    if not path.exists():
         return None
-    os.makedirs(BACKUP_DIR, exist_ok=True)
-    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup = os.path.join(BACKUP_DIR, os.path.basename(path) + "." + stamp + ".bak")
+
+    BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+    backup = BACKUP_DIR / f"{path.name}.{os.getpid()}.bak"
     shutil.copy2(path, backup)
     return backup
 
 
-def rollback(path, backup):
-    if backup and os.path.exists(backup):
-        shutil.copy2(backup, path)
-
-
-def validate_candle(c):
-    if not isinstance(c, dict):
-        return False
-    if "time" not in c:
-        return False
-    if not isinstance(c["time"], (int, float)):
-        return False
-    close = c.get("close")
-    if close is None:
-        return False
+def rollback_file(path: Path, backup: Path | None) -> None:
     try:
-        if float(close) <= 0:
-            return False
+        if backup and backup.exists():
+            shutil.copy2(backup, path)
+    except Exception as exc:
+        print(f"     ROLLBACK_FAILED: {exc}")
+
+
+def cleanup_backup(backup: Path | None) -> None:
+    if not backup:
+        return
+    try:
+        backup.unlink(missing_ok=True)
     except Exception:
-        return False
-    return True
+        pass
 
 
-def validate_data(data):
-    if not data or not isinstance(data, list):
-        return False
-    if len(data) < MIN_CANDLES:
-        return False
-    for c in data:
-        if not validate_candle(c):
-            return False
-    return True
-
-
-def clean_data(data):
-    seen = set()
-    out = []
-    for c in data:
-        t = c.get("time")
-        if t in seen:
-            continue
-        seen.add(t)
-        out.append(c)
-    out.sort(key=lambda x: x["time"])
-    return out
-
-
-def find_gaps(bars):
-    gaps = []
-    for i in range(1, len(bars)):
-        p = bars[i-1].get("close", 0)
-        c = bars[i].get("close", 0)
-        if p and c and p > 0 and c > 0:
-            r = c / p
-            if r > THRESHOLD_HIGH or r < THRESHOLD_LOW:
-                gaps.append({"idx": i, "ratio": r})
-    return gaps
-
-
-def adjust_bars(bars):
-    """تعدیل چند-پاس تا همه گپ‌ها از بین برن"""
-    adjusted = [dict(b) for b in bars]
-    for pass_num in range(MAX_ADJUST_PASSES):
-        gaps = find_gaps(adjusted)
-        if not gaps:
-            break
-        for gap in reversed(gaps):
-            idx = gap["idx"]
-            r = gap["ratio"]
-            for j in range(idx):
-                for key in ["open", "high", "low", "close"]:
-                    v = adjusted[j].get(key)
-                    if v is not None:
-                        adjusted[j][key] = round(v * r, 6)
-    return adjusted
-
-
-def update_symbol(symbol):
-    asset_id = symbol["id"]
-    name = symbol["name"]
-    path = os.path.join(RAW_DIR, str(asset_id) + ".json")
-
-    old = load_json(path, default=[])
-    old_count = len(old)
-
-    result = get_bars(asset_id)
-    if "data" not in result:
-        raise Exception("NO_DATA")
-
-    new_raw = result["data"]
-
-    if not validate_data(new_raw):
-        raise Exception("INVALID_DATA: " + str(len(new_raw)))
-
-    new_raw = clean_data(new_raw)
-
-    if old_count > 0 and len(new_raw) < old_count * SUSPICIOUS_RATIO:
-        raise Exception("SUSPICIOUS_REDUCTION")
-
-    # ★★★ تعدیل خودکار ★★★
-    if ADJUST_GAPS:
-        new_raw = adjust_bars(new_raw)
-        merged = list(new_raw)
-        added = len(new_raw)
-    else:
-        old_times = set()
-        for c in old:
-            if "time" in c:
-                old_times.add(c["time"])
-        added = 0
-        merged = list(old)
-        for candle in new_raw:
-            if candle["time"] not in old_times:
-                merged.append(candle)
-                old_times.add(candle["time"])
-                added += 1
-
-    merged = clean_data(merged)
-
-    backup = backup_file(path) if old_count > 0 else None
+# ---------- Single symbol ----------
+def update_symbol(symbol: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(symbol, dict):
+        raise UpdateError("INVALID_SYMBOL_RECORD")
 
     try:
-        save_safe(path, merged)
-    except Exception as e:
-        rollback(path, backup)
-        raise Exception("SAVE_FAILED: " + str(e))
+        asset_id = int(symbol["id"])
+        name = str(symbol["name"])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise UpdateError("INVALID_SYMBOL_FIELDS") from exc
 
-    final = load_json(path, default=[])
-    if len(final) != len(merged):
-        rollback(path, backup)
-        raise Exception("VERIFY_FAILED")
+    path = RAW_DIR / f"{asset_id}.json"
+    old = load_existing_candles(path)
+    old_count = len(old)
+    last_time = old[-1]["time"] if old else None
+    is_new_symbol = old_count == 0
 
-    gaps_final = len(find_gaps(merged)) if ADJUST_GAPS else -1
+    result = get_bars(asset_id, last_time=last_time)
+    raw = result.get("data")
+    new = clean_candles(raw)
+
+    # Existing history must never silently shrink.
+    if old_count and len(new) < max(MIN_CANDLES, int(old_count * SUSPICIOUS_REDUCTION_RATIO)):
+        raise ValidationError(
+            f"SUSPICIOUS_REDUCTION: old={old_count}, downloaded={len(new)}"
+        )
+
+    merged, added, changed = merge_candles(old, new)
+
+    # Final structural validation before touching the existing file.
+    merged = clean_candles(merged)
+    if old_count and len(merged) < old_count:
+        raise ValidationError("FINAL_HISTORY_SHRANK")
+
+    if changed:
+        backup = backup_for_rollback(path)
+        try:
+            save_atomic(path, merged)
+            # Verify full post-write structure, not just JSON syntax.
+            verified = load_existing_candles(path)
+            if len(verified) != len(merged):
+                raise UpdateError("POST_WRITE_VERIFY_FAILED")
+        except Exception as exc:
+            rollback_file(path, backup)
+            raise UpdateError(f"SAVE_ROLLBACK: {exc}") from exc
+        finally:
+            cleanup_backup(backup)
+    else:
+        backup = None
 
     return {
         "name": name,
         "id": asset_id,
-        "old": old_count,
-        "downloaded": len(new_raw),
+        "mode": "initial" if is_new_symbol else "incremental",
+        "downloaded": len(new),
         "added": added,
         "final": len(merged),
-        "gaps": gaps_final
+        "changed": changed,
+        "last_time": int(merged[-1]["time"]) if merged else None,
     }
 
 
-def main():
-    start = datetime.now()
+# ---------- Reporting ----------
+def load_status() -> dict[str, Any]:
+    data = load_json(STATUS_FILE, {}, strict=False)
+    return data if isinstance(data, dict) else {}
+
+
+def scan_orphans(symbols: list[dict[str, Any]]) -> list[str]:
+    known_ids = set()
+    for symbol in symbols:
+        try:
+            known_ids.add(str(int(symbol["id"])))
+        except Exception:
+            continue
+
+    if not RAW_DIR.exists():
+        return []
+
+    orphans = []
+    for path in RAW_DIR.glob("*.json"):
+        if path.stem not in known_ids:
+            orphans.append(path.stem)
+    return sorted(orphans)
+
+
+# ---------- Main ----------
+def main() -> int:
+    started = time.time()
+    start_iso = utc_now_iso()
+    errors: list[dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
+    total_added = 0
+    success = 0
+    no_change = 0
+
     print("=" * 60)
-    print("RAHAVARD UPDATE V5.1 - Multi-pass Adjust")
+    print("RAHAVARD CHART DATA SYNC V6")
     print("=" * 60)
-    print("Test mode: " + str(TEST_MODE))
-    print("Adjust gaps: " + str(ADJUST_GAPS))
+    print(f"Test mode: {TEST_MODE}")
+    print("Adjustment in raw files: False")
     print("")
+
+    if not TOKEN:
+        print("FATAL: RV_TOKEN is missing")
+        return 1
 
     acquire_lock()
     try:
-        os.makedirs(RAW_DIR, exist_ok=True)
-        os.makedirs(BACKUP_DIR, exist_ok=True)
+        RAW_DIR.mkdir(parents=True, exist_ok=True)
 
-        symbols = load_json(SYMBOL_FILE, default=[])
-        if not symbols:
-            print("symbols.json empty")
-            return
+        symbols = load_json(SYMBOL_FILE, [], strict=True)
+        if not isinstance(symbols, list) or not symbols:
+            raise UpdateError("SYMBOL_FILE_EMPTY_OR_INVALID")
+
+        # Validate all symbol records before starting changes.
+        normalized_symbols: list[dict[str, Any]] = []
+        seen_ids: set[int] = set()
+        for symbol in symbols:
+            if not isinstance(symbol, dict) or "id" not in symbol or "name" not in symbol:
+                raise UpdateError("INVALID_SYMBOLS_JSON_RECORD")
+            asset_id = int(symbol["id"])
+            if asset_id in seen_ids:
+                raise UpdateError(f"DUPLICATE_SYMBOL_ID: {asset_id}")
+            seen_ids.add(asset_id)
+            normalized_symbols.append({"id": asset_id, "name": str(symbol["name"])})
 
         if TEST_MODE:
-            symbols = [s for s in symbols if s["name"] in TEST_SYMBOLS]
-            print("TEST MODE: " + str(len(symbols)))
+            symbols = [s for s in normalized_symbols if s["name"] in TEST_SYMBOLS]
+            # Ensure the test is actually exercising all requested symbols.
+            missing = sorted(TEST_SYMBOLS - {s["name"] for s in symbols})
+            if missing:
+                raise UpdateError("TEST_SYMBOLS_MISSING: " + ", ".join(missing))
+            print(f"TEST MODE: {len(symbols)}")
         else:
-            print("FULL MODE: " + str(len(symbols)))
+            symbols = normalized_symbols
+            print(f"FULL MODE: {len(symbols)}")
 
         print("")
 
-        errors = []
-        results = []
-        total_added = 0
-        success = 0
+        status = load_status()
+        run_stamp = utc_now_iso()
 
-        for i, symbol in enumerate(symbols, start=1):
-            print("[" + str(i) + "/" + str(len(symbols)) + "] " + symbol["name"])
+        for index, symbol in enumerate(symbols, start=1):
+            label = symbol["name"]
+            print(f"[{index}/{len(symbols)}] {label}")
+            item_started = time.time()
+
             try:
-                r = update_symbol(symbol)
-                print("     Downloaded: " + str(r["downloaded"]))
-                print("     Added:      " + str(r["added"]))
-                print("     Final:      " + str(r["final"]))
-                if r["gaps"] >= 0:
-                    print("     Gaps:       " + str(r["gaps"]))
-                print("     Status:     OK")
-                total_added += r["added"]
+                row = update_symbol(symbol)
+                total_added += row["added"]
                 success += 1
-                results.append(r)
-            except Exception as e:
+                if not row["changed"]:
+                    no_change += 1
+
+                status[str(row["id"])] = {
+                    "name": row["name"],
+                    "last_update": run_stamp,
+                    "candles": row["final"],
+                    "last_time": row["last_time"],
+                    "mode": row["mode"],
+                    "status": "ok",
+                }
+
+                print(f"     Mode:       {row['mode']}")
+                print(f"     Downloaded: {row['downloaded']}")
+                print(f"     Added:      {row['added']}")
+                print(f"     Final:      {row['final']}")
+                print(f"     Changed:    {row['changed']}")
+                print(f"     Duration:   {round(time.time() - item_started, 2)}s")
+                print("     Status:     OK")
+
+                results.append(row)
+
+            except Exception as exc:
+                message = str(exc)[:300]
+                success_name = str(symbol.get("name", "?"))
+                success_id = symbol.get("id")
                 print("     Status:     ERROR")
-                print("     Reason:     " + str(e)[:120])
-                errors.append({
-                    "name": symbol["name"],
-                    "id": symbol["id"],
-                    "error": str(e),
-                    "time": datetime.now().isoformat()
-                })
-            time.sleep(SLEEP_BETWEEN)
+                print(f"     Reason:     {message}")
 
-        save_safe(ERROR_FILE, errors)
+                error_row = {
+                    "name": success_name,
+                    "id": success_id,
+                    "error": message,
+                    "time": utc_now_iso(),
+                }
+                errors.append(error_row)
 
-        status = load_json(STATUS_FILE, default={})
-        if not isinstance(status, dict):
-            status = {}
-        now = datetime.now().isoformat()
-        for r in results:
-            status[str(r["id"])] = {
-                "name": r["name"],
-                "last_update": now,
-                "candles": r["final"],
-                "status": "ok"
-            }
-        for e in errors:
-            status[str(e["id"])] = {
-                "name": e["name"],
-                "last_update": now,
-                "status": "error",
-                "error": e["error"]
-            }
-        save_safe(STATUS_FILE, status)
+                status[str(success_id)] = {
+                    "name": success_name,
+                    "last_update": run_stamp,
+                    "status": "error",
+                    "error": message,
+                }
 
+            time.sleep(SLEEP_BETWEEN_SYMBOLS)
+
+        orphans = scan_orphans(normalized_symbols)
+        if orphans:
+            print("")
+            print(f"ORPHAN RAW FILES PRESERVED: {len(orphans)}")
+
+        # Persist status/report after all symbols; a failure here does not touch raw files.
+        save_atomic(ERROR_FILE, errors)
+        save_atomic(STATUS_FILE, status)
+
+        ended_iso = utc_now_iso()
+        duration = round(time.time() - started, 2)
         report = {
-            "start_time": start.isoformat(),
-            "end_time": datetime.now().isoformat(),
-            "duration_seconds": round((datetime.now() - start).total_seconds(), 2),
+            "version": "V6",
+            "start_time": start_iso,
+            "end_time": ended_iso,
+            "duration_seconds": duration,
             "total_symbols": len(symbols),
             "success": success,
             "errors": len(errors),
             "new_candles": total_added,
-            "test_mode": TEST_MODE
+            "no_change": no_change,
+            "test_mode": TEST_MODE,
+            "adjusted_raw": False,
+            "orphans_preserved": len(orphans),
         }
-        save_safe(REPORT_FILE, report)
+        save_atomic(REPORT_FILE, report)
 
         print("")
         print("=" * 60)
-        print("SUCCESS:     " + str(success))
-        print("ERRORS:      " + str(len(errors)))
-        print("NEW CANDLES: " + str(total_added))
-        print("DURATION:    " + str(report["duration_seconds"]) + "s")
+        print(f"SUCCESS:     {success}")
+        print(f"ERRORS:      {len(errors)}")
+        print(f"NEW CANDLES: {total_added}")
+        print(f"NO CHANGE:   {no_change}")
+        print(f"DURATION:    {duration}s")
         print("=" * 60)
+
+        return 0 if not errors else 2
 
     finally:
         release_lock()
+        try:
+            if BACKUP_DIR.exists():
+                shutil.rmtree(BACKUP_DIR, ignore_errors=True)
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        raise SystemExit(main())
+    except LockError as exc:
+        print(f"FATAL: {exc}")
+        raise SystemExit(1)
+    except KeyboardInterrupt:
+        print("FATAL: INTERRUPTED")
+        raise SystemExit(130)
+    except Exception as exc:
+        print(f"FATAL: {str(exc)[:300]}")
+        raise SystemExit(1)
