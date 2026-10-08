@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#131722">
+<meta name="theme-color" content="#131722" id="metaThemeColor">
 <title>MHDI Ratio</title>
 <style>
 :root{color-scheme:dark;--bg:#131722;--panel:#1e222d;--border:#2a2e39;--text:#d1d4dc;--muted:#787b86;--accent:#2962ff;--danger:#ef5350}
@@ -17,12 +17,12 @@ button.active{background:var(--accent);color:#fff}
 button:disabled{opacity:.45;cursor:default}
 input{outline:none}
 .app{height:100vh;display:grid;grid-template-rows:44px 1fr;background:var(--bg)}
-.topbar{height:44px;display:flex;align-items:center;gap:5px;padding:0 7px;border-bottom:1px solid var(--border);background:var(--bg);direction:ltr;white-space:nowrap;overflow-x:auto}
+.topbar{height:46px;display:flex;align-items:center;gap:3px;padding:0 8px;border-bottom:1px solid var(--border);background:#131722;direction:ltr;white-space:nowrap;overflow-x:auto;scrollbar-width:none}
 .topbar::-webkit-scrollbar{display:none}
-.separator{width:1px;height:24px;background:var(--border);margin:0 3px;flex:0 0 auto}
-.brand{font-weight:800;color:#fff;letter-spacing:.5px;padding:5px 7px;flex:0 0 auto}
-.search{position:relative;width:220px;height:30px;display:flex;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:3px;flex:0 0 auto}
-.search input{width:100%;height:100%;padding:0 10px;background:transparent;border:0;color:var(--text);direction:rtl}
+.separator{width:1px;height:22px;background:#2a2e39;margin:0 3px;flex:0 0 auto}
+.brand{font-weight:800;color:#fff;letter-spacing:.4px;padding:6px 9px;flex:0 0 auto;font-size:13px}
+.search{position:relative;width:238px;height:32px;display:flex;align-items:center;background:#1e222d;border:1px solid #2a2e39;border-radius:4px;flex:0 0 auto;transition:border-color .15s,background .15s}
+.search:focus-within{border-color:#4a5568;background:#202532}.search input{width:100%;height:100%;padding:0 10px;background:transparent;border:0;color:var(--text);direction:rtl;font-size:12px}
 .search input::placeholder{color:#5f636d}
 .results{position:absolute;left:0;right:0;top:34px;display:none;max-height:340px;overflow:auto;background:#1e222d;border:1px solid var(--border);border-radius:3px;z-index:10000;direction:rtl;box-shadow:0 8px 24px rgba(0,0,0,.35)}
 .results.open{display:block}
@@ -31,28 +31,81 @@ input{outline:none}
 .result:hover,.result.selected{background:#2a2e39}
 .result .name{font-weight:700;color:#e6e8eb}
 .result .id{font-size:10px;color:var(--muted);direction:ltr}
-.pair{display:flex;align-items:center;gap:2px;background:var(--panel);border:1px solid var(--border);border-radius:3px;height:30px;flex:0 0 auto}
-.pair-slot{min-width:74px;max-width:120px;height:28px;padding:0 9px;display:flex;align-items:center;justify-content:center;color:#e5e7eb;font-weight:700;cursor:pointer;overflow:hidden;text-overflow:ellipsis;direction:rtl}
-.pair-slot:hover{background:rgba(255,255,255,.05)}
-.pair-slot.active{background:rgba(41,98,255,.18);outline:1px solid var(--accent)}
-.pair-sep{color:var(--muted);padding:0 2px}
-.go{height:24px;padding:0 11px;background:var(--accent);color:#fff!important;font-weight:700;margin-left:3px}
+.pair{display:flex;align-items:center;gap:1px;background:transparent;border:0;border-radius:4px;height:32px;flex:0 0 auto;padding:1px}
+.pair-slot{min-width:82px;max-width:128px;height:30px;padding:0 10px;display:flex;align-items:center;justify-content:center;color:#d1d4dc;font-weight:700;cursor:pointer;overflow:hidden;text-overflow:ellipsis;direction:rtl;border-radius:4px;font-size:12px}
+.pair-slot:hover{background:#1e222d;color:#fff}
+.pair-slot.active{background:#1e222d;color:#fff;outline:1px solid #2962ff}
+.pair-sep{color:#787b86;padding:0 3px;font-size:11px}
+.go{height:30px;padding:0 12px;background:#2962ff;color:#fff!important;font-weight:700;margin-left:2px;border-radius:4px}
 .go:hover{background:#1f55e5}
-.control,select{height:30px;padding:0 8px;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:3px;cursor:pointer;outline:none}
+.control,select{height:32px;padding:0 9px;background:transparent;border:1px solid transparent;color:#d1d4dc;border-radius:4px;cursor:pointer;outline:none;font-size:12px}.control:hover,select:hover{background:#1e222d;border-color:#2a2e39}
 select{direction:rtl}
-.tool{height:30px;padding:0 9px}
-.status{margin-left:auto;height:30px;display:flex;align-items:center;padding:0 8px;color:var(--muted);direction:rtl;max-width:300px;overflow:hidden;text-overflow:ellipsis}
+.tool{height:32px;padding:0 9px;border:1px solid transparent;border-radius:4px;font-size:12px}.tool:hover{background:#1e222d;border-color:#2a2e39}.tool.active{background:#2962ff;color:#fff}
+.status{margin-left:auto;height:32px;display:flex;align-items:center;padding:0 8px;color:#787b86;direction:rtl;max-width:280px;overflow:hidden;text-overflow:ellipsis;font-size:11px}
 .main{position:relative;min-width:0;min-height:0;overflow:hidden;background:var(--bg)}
 #chartWrap{position:absolute;inset:0}
 #chart{width:100%;height:100%;direction:rtl;touch-action:none;overscroll-behavior:contain}
-.pair-word{color:var(--muted);padding:0 4px}
 #loading{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(19,23,34,.82);z-index:9000;color:#aed581;font-family:monospace;font-size:13px;direction:rtl}
 #loading.on{display:flex}
 #error{position:absolute;left:10px;right:10px;bottom:10px;display:none;padding:10px 12px;border-radius:3px;background:var(--danger);color:#fff;z-index:9500;direction:rtl;white-space:pre-wrap;word-break:break-word}
 #error.on{display:block}
-#pairTitle{position:absolute;top:9px;right:12px;z-index:7000;padding:5px 8px;border-radius:3px;background:rgba(19,23,34,.72);border:1px solid rgba(255,255,255,.06);pointer-events:none;direction:rtl;backdrop-filter:blur(4px)}
-#pairTitle b{color:#fff}
-@media(max-width:900px){.brand{display:none}.search{width:190px}.status{display:none}.pair-slot{min-width:68px}}
+@media(max-width:900px){.brand{display:none}.search{width:190px}.status{display:none}.pair-slot{min-width:68px;max-width:100px}.topbar{gap:2px;padding:0 5px}}
+
+.icon-btn{height:32px;min-width:32px;padding:0 8px;display:inline-flex;align-items:center;justify-content:center;border:1px solid transparent;background:transparent;color:#d1d4dc;border-radius:4px;font-size:12px;cursor:pointer;flex:0 0 auto}
+.icon-btn:hover{background:#1e222d;border-color:#2a2e39;color:#fff}
+.save-state{height:32px;display:flex;align-items:center;padding:0 5px;color:#26a69a;font-size:10px;white-space:nowrap;flex:0 0 auto}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:20000;display:flex;align-items:flex-start;justify-content:flex-end;padding:56px 12px 12px;direction:rtl}
+.modal-backdrop[hidden]{display:none}
+.modal{width:min(360px,calc(100vw - 24px));max-height:calc(100vh - 80px);overflow:auto;background:#1e222d;border:1px solid #2a2e39;border-radius:7px;box-shadow:0 18px 50px rgba(0,0,0,.5);color:#d1d4dc}
+.modal[hidden]{display:none}
+.modal-head{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 13px;border-bottom:1px solid #2a2e39;font-size:13px}
+.modal-close{width:30px;height:30px;color:#9ca3af;font-size:22px;border-radius:4px}.modal-close:hover{background:#2a2e39;color:#fff}
+.modal-search{padding:10px;border-bottom:1px solid #2a2e39}.modal-search input{width:100%;height:34px;border:1px solid #2a2e39;border-radius:4px;background:#131722;color:#d1d4dc;padding:0 10px;direction:rtl;outline:none}.modal-search input:focus{border-color:#2962ff}
+.indicator-list{padding:8px}.indicator-row{width:100%;min-height:38px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;margin-bottom:4px;background:#131722;border:1px solid #2a2e39;border-radius:4px;color:#d1d4dc;cursor:pointer;text-align:right}.indicator-row:hover{background:#2a2e39;color:#fff}.indicator-row.current{cursor:default}.indicator-row.current button{background:#ef5350;color:#fff;border:0;border-radius:3px;padding:4px 8px;cursor:pointer}.indicator-subhead{font-size:10px;color:#787b86;padding:7px 4px}.empty{padding:20px 10px;color:#787b86;text-align:center}.modal-foot{padding:10px 12px;border-top:1px solid #2a2e39;color:#787b86;font-size:10px;line-height:1.7}
+.settings-copy{padding:14px;display:grid;gap:10px}.settings-copy p{color:#9ca3af;line-height:1.8;font-size:11px}.danger-btn{min-height:36px;border:1px solid #3a2b2b;background:#241818;color:#ef9a98;border-radius:4px;cursor:pointer}.danger-btn:hover{background:#321c1c}
+@media(max-width:900px){.save-state{display:none}.modal-backdrop{padding-top:50px}.modal{width:min(420px,calc(100vw - 16px))}}
+
+/* Light theme for the host chrome; Vela itself is switched with chart.setTheme(). */
+body.theme-light{background:#f5f7fa;color:#202124}
+body.theme-light .app,body.theme-light .main{background:#f5f7fa}
+body.theme-light .topbar{background:#ffffff;border-bottom-color:#dfe3e8}
+body.theme-light .brand{color:#202124}
+body.theme-light .separator{background:#dfe3e8}
+body.theme-light .search{background:#f8f9fb;border-color:#d9dde3}
+body.theme-light .search:focus-within{background:#ffffff;border-color:#9aa4b2}
+body.theme-light .search input{color:#202124}
+body.theme-light .search input::placeholder{color:#7a818c}
+body.theme-light .results{background:#ffffff;border-color:#d9dde3;box-shadow:0 8px 24px rgba(0,0,0,.10)}
+body.theme-light .result{border-bottom-color:#edf0f3}
+body.theme-light .result:hover,body.theme-light .result.selected{background:#eef2f7}
+body.theme-light .result .name{color:#202124}
+body.theme-light .pair-slot{color:#202124}
+body.theme-light .pair-slot:hover{background:#eef2f7;color:#111827}
+body.theme-light .pair-slot.active{background:#eef2f7;outline-color:#2962ff}
+body.theme-light .pair-sep{color:#69717d}
+body.theme-light .control,body.theme-light select,body.theme-light .icon-btn,body.theme-light .tool{color:#374151}
+body.theme-light .control:hover,body.theme-light select:hover,body.theme-light .icon-btn:hover,body.theme-light .tool:hover{background:#eef2f7;border-color:#d9dde3;color:#111827}
+body.theme-light .tool.active{color:#fff;background:#2962ff}
+body.theme-light .status{color:#6b7280}
+body.theme-light .save-state{color:#0f8d7e}
+body.theme-light #loading{background:rgba(245,247,250,.88);color:#16755f}
+body.theme-light #pairTitle{background:rgba(255,255,255,.82);border-color:#e1e5ea;color:#202124}
+body.theme-light #pairTitle b{color:#111827}
+body.theme-light .modal{background:#ffffff;border-color:#d9dde3;color:#202124;box-shadow:0 18px 50px rgba(0,0,0,.16)}
+body.theme-light .modal-head{border-bottom-color:#e5e7eb}
+body.theme-light .modal-search{border-bottom-color:#e5e7eb}
+body.theme-light .modal-search input{background:#f8f9fb;color:#202124;border-color:#d9dde3}
+body.theme-light .indicator-row{background:#f8f9fb;border-color:#e1e5ea;color:#202124}
+body.theme-light .indicator-row:hover{background:#eef2f7;color:#111827}
+body.theme-light .indicator-subhead,body.theme-light .empty,body.theme-light .modal-foot{color:#6b7280}
+body.theme-light .settings-copy p{color:#5f6670}
+body.theme-light .danger-btn{background:#fff3f3;border-color:#f0cccc;color:#b42318}
+body.theme-light .danger-btn:hover{background:#ffe7e7}
+.theme-toggle{height:32px;min-width:58px;padding:0 8px;display:inline-flex;align-items:center;justify-content:center;gap:5px;border:1px solid transparent;background:transparent;color:#d1d4dc;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;flex:0 0 auto}
+.theme-toggle:hover{background:#1e222d;border-color:#2a2e39;color:#fff}
+.theme-toggle .theme-icon{font-size:13px;line-height:1}
+body.theme-light .theme-toggle{color:#374151}
+body.theme-light .theme-toggle:hover{background:#eef2f7;border-color:#d9dde3;color:#111827}
 </style>
 </head>
 <body>
@@ -65,11 +118,11 @@ select{direction:rtl}
       <div id="results" class="results"></div>
     </div>
 
-    <div class="pair">
+    <div class="pair" aria-label="انتخاب نسبت">
       <button id="slotA" class="pair-slot active" title="انتخاب نماد اول">—</button>
       <span class="pair-sep">به</span>
       <button id="slotB" class="pair-slot" title="انتخاب نماد دوم">—</button>
-      <button id="swapBtn" class="control" title="جابه‌جایی دو نماد">⇄</button>
+      <button id="swapBtn" class="icon-btn" title="جابه‌جایی دو نماد" aria-label="جابه‌جایی دو نماد">⇄</button>
       <button id="analyzeBtn" class="go" title="نمایش نسبت">تحلیل</button>
     </div>
 
@@ -98,34 +151,61 @@ select{direction:rtl}
       <option value="baseline">مبنا</option>
     </select>
 
+    <button id="indicatorBtn" class="tool" title="اندیکاتورها">اندیکاتورها</button>
     <button id="adjustedBtn" class="tool" title="نمایش عملکردی؛ RAW دست‌نخورده می‌ماند">عملکردی</button>
     <button id="rawBtn" class="tool active" title="نمایش RAW">خام</button>
     <button id="logBtn" class="tool" title="مقیاس لگاریتمی">Log</button>
-    <button id="resetBtn" class="tool" title="بازنشانی محدوده نمودار">بازنشانی</button>
-    <button id="fullscreenBtn" class="tool" title="تمام صفحه">⛶</button>
-    <button id="shotBtn" class="tool" title="تصویر نمودار">PNG</button>
+    <button id="themeBtn" class="theme-toggle" title="تغییر تم روشن / مشکی" aria-label="تغییر تم"> <span class="theme-icon">☾</span><span class="theme-label">مشکی</span></button>
+    <button id="saveBtn" class="tool" title="ذخیره دستی تنظیمات و ترسیمات">ذخیره</button>
+    <button id="resetBtn" class="tool" title="بازنشانی فقط نمای چارت">بازنشانی</button>
+    <button id="settingsBtn" class="icon-btn" title="تنظیمات ذخیره‌سازی">⚙</button>
+    <button id="shareBtn" class="tool" title="کپی لینک همین چارت">اشتراک</button>
+    <button id="shotBtn" class="icon-btn" title="تصویر نمودار">PNG</button>
+    <button id="fullscreenBtn" class="icon-btn" title="تمام صفحه">⛶</button>
 
+    <div id="saveState" class="save-state">—</div>
     <div id="status" class="status">در حال آماده‌سازی...</div>
   </div>
 
   <main class="main">
     <div id="chartWrap"><div id="chart"></div></div>
-    <div id="pairTitle"><b>—</b> <span class="pair-word">به</span> <b>—</b></div>
     <div id="loading"><span>در حال بارگذاری...</span></div>
     <div id="error"></div>
   </main>
 </div>
 
+<div id="modalBackdrop" class="modal-backdrop" hidden>
+  <section id="indicatorModal" class="modal" hidden aria-modal="true" role="dialog">
+    <div class="modal-head"><strong>اندیکاتورها</strong><button class="modal-close" data-close="1">×</button></div>
+    <div class="modal-search"><input id="indicatorSearch" placeholder="جستجوی اندیکاتور..." autocomplete="off"></div>
+    <div id="indicatorList" class="indicator-list"></div>
+    <div class="modal-foot">اندیکاتورهای محاسباتی سنگین، در Worker اجرا می‌شوند.</div>
+  </section>
+
+  <section id="settingsModal" class="modal" hidden aria-modal="true" role="dialog">
+    <div class="modal-head"><strong>تنظیمات ذخیره‌سازی</strong><button class="modal-close" data-close="1">×</button></div>
+    <div class="settings-copy">
+      <p>تنظیمات این مرورگر به‌صورت خودکار ذخیره می‌شوند؛ چارت‌ها، ترسیمات، نمای فعلی و تنظیمات ظاهری دوباره برمی‌گردند.</p>
+      <button id="resetCurrentBtn" class="danger-btn">پاک‌کردن ذخیره همین نمودار</button>
+      <button id="resetAllBtn" class="danger-btn">پاک‌کردن همه ذخیره‌های این مرورگر</button>
+    </div>
+  </section>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@luxalgo/vela@0.8.3/dist/vela.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@luxalgo/vela-pinets@0.2.15/dist/vela-pinets.global.min.js"></script>
 <script>
 (() => {
   'use strict';
 
   const $ = (id) => document.getElementById(id);
-
   const BASE = '/';
   const SYMBOLS_URL = BASE + 'data/symbols.json';
   const VELA = window.Vela && (window.Vela.Vela || window.Vela);
+  const STORAGE_KEY = 'mhdi-bors-vela-v16';
+  const APP_VERSION = 'v16';
+  const FETCH_TIMEOUT = 20000;
+  const WORKER_TIMEOUT = 15000;
 
   const state = {
     symbols: [],
@@ -135,622 +215,416 @@ select{direction:rtl}
     b: null,
     timeframe: '1W',
     rangeDays: 0,
-    lastRatioBars: [],
     priceStyle: 'candles',
     adjusted: false,
     logScale: false,
+    theme: 'dark',
+    lastRatioBars: [],
     rawCache: new Map(),
-    adjustedCache: new Map(),
     ratioCache: new Map(),
+    adjustedCache: new Map(),
     chart: null,
+    saveTimer: null,
+    worker: null,
+    workerSeq: 0,
+    pendingWorker: new Map(),
     searchResults: [],
-    searchCursor: -1
+    searchCursor: -1,
+    restoring: false,
+    pineEngine: null,
+    userIndicators: new Map()
   };
 
+  function safeStorageGet(){ try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; } }
+  function safeStorageSet(data){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); return true; } catch { return false; } }
+  function setSaveState(text){ $('saveState').textContent = text || '—'; }
   function setStatus(text){ $('status').textContent = text || ''; }
-
-  function setLoading(on, text){
-    const box = $('loading');
-    box.classList.toggle('on', !!on);
-    if(on) box.firstElementChild.textContent = text || 'در حال بارگذاری...';
-  }
-
-  function clearError(){
-    $('error').textContent = '';
-    $('error').classList.remove('on');
-  }
-
-  function showError(message){
-    $('error').textContent = 'خطا: ' + message;
-    $('error').classList.add('on');
-    console.error(message);
-  }
+  function setLoading(on, text){ $('loading').classList.toggle('on', !!on); if(on) $('loading').firstElementChild.textContent = text || 'در حال بارگذاری...'; }
+  function clearError(){ $('error').textContent=''; $('error').classList.remove('on'); }
+  function showError(message){ $('error').textContent='خطا: ' + message; $('error').classList.add('on'); console.error(message); }
 
   function normalizeText(value){
     return String(value ?? '')
-      .replace(/[يى]/g, 'ی')
-      .replace(/ك/g, 'ک')
-      .replace(/ۀ/g, 'ه')
-      .replace(/[۰-۹]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
-      .replace(/[\u200c\u200f\u200e]/g, '')
-      .trim()
-      .toLowerCase();
+      .replace(/[يى]/g,'ی').replace(/ك/g,'ک').replace(/ۀ/g,'ه')
+      .replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+      .replace(/[\u200c\u200f\u200e]/g,'').trim().toLowerCase();
   }
-
-  function toNumber(v){
-    const n = Number(v);
-    return Number.isFinite(n) ? n : null;
-  }
-
+  function toNumber(v){ const n=Number(v); return Number.isFinite(n)?n:null; }
   function toEpochMs(v){
-    if(typeof v === 'number' && Number.isFinite(v)){
-      return v < 100000000000 ? v * 1000 : v;
-    }
-    if(typeof v === 'string'){
-      const numeric = Number(v);
-      if(Number.isFinite(numeric)) return numeric < 100000000000 ? numeric * 1000 : numeric;
-      const parsed = Date.parse(v);
-      if(Number.isFinite(parsed)) return parsed;
+    if(typeof v==='number' && Number.isFinite(v)) return v<100000000000?v*1000:v;
+    if(typeof v==='string'){
+      const n=Number(v); if(Number.isFinite(n)) return n<100000000000?n*1000:n;
+      const d=Date.parse(v); if(Number.isFinite(d)) return d;
     }
     return null;
   }
 
+  async function fetchJSON(url, timeoutMs=FETCH_TIMEOUT){
+    const controller = new AbortController();
+    const timer = setTimeout(()=>controller.abort(), timeoutMs);
+    try{
+      const response = await fetch(url, { cache:'no-cache', signal:controller.signal });
+      if(!response.ok) throw new Error('HTTP ' + response.status);
+      return await response.json();
+    }catch(e){
+      if(e?.name === 'AbortError') throw new Error('TIMEOUT پس از ' + Math.round(timeoutMs/1000) + ' ثانیه: ' + url);
+      throw e;
+    }finally{ clearTimeout(timer); }
+  }
+
   function normalizeBars(data){
     if(!Array.isArray(data)) throw new Error('ساختار فایل RAW معتبر نیست.');
-
-    const map = new Map();
+    const map=new Map();
     for(const row of data){
-      if(!row || typeof row !== 'object') continue;
-      const time = toEpochMs(row.time ?? row.timestamp ?? row.t ?? row.date);
-      const open = toNumber(row.open);
-      const high = toNumber(row.high);
-      const low = toNumber(row.low);
-      const close = toNumber(row.close);
-      const volume = toNumber(row.volume) ?? 0;
-      if(time === null || open === null || high === null || low === null || close === null) continue;
-      if(open <= 0 || high <= 0 || low <= 0 || close <= 0) continue;
-      if(high < low) continue;
-      map.set(time, { time, open, high, low, close, volume });
+      if(!row || typeof row!=='object') continue;
+      const time=toEpochMs(row.time ?? row.timestamp ?? row.t ?? row.date);
+      const open=toNumber(row.open), high=toNumber(row.high), low=toNumber(row.low), close=toNumber(row.close), volume=toNumber(row.volume)??0;
+      if(time===null || open===null || high===null || low===null || close===null) continue;
+      if(open<=0 || high<=0 || low<=0 || close<=0 || high<low) continue;
+      map.set(time,{time,open,high,low,close,volume});
     }
-
-    return [...map.values()].sort((x,y) => x.time - y.time);
-  }
-
-  async function fetchJSON(url, options = {}){
-    const controller = new AbortController();
-    const timeoutMs = Number(options.timeoutMs ?? 20000);
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    try{
-      const response = await fetch(url, { cache: options.cache ?? 'default', signal: controller.signal });
-      if(!response.ok) throw new Error('HTTP ' + response.status + ' — ' + url);
-      return response.json();
-    }catch(error){
-      if(error?.name === 'AbortError') throw new Error('TIMEOUT ' + Math.round(timeoutMs/1000) + 's — ' + url);
-      throw error;
-    }finally{
-      clearTimeout(timer);
-    }
-  }
-
-  async function loadSymbols(){
-    const data = await fetchJSON(SYMBOLS_URL);
-    if(!Array.isArray(data) || data.length === 0) throw new Error('symbols.json خالی یا نامعتبر است.');
-
-    state.symbols = data
-      .filter((s) => s && s.name !== undefined && s.id !== undefined)
-      .map((s) => ({
-        name: String(s.name),
-        id: String(s.id),
-        key: normalizeText(s.name)
-      }));
-
-    state.symbolIndex.clear();
-    state.symbols.forEach((s, i) => state.symbolIndex.set(s.id, { ...s, index: i }));
-
-    const find = (name) => state.symbols.find((s) => s.name === name);
-    state.a = find('فولاد') || state.symbols[0];
-    state.b = find('فملی') || state.symbols[1] || state.symbols[0];
-
-    updatePairUI();
-    setStatus(state.symbols.length + ' نماد آماده');
-  }
-
-  function updatePairUI(){
-    $('slotA').textContent = state.a?.name || '—';
-    $('slotB').textContent = state.b?.name || '—';
-    $('slotA').classList.toggle('active', state.targetSlot === 'A');
-    $('slotB').classList.toggle('active', state.targetSlot === 'B');
-    const a = state.a?.name || '—';
-    const b = state.b?.name || '—';
-    $('pairTitle').innerHTML = '<b>' + escapeHTML(a) + '</b> <span class="pair-word">به</span> <b>' + escapeHTML(b) + '</b>';
-  }
-
-  function escapeHTML(value){
-    return String(value).replace(/[&<>'"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-  }
-
-  function openSearch(slot){
-    state.targetSlot = slot;
-    updatePairUI();
-    $('searchInput').value = '';
-    $('searchInput').placeholder = slot === 'A' ? 'جستجوی نماد اول...' : 'جستجوی نماد دوم...';
-    $('searchInput').focus();
-    renderSearch('');
-  }
-
-  function closeSearch(){
-    $('results').classList.remove('open');
-    state.searchResults = [];
-    state.searchCursor = -1;
-  }
-
-  function renderSearch(query){
-    const q = normalizeText(query);
-    let matches;
-    if(!q){
-      matches = state.symbols.slice(0, 20);
-    } else {
-      matches = state.symbols
-        .map((s) => ({s, score: s.key === q ? 0 : (s.key.startsWith(q) ? 1 : (s.key.includes(q) ? 2 : 99))}))
-        .filter((x) => x.score < 99)
-        .sort((x,y) => x.score - y.score || x.s.name.localeCompare(y.s.name, 'fa'))
-        .slice(0, 30)
-        .map((x) => x.s);
-    }
-
-    state.searchResults = matches;
-    state.searchCursor = matches.length ? 0 : -1;
-
-    const box = $('results');
-    if(!matches.length){
-      box.innerHTML = '<div class="result"><span class="name">یافت نشد</span></div>';
-      box.classList.add('open');
-      return;
-    }
-
-    box.innerHTML = matches.map((s, i) =>
-      '<div class="result' + (i === 0 ? ' selected' : '') + '" data-id="' + escapeHTML(s.id) + '" data-i="' + i + '">' +
-      '<span class="name">' + escapeHTML(s.name) + '</span>' +
-      '<span class="id">' + escapeHTML(s.id) + '</span>' +
-      '</div>'
-    ).join('');
-    box.classList.add('open');
-  }
-
-  function highlightSearch(){
-    document.querySelectorAll('.result').forEach((el) => el.classList.remove('selected'));
-    const el = document.querySelector('.result[data-i="' + state.searchCursor + '"]');
-    if(el){
-      el.classList.add('selected');
-      el.scrollIntoView({block:'nearest'});
-    }
-  }
-
-  function chooseSymbolById(id){
-    const sym = state.symbolIndex.get(String(id));
-    if(!sym) return;
-    if(state.targetSlot === 'A') state.a = sym;
-    else state.b = sym;
-    updatePairUI();
-    closeSearch();
-    $('searchInput').value = '';
-    setStatus('در حال ساخت نسبت...');
-    buildAndRender().then(syncUrl).catch((e) => { setLoading(false); showError(e.message); });
-  }
-
-  function cacheKey(){
-    return [state.a?.id, state.b?.id, state.timeframe, state.adjusted ? 'A' : 'R'].join('|');
-  }
-
-  async function loadRaw(symbol){
-    const id = String(symbol.id);
-    if(state.rawCache.has(id)) return state.rawCache.get(id);
-
-    const promise = fetchJSON(BASE + 'data/raw/' + encodeURIComponent(id) + '.json')
-      .then(normalizeBars)
-      .then((bars) => {
-        if(bars.length < 2) throw new Error('داده کافی برای ' + symbol.name + ' وجود ندارد.');
-        return bars;
-      });
-
-    state.rawCache.set(id, promise);
-    try{
-      const bars = await promise;
-      state.rawCache.set(id, bars);
-      return bars;
-    }catch(e){
-      state.rawCache.delete(id);
-      throw e;
-    }
+    return [...map.values()].sort((a,b)=>a.time-b.time);
   }
 
   function findGaps(bars){
-    const gaps = [];
-    for(let i=1; i<bars.length; i++){
-      const p = bars[i-1].close;
-      const c = bars[i].close;
-      if(p > 0 && c > 0){
-        const ratio = c / p;
-        if(ratio > 1.4 || ratio < 0.7) gaps.push({ idx:i, ratio });
-      }
+    const gaps=[];
+    for(let i=1;i<bars.length;i++){
+      const p=bars[i-1].close, c=bars[i].close;
+      if(p>0 && c>0){ const r=c/p; if(r>1.4 || r<0.7) gaps.push({idx:i,ratio:r}); }
     }
     return gaps;
   }
-
-  function adjustedBars(id, bars){
-    if(state.adjustedCache.has(id)) return state.adjustedCache.get(id);
-
-    const out = bars.map((b) => ({...b}));
-    for(let pass=0; pass<5; pass++){
-      const gaps = findGaps(out);
-      if(!gaps.length) break;
-      for(let g=gaps.length-1; g>=0; g--){
-        const {idx, ratio} = gaps[g];
-        for(let j=0; j<idx; j++){
-          out[j].open *= ratio;
-          out[j].high *= ratio;
-          out[j].low *= ratio;
-          out[j].close *= ratio;
-        }
+  function adjustedBars(id,bars){
+    const key=String(id);
+    if(state.adjustedCache.has(key)) return state.adjustedCache.get(key);
+    const out=bars.map(b=>({...b}));
+    for(let pass=0;pass<5;pass++){
+      const gaps=findGaps(out); if(!gaps.length) break;
+      for(let g=gaps.length-1;g>=0;g--){
+        const {idx,ratio}=gaps[g];
+        for(let j=0;j<idx;j++){ out[j].open*=ratio; out[j].high*=ratio; out[j].low*=ratio; out[j].close*=ratio; }
       }
     }
-    state.adjustedCache.set(id, out);
-    return out;
+    state.adjustedCache.set(key,out); return out;
   }
 
-  function getWorkingBars(symbol, raw){
-    return state.adjusted ? adjustedBars(String(symbol.id), raw) : raw;
-  }
-
-  function aggregate(bars, tf){
-    if(tf === '1D') return bars;
-    const out = [];
-    let bucket = null;
-
+  function aggregate(bars,tf){
+    if(tf==='1D') return bars;
+    const out=[]; let bucket=null;
     for(const b of bars){
-      const d = new Date(b.time);
+      const d=new Date(b.time);
       let key;
-
-      if(tf === '1W'){
-        // Iran trading week: Saturday -> Friday.
-        const utcDay = d.getUTCDay();
-        const daysSinceSaturday = (utcDay + 1) % 7;
-        key = Date.UTC(
-          d.getUTCFullYear(),
-          d.getUTCMonth(),
-          d.getUTCDate() - daysSinceSaturday
-        );
-      } else {
-        key = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1);
-      }
-
-      if(!bucket || bucket.time !== key){
+      if(tf==='1W'){
+        // Iranian trading-week bucket: Saturday -> Friday.
+        const day=d.getUTCDay();
+        const daysSinceSat=(day+1)%7;
+        key=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()-daysSinceSat);
+      }else key=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),1);
+      if(!bucket || bucket.time!==key){
         if(bucket) out.push(bucket);
-        bucket = {time:key, open:b.open, high:b.high, low:b.low, close:b.close, volume:b.volume || 0};
-      } else {
-        if(b.high > bucket.high) bucket.high = b.high;
-        if(b.low < bucket.low) bucket.low = b.low;
-        bucket.close = b.close;
-        bucket.volume += b.volume || 0;
+        bucket={time:key,open:b.open,high:b.high,low:b.low,close:b.close,volume:b.volume||0};
+      }else{
+        bucket.high=Math.max(bucket.high,b.high); bucket.low=Math.min(bucket.low,b.low); bucket.close=b.close; bucket.volume+=(b.volume||0);
       }
     }
-
-    if(bucket) out.push(bucket);
-    return out;
+    if(bucket) out.push(bucket); return out;
   }
 
-  function buildRatio(a, b){
-    const key = [state.a.id, state.b.id, state.timeframe, state.adjusted ? 'A' : 'R'].join('|');
+  function buildRatio(a,b){
+    const key=[state.a.id,state.b.id,state.timeframe,state.adjusted?'A':'R'].join('|');
     if(state.ratioCache.has(key)) return state.ratioCache.get(key);
-
-    const m1 = new Map(a.map((x) => [x.time, x]));
-    const m2 = new Map(b.map((x) => [x.time, x]));
-    const out = [];
-
-    for(const [time, x1] of m1){
-      const x2 = m2.get(time);
-      if(!x2) continue;
-      if(![x1.open,x1.high,x1.low,x1.close,x2.open,x2.high,x2.low,x2.close].every((v) => Number.isFinite(v) && v > 0)) continue;
-
-      const open = x1.open / x2.open;
-      const close = x1.close / x2.close;
-      // Exact ratio OHLC cannot be recovered from independent OHLC bars; these are
-      // conservative bounds that never understate the possible ratio range.
-      const high = Math.max(
-        x1.high / x2.low,
-        x1.high / x2.high,
-        x1.open / x2.low,
-        x1.close / x2.low,
-        open,
-        close
-      );
-      const low = Math.min(
-        x1.low / x2.high,
-        x1.low / x2.low,
-        x1.open / x2.high,
-        x1.close / x2.high,
-        open,
-        close
-      );
-
-      out.push({time, open, high, low, close, volume:0});
+    const m1=new Map(a.map(x=>[x.time,x])); const m2=new Map(b.map(x=>[x.time,x])); const out=[];
+    for(const [time,x1] of m1){
+      const x2=m2.get(time); if(!x2) continue;
+      const vals=[x1.open,x1.high,x1.low,x1.close,x2.open,x2.high,x2.low,x2.close];
+      if(!vals.every(v=>Number.isFinite(v)&&v>0)) continue;
+      const open=x1.open/x2.open, close=x1.close/x2.close;
+      const high=Math.max(x1.high/x2.low,x1.high/x2.high,x1.open/x2.low,x1.close/x2.low,open,close);
+      const low=Math.min(x1.low/x2.high,x1.low/x2.low,x1.open/x2.high,x1.close/x2.high,open,close);
+      out.push({time,open,high,low,close,volume:0});
     }
-
-    state.ratioCache.set(key, out);
-    return out;
+    state.ratioCache.set(key,out); return out;
   }
 
-  function applyRange(bars){
-    if(!bars.length || state.rangeDays === 0) return bars;
-    const last = bars[bars.length - 1].time;
-    const from = last - state.rangeDays * 86400000;
-    return bars.filter((b) => b.time >= from);
+  function ensureWorker(){
+    if(state.worker) return state.worker;
+    const workerSource = `
+      const finite=(v)=>Number.isFinite(Number(v));
+      const norm=(data)=>{ const m=new Map(); for(const row of (Array.isArray(data)?data:[])){ if(!row||typeof row!=='object')continue; const n=(v)=>{const x=Number(v);return Number.isFinite(x)?x:null}; const time=(()=>{const v=row.time??row.timestamp??row.t??row.date; if(typeof v==='number'&&Number.isFinite(v))return v<100000000000?v*1000:v; if(typeof v==='string'){const x=Number(v);if(Number.isFinite(x))return x<100000000000?x*1000:x;const d=Date.parse(v);if(Number.isFinite(d))return d} return null})(); const o=n(row.open),h=n(row.high),l=n(row.low),c=n(row.close),vol=n(row.volume)??0; if(time===null||o===null||h===null||l===null||c===null||o<=0||h<=0||l<=0||c<=0||h<l)continue; m.set(time,{time,open:o,high:h,low:l,close:c,volume:vol}) } return [...m.values()].sort((a,b)=>a.time-b.time)};
+      const adjust=(bars)=>{const out=bars.map(b=>({...b})); const gaps=()=>{const g=[];for(let i=1;i<out.length;i++){const p=out[i-1].close,c=out[i].close,r=c/p;if(p>0&&c>0&&(r>1.4||r<0.7))g.push({idx:i,ratio:r})}return g};for(let pass=0;pass<5;pass++){const gs=gaps();if(!gs.length)break;for(let g=gs.length-1;g>=0;g--){const {idx,ratio}=gs[g];for(let j=0;j<idx;j++){out[j].open*=ratio;out[j].high*=ratio;out[j].low*=ratio;out[j].close*=ratio}}}return out};
+      const agg=(bars,tf)=>{if(tf==='1D')return bars;const out=[];let bucket=null;for(const b of bars){const d=new Date(b.time);const day=d.getUTCDay();const daysSinceSat=(day+1)%7;const key=tf==='1W'?Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()-daysSinceSat):Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),1);if(!bucket||bucket.time!==key){if(bucket)out.push(bucket);bucket={time:key,open:b.open,high:b.high,low:b.low,close:b.close,volume:b.volume||0}}else{bucket.high=Math.max(bucket.high,b.high);bucket.low=Math.min(bucket.low,b.low);bucket.close=b.close;bucket.volume+=(b.volume||0)}}if(bucket)out.push(bucket);return out};
+      const ratio=(a,b)=>{const m1=new Map(a.map(x=>[x.time,x])),m2=new Map(b.map(x=>[x.time,x])),out=[];for(const [time,x1] of m1){const x2=m2.get(time);if(!x2)continue;const open=x1.open/x2.open,close=x1.close/x2.close,high=Math.max(x1.high/x2.low,x1.high/x2.high,x1.open/x2.low,x1.close/x2.low,open,close),low=Math.min(x1.low/x2.high,x1.low/x2.low,x1.open/x2.high,x1.close/x2.high,open,close);out.push({time,open,high,low,close,volume:0})}return out};
+      self.onmessage=(e)=>{try{const {id,a,b,tf,adjusted}=e.data;let aa=norm(a),bb=norm(b);if(adjusted){aa=adjust(aa);bb=adjust(bb)}aa=agg(aa,tf);bb=agg(bb,tf);self.postMessage({id,ok:true,bars:ratio(aa,bb)})}catch(err){self.postMessage({id,ok:false,error:String(err&&err.message||err)})}};`;
+    const blob=new Blob([workerSource],{type:'application/javascript'});
+    state.worker=new Worker(URL.createObjectURL(blob));
+    state.worker.onmessage=(e)=>{const p=state.pendingWorker.get(e.data.id);if(!p)return;state.pendingWorker.delete(e.data.id);clearTimeout(p.timer);e.data.ok?p.resolve(e.data.bars):p.reject(new Error(e.data.error||'Worker error'))};
+    state.worker.onerror=()=>{for(const p of state.pendingWorker.values()){clearTimeout(p.timer);p.reject(new Error('WORKER_FAILED'))}state.pendingWorker.clear()};
+    return state.worker;
+  }
+
+  function transformInWorker(rawA,rawB){
+    const worker=ensureWorker(); const id=++state.workerSeq;
+    return new Promise((resolve,reject)=>{
+      const timer=setTimeout(()=>{state.pendingWorker.delete(id);reject(new Error('PROCESS_TIMEOUT'))},WORKER_TIMEOUT);
+      state.pendingWorker.set(id,{resolve,reject,timer});
+      worker.postMessage({id,a:rawA,b:rawB,tf:state.timeframe,adjusted:state.adjusted});
+    });
+  }
+
+  async function loadRaw(symbol){
+    const id=String(symbol.id); if(state.rawCache.has(id)) return state.rawCache.get(id);
+    const p=fetchJSON(BASE+'data/raw/'+encodeURIComponent(id)+'.json').then(data=>{const bars=normalizeBars(data);if(bars.length<2)throw new Error('داده کافی برای '+symbol.name+' وجود ندارد.');return bars});
+    state.rawCache.set(id,p); try{const bars=await p;state.rawCache.set(id,bars);return bars}catch(e){state.rawCache.delete(id);throw e}
+  }
+
+  function pairKey(){ return (state.a?.id||'A')+'__'+(state.b?.id||'B')+'__'+(state.adjusted?'adjusted':'raw'); }
+  function viewKey(){ return pairKey()+'__'+state.timeframe; }
+  function getStored(){ return safeStorageGet(); }
+  function storeSnapshot(forceLabel='خودکار'){
+    if(state.restoring || !state.a || !state.b || !state.chart) return;
+    const all=getStored();
+    all.ui={a:state.a.id,b:state.b.id,timeframe:state.timeframe,rangeDays:state.rangeDays,priceStyle:state.priceStyle,adjusted:state.adjusted,logScale:state.logScale,theme:state.theme};
+    const charts=all.charts||{};
+    const pair=charts[pairKey()]||{};
+    const views=all.views||{};
+    try{ pair.drawings=state.chart.drawings?.toJSON?.()||pair.drawings||null; }catch{}
+    try{ pair.rendererConfig=state.chart.renderer?.getConfig?.()||pair.rendererConfig||null; }catch{}
+    if(state.userIndicators.size) all.indicators=[...state.userIndicators.entries()].map(([id,h])=>({id,title:h.title||id,source:h.source}));
+    try{ views[viewKey()]=state.chart.getVisibleRange?.()||views[viewKey()]||null; }catch{}
+    charts[pairKey()]=pair; all.charts=charts; all.views=views; all.version=1; all.savedAt=Date.now();
+    if(safeStorageSet(all)) setSaveState(forceLabel==='manual'?'ذخیره شد':'ذخیره خودکار'); else setSaveState('حافظه پر است');
+  }
+  function scheduleSave(){ clearTimeout(state.saveTimer); state.saveTimer=setTimeout(()=>storeSnapshot('auto'),450); }
+  function saveUiOnly(){
+    const all=getStored(); all.ui={a:state.a?.id,b:state.b?.id,timeframe:state.timeframe,rangeDays:state.rangeDays,priceStyle:state.priceStyle,adjusted:state.adjusted,logScale:state.logScale,theme:state.theme}; safeStorageSet(all);
+    if(state.chart) scheduleSave();
+  }
+  function loadUi(){ const all=getStored(); return all.ui||{}; }
+  function savedChart(){ const all=getStored(); return (all.charts||{})[pairKey()]||{}; }
+  function savedView(){ const all=getStored(); return (all.views||{})[viewKey()]||null; }
+
+  function clearChartDrawings(){
+    const ds=state.chart?.drawings?.all?.()||[];
+    for(const d of ds){ try{ state.chart.drawings.remove(d.id) }catch{} }
+  }
+  function restoreChartSnapshot(){
+    const snap=savedChart(); if(!state.chart) return;
+    state.restoring=true;
+    try{ if(snap.rendererConfig) state.chart.renderer?.applyConfig?.(snap.rendererConfig); }catch{}
+    try{ clearChartDrawings(); if(snap.drawings) state.chart.drawings?.fromJSON?.(snap.drawings); }catch{}
+    try{
+      const v=savedView();
+      if(v) state.chart.setVisibleRange?.(v);
+      else { const r=currentVisibleRange(state.lastRatioBars); if(r) state.chart.setVisibleRange?.(r); }
+    }catch{}
+    state.restoring=false;
+    syncToolbarState();
   }
 
   function currentVisibleRange(bars){
     if(!bars.length) return undefined;
-    if(state.rangeDays === 0) return { from:bars[0].time, to:bars[bars.length-1].time };
-    const last = bars[bars.length - 1].time;
-    const from = last - state.rangeDays * 86400000;
-    const first = bars.find((b) => b.time >= from) || bars[0];
-    return { from:first.time, to:bars[bars.length-1].time };
+    if(state.rangeDays===0) return {from:bars[0].time,to:bars[bars.length-1].time};
+    const from=bars[bars.length-1].time-state.rangeDays*86400000; const first=bars.find(b=>b.time>=from)||bars[0];
+    return {from:first.time,to:bars[bars.length-1].time};
+  }
+
+  function updatePairUI(){ $('slotA').textContent=state.a?.name||'—'; $('slotB').textContent=state.b?.name||'—'; $('slotA').classList.toggle('active',state.targetSlot==='A'); $('slotB').classList.toggle('active',state.targetSlot==='B'); }
+  function applyTheme(theme, persist=true){
+    const next = theme === 'light' ? 'light' : 'dark';
+    state.theme = next;
+    document.body.classList.toggle('theme-light', next === 'light');
+    const meta = $('metaThemeColor');
+    if(meta) meta.setAttribute('content', next === 'light' ? '#ffffff' : '#131722');
+    const btn = $('themeBtn');
+    if(btn){
+      btn.querySelector('.theme-icon').textContent = next === 'light' ? '☀' : '☾';
+      btn.querySelector('.theme-label').textContent = next === 'light' ? 'روشن' : 'مشکی';
+      btn.setAttribute('aria-label', next === 'light' ? 'تم روشن؛ کلیک برای تم مشکی' : 'تم مشکی؛ کلیک برای تم روشن');
+    }
+    if(state.chart?.setTheme){
+      try{ state.chart.setTheme(next); }catch(e){ console.warn('Vela theme switch failed',e); }
+    }else if(state.chart?.renderer?.setTheme){
+      try{ state.chart.renderer.setTheme(next); }catch(e){}
+    }
+    if(persist) saveUiOnly();
+  }
+
+  function syncToolbarState(){
+    $('timeframe').value=state.timeframe; $('range').value=String(state.rangeDays); $('style').value=state.priceStyle;
+    $('adjustedBtn').classList.toggle('active',state.adjusted); $('rawBtn').classList.toggle('active',!state.adjusted); $('logBtn').classList.toggle('active',state.logScale); applyTheme(state.theme,false);
+  }
+  function escapeHTML(value){return String(value).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+
+  function closeSearch(){ $('results').classList.remove('open'); state.searchResults=[]; state.searchCursor=-1; }
+  function openSearch(slot){ state.targetSlot=slot; updatePairUI(); $('searchInput').value=''; $('searchInput').placeholder=slot==='A'?'جستجوی نماد اول...':'جستجوی نماد دوم...'; $('searchInput').focus(); renderSearch(''); }
+  function renderSearch(query){
+    const q=normalizeText(query); let matches;
+    if(!q) matches=state.symbols.slice(0,20); else matches=state.symbols.map(s=>({s,score:s.key===q?0:(s.key.startsWith(q)?1:(s.key.includes(q)?2:99))})).filter(x=>x.score<99).sort((x,y)=>x.score-y.score||x.s.name.localeCompare(y.s.name,'fa')).slice(0,30).map(x=>x.s);
+    state.searchResults=matches; state.searchCursor=matches.length?0:-1; const box=$('results');
+    if(!matches.length){box.innerHTML='<div class="result"><span class="name">یافت نشد</span></div>';box.classList.add('open');return}
+    box.innerHTML=matches.map((s,i)=>'<div class="result'+(i===0?' selected':'')+'" data-id="'+escapeHTML(s.id)+'" data-i="'+i+'"><span class="name">'+escapeHTML(s.name)+'</span><span class="id">'+escapeHTML(s.id)+'</span></div>').join(''); box.classList.add('open');
+  }
+  function highlightSearch(){ document.querySelectorAll('.result').forEach(el=>el.classList.remove('selected')); const el=document.querySelector('.result[data-i="'+state.searchCursor+'"]'); if(el){el.classList.add('selected');el.scrollIntoView({block:'nearest'})} }
+  async function chooseSymbolById(id){
+    const sym=state.symbolIndex.get(String(id)); if(!sym)return; if(state.targetSlot==='A')state.a=sym;else state.b=sym; updatePairUI(); closeSearch(); $('searchInput').value=''; await buildAndRender('symbol');
   }
 
   async function ensureChart(bars){
     if(!VELA) throw new Error('کتابخانه Vela بارگذاری نشده است.');
-
-    if(!bars.length) throw new Error('داده‌ای برای نمودار وجود ندارد.');
-
+    const opts={
+      data:bars,timeframe:state.timeframe,theme:state.theme,timezone:'Asia/Tehran',priceStyle:state.priceStyle,logScale:state.logScale,
+      currentPriceLine:true,nativeBackend:'auto',animZoom:true,animPan:true,zoomAnchor:'cursor',axisDrag:true,paneResize:true,keyboard:true,historyChords:true,gridlines:true,axisLabels:true,priceLabel:true,autoScale:true,settings:true,
+      drawings:{toolbar:true},animations:{zoom:true,pan:true}
+    };
     if(!state.chart){
-      state.chart = new VELA('#chart', {
-        data:bars,
-        timeframe: state.timeframe,
-        theme:'dark',
-        timezone:'Asia/Tehran',
-        priceStyle:state.priceStyle,
-        logScale:state.logScale,
-        currentPriceLine:true,
-        nativeBackend:'auto',
-        animZoom:true,
-        animPan:true,
-        zoomAnchor:'cursor',
-        axisDrag:true,
-        paneResize:true,
-        keyboard:true,
-        historyChords:true,
-        gridlines:true,
-        axisLabels:true,
-        priceLabel:true,
-        countdown:false,
-        autoScale:true,
-        settings:true,
-        drawings:{toolbar:true},
-        animations:{zoom:true, pan:true}
-      });
+      state.chart=new VELA('#chart',opts);
       await state.chart.ready();
+      applyTheme(state.theme,false);
+      try{ if(window.VelaPinets?.PineWorkerEngine){ state.pineEngine=new window.VelaPinets.PineWorkerEngine(); state.chart.registerEngine('pine',state.pineEngine); } }catch(e){ console.warn('Pine worker unavailable',e); state.pineEngine=null; }
+      const persistEvents=['viewport:changed','drawing:created','drawing:edited','drawing:removed','theme:changed','indicator:added','indicator:removed'];
+      persistEvents.forEach(ev=>{try{state.chart.on(ev,()=>scheduleSave())}catch{}});
+      const stored=getIndicatorStore();
+      if(stored.length && state.pineEngine){
+        state.restoring=true;
+        for(const saved of stored){ const preset=INDICATOR_PRESETS.find(p=>p.id===saved.id); if(preset){ try{ const h=state.chart.addIndicator(preset.source,{language:'pine',overlay:preset.overlay,title:preset.title}); h.source=preset.source; state.userIndicators.set(preset.id,h); }catch{} } }
+        state.restoring=false;
+      }
       return;
     }
-
-    await state.chart.setMarket({
-      data:bars,
-      timeframe:state.timeframe,
-      visibleRange:currentVisibleRange(bars)
-    }).then(() => state.chart.ready());
-  }
-
-  async function buildAndRender(){
-    if(!state.a || !state.b) throw new Error('دو نماد را انتخاب کنید.');
-    if(String(state.a.id) === String(state.b.id)) throw new Error('دو نماد باید متفاوت باشند.');
-
-    clearError();
-    setLoading(true, 'دریافت داده‌های ' + state.a.name + ' و ' + state.b.name + '...');
-
-    const [rawA, rawB] = await Promise.all([loadRaw(state.a), loadRaw(state.b)]);
-    const barsA = aggregate(getWorkingBars(state.a, rawA), state.timeframe);
-    const barsB = aggregate(getWorkingBars(state.b, rawB), state.timeframe);
-    const ratio = buildRatio(barsA, barsB);
-    state.lastRatioBars = ratio;
-
-    if(ratio.length < 2) throw new Error('تقاطع زمانی دو نماد داده کافی ندارد.');
-
-    await ensureChart(ratio);
-
-    if(state.chart?.renderer?.set){
-      state.chart.renderer.set({priceStyle:state.priceStyle, logScale:state.logScale});
-    }
-
-    updatePairUI();
-    setStatus(ratio.length.toLocaleString('fa-IR') + ' کندل نسبت');
-    setLoading(false);
-  }
-
-  function applyRendererChange(){
-    if(!state.chart) return;
-    state.chart.renderer.set({priceStyle:state.priceStyle, logScale:state.logScale});
-  }
-
-  function resetView(){
-    if(!state.chart || !state.lastRatioBars.length) return;
-    const range = currentVisibleRange(state.lastRatioBars);
-    if(range) state.chart.setVisibleRange(range);
-  }
-
-  async function changeTimeframe(value){
-    state.timeframe = value;
-    state.ratioCache.clear();
     try{
-      await buildAndRender();
-      syncUrl();
-    }catch(e){ setLoading(false); showError(e.message); }
+      clearChartDrawings();
+      await state.chart.setMarket({data:bars,timeframe:state.timeframe,visibleRange:currentVisibleRange(bars)});
+      await state.chart.ready();
+    }catch(e){ throw new Error('خطا در انتقال بازار چارت: '+(e?.message||e)); }
   }
 
-  async function changeMode(adjusted){
-    if(state.adjusted === adjusted) return;
-    state.adjusted = adjusted;
-    updateModeUI();
-    state.ratioCache.clear();
+  async function buildAndRender(reason='manual'){
+    if(!state.a||!state.b) throw new Error('دو نماد را انتخاب کنید.');
+    if(String(state.a.id)===String(state.b.id)) throw new Error('دو نماد باید متفاوت باشند.');
+    clearError(); setLoading(true,'دریافت داده‌های '+state.a.name+' و '+state.b.name+'...');
     try{
-      await buildAndRender();
-      syncUrl();
-    }catch(e){ setLoading(false); showError(e.message); }
+      const [rawA,rawB]=await Promise.all([loadRaw(state.a),loadRaw(state.b)]);
+      setLoading(true,'پردازش نسبت '+state.a.name+' به '+state.b.name+'...');
+      const cacheKey=[state.a.id,state.b.id,state.timeframe,state.adjusted?'A':'R'].join('|');
+      let ratio=state.ratioCache.get(cacheKey);
+      if(!ratio){
+        try{ ratio=await transformInWorker(rawA,rawB); }
+        catch{
+          const a=aggregate(state.adjusted?adjustedBars(state.a.id,rawA):rawA,state.timeframe); const b=aggregate(state.adjusted?adjustedBars(state.b.id,rawB):rawB,state.timeframe); ratio=buildRatio(a,b);
+        }
+        state.ratioCache.set(cacheKey,ratio);
+      }
+      if(ratio.length<2) throw new Error('تقاطع زمانی دو نماد داده کافی ندارد.');
+      state.lastRatioBars=ratio;
+      await ensureChart(ratio);
+      if(state.chart?.renderer?.set) state.chart.renderer.set({priceStyle:state.priceStyle,logScale:state.logScale});
+      restoreChartSnapshot();
+      updatePairUI(); syncToolbarState(); setStatus(ratio.length.toLocaleString('fa-IR')+' کندل نسبت'); setLoading(false); saveUiOnly(); scheduleSave();
+    }catch(e){setLoading(false);showError(e?.message||String(e));setStatus('نیاز به بررسی داده یا مسیر فایل‌ها');throw e}
   }
 
-  function updateModeUI(){
-    $('adjustedBtn').classList.toggle('active', state.adjusted);
-    $('rawBtn').classList.toggle('active', !state.adjusted);
+  function applyRendererChange(){ if(!state.chart?.renderer?.set)return; state.chart.renderer.set({priceStyle:state.priceStyle,logScale:state.logScale}); scheduleSave(); }
+  function resetView(){ if(!state.chart||!state.lastRatioBars.length)return; state.chart.renderer?.set?.({autoScale:true}); const r=currentVisibleRange(state.lastRatioBars); if(r)state.chart.setVisibleRange?.(r); scheduleSave(); }
+
+  async function changeTimeframe(value){ if(state.timeframe===value)return; if(state.chart)storeSnapshot(); state.timeframe=value; state.ratioCache.clear(); saveUiOnly(); try{await buildAndRender('timeframe')}catch{} }
+  async function changeMode(adjusted){ if(state.adjusted===adjusted)return; if(state.chart)storeSnapshot(); state.adjusted=adjusted; state.ratioCache.clear(); saveUiOnly(); try{await buildAndRender('mode')}catch{} }
+  function swapSymbols(){ if(state.chart)storeSnapshot(); const t=state.a;state.a=state.b;state.b=t; state.ratioCache.clear(); saveUiOnly(); buildAndRender('swap').catch(()=>{}); }
+
+  async function initIndicators(){
+    const list=$('indicatorList'); const q=normalizeText($('indicatorSearch').value); list.innerHTML='';
+    const activeIds=new Set(state.userIndicators.keys());
+    const native=[];
+    if(state.chart?.availableNativeIndicators){ try{ const x=await state.chart.availableNativeIndicators(); if(Array.isArray(x)) native.push(...x.filter(i=>i&&i.supported!==false)); }catch{} }
+
+    const active=[...state.userIndicators.entries()].filter(([id])=>{const p=INDICATOR_PRESETS.find(x=>x.id===id);return !q || normalizeText(p?.title||id).includes(q)});
+    if(active.length){
+      const head=document.createElement('div');head.className='indicator-subhead';head.textContent='فعال‌ها';list.appendChild(head);
+      active.forEach(([id,h])=>{const row=document.createElement('div');row.className='indicator-row current';row.innerHTML='<span>'+escapeHTML(h.title||id)+'</span><button type="button">حذف</button>';row.querySelector('button').addEventListener('click',()=>{try{h.remove();state.userIndicators.delete(id);persistUserIndicators();initIndicators()}catch{}});list.appendChild(row)});
+    }
+
+    const presets=INDICATOR_PRESETS.filter(p=>!q||normalizeText(p.title).includes(q));
+    if(presets.length){
+      const head=document.createElement('div');head.className='indicator-subhead';head.textContent='اندیکاتورهای استاندارد';list.appendChild(head);
+      presets.forEach(p=>{const row=document.createElement('button');row.className='indicator-row';row.type='button';row.innerHTML='<span>'+escapeHTML(p.title)+'</span><span>'+(activeIds.has(p.id)?'✓':'+')+'</span>';if(activeIds.has(p.id))row.disabled=true;row.addEventListener('click',()=>addPresetIndicator(p));list.appendChild(row)});
+    }
+
+    const nativeShown=native.filter(info=>!q||normalizeText(info.title||info.type).includes(q));
+    if(nativeShown.length){
+      const head=document.createElement('div');head.className='indicator-subhead';head.textContent='Native Vela';list.appendChild(head);
+      nativeShown.forEach(info=>{const row=document.createElement('button');row.className='indicator-row';row.type='button';row.innerHTML='<span>'+escapeHTML(info.title||info.type)+'</span><span>+</span>';row.addEventListener('click',()=>{try{state.chart.addNativeIndicator(info.type);scheduleSave();initIndicators()}catch(e){showError(e.message||String(e))}});list.appendChild(row)});
+    }
+    if(!list.children.length)list.innerHTML='<div class="empty">اندیکاتوری مطابق جستجو پیدا نشد.</div>';
   }
 
-  function swapSymbols(){
-    const temp = state.a;
-    state.a = state.b;
-    state.b = temp;
-    state.ratioCache.clear();
-    updatePairUI();
-    buildAndRender().then(syncUrl).catch((e) => { setLoading(false); showError(e.message); });
-  }
-
-  async function takeScreenshot(){
-    if(!state.chart?.renderer?.screenshot) return;
-    const dataURL = state.chart.renderer.screenshot();
-    if(!dataURL) return;
-    const a = document.createElement('a');
-    a.href = dataURL;
-    a.download = 'MHDI-' + (state.a?.name || 'A') + '-' + (state.b?.name || 'B') + '.png';
-    a.click();
-  }
-
-  async function toggleFullscreen(){
-    const root = document.documentElement;
+  function addPresetIndicator(p){
+    if(!state.chart || state.userIndicators.has(p.id)) return;
+    if(!state.pineEngine){ showError('موتور اندیکاتور در دسترس نیست؛ خود چارت بدون آن همچنان کار می‌کند.'); return; }
     try{
-      if(!document.fullscreenElement) await root.requestFullscreen();
-      else await document.exitFullscreen();
-      setTimeout(() => state.chart?.resize?.(), 50);
-    }catch(e){
-      showError('تمام‌صفحه در این مرورگر در دسترس نیست.');
-    }
+      const handle=state.chart.addIndicator(p.source,{language:'pine',overlay:p.overlay,title:p.title});
+      handle.source=p.source; state.userIndicators.set(p.id,handle); persistUserIndicators(); scheduleSave(); initIndicators();
+    }catch(e){ showError('خطا در افزودن '+p.title+': '+(e?.message||e)); }
   }
 
-  $('slotA').addEventListener('click', () => openSearch('A'));
-  $('slotB').addEventListener('click', () => openSearch('B'));
-  $('swapBtn').addEventListener('click', swapSymbols);
-  $('analyzeBtn').addEventListener('click', () => buildAndRender().then(syncUrl).catch((e) => { setLoading(false); showError(e.message); }));
+  function renderActiveIndicators(){ initIndicators().catch(()=>{}) }
 
-  $('searchInput').addEventListener('input', (e) => renderSearch(e.target.value));
-  $('searchInput').addEventListener('focus', (e) => renderSearch(e.target.value));
-  $('searchInput').addEventListener('keydown', (e) => {
-    if(e.key === 'Escape') { closeSearch(); return; }
-    if(e.key === 'ArrowDown'){
-      e.preventDefault();
-      if(!state.searchResults.length) return;
-      state.searchCursor = Math.min(state.searchCursor + 1, state.searchResults.length - 1);
-      highlightSearch();
-    }
-    if(e.key === 'ArrowUp'){
-      e.preventDefault();
-      if(!state.searchResults.length) return;
-      state.searchCursor = Math.max(state.searchCursor - 1, 0);
-      highlightSearch();
-    }
-    if(e.key === 'Enter'){
-      e.preventDefault();
-      const sym = state.searchResults[state.searchCursor];
-      if(sym) chooseSymbolById(sym.id);
-    }
-  });
+  function openModal(id){ $('modalBackdrop').hidden=false; $('indicatorModal').hidden=id!=='indicatorModal'; $('settingsModal').hidden=id!=='settingsModal'; if(id==='indicatorModal')renderActiveIndicators(); }
+  function closeModal(){ $('modalBackdrop').hidden=true; $('indicatorModal').hidden=true; $('settingsModal').hidden=true; }
 
-  $('results').addEventListener('mousedown', (e) => e.preventDefault());
-  $('results').addEventListener('click', (e) => {
-    const row = e.target.closest('.result[data-id]');
-    if(row) chooseSymbolById(row.dataset.id);
-  });
+  async function shareChart(){
+    if(!state.a||!state.b)return;
+    const p=new URLSearchParams(); p.set('a',state.a.id);p.set('b',state.b.id);p.set('tf',state.timeframe);p.set('range',String(state.rangeDays));p.set('style',state.priceStyle);p.set('mode',state.adjusted?'adjusted':'raw');p.set('log',state.logScale?'1':'0');
+    const url=location.origin+location.pathname+'?'+p.toString();
+    try{await navigator.clipboard.writeText(url);setSaveState('لینک کپی شد');}catch{window.prompt('لینک چارت:',url)}
+  }
+  async function takeScreenshot(){ try{const data=state.chart?.renderer?.screenshot?.();if(!data)return;const a=document.createElement('a');a.href=data;a.download='MHDI-'+(state.a?.name||'A')+'-'+(state.b?.name||'B')+'.png';a.click()}catch(e){showError('خروجی PNG در این مرورگر در دسترس نیست.')}}
+  async function toggleFullscreen(){try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen();setTimeout(()=>state.chart?.resize?.(),80)}catch{showError('تمام‌صفحه در این مرورگر در دسترس نیست.')}}
 
-  document.addEventListener('click', (e) => {
-    if(!$('searchBox').contains(e.target)) closeSearch();
-  });
-
-  $('timeframe').addEventListener('change', (e) => changeTimeframe(e.target.value));
-  $('range').addEventListener('change', (e) => {
-    state.rangeDays = Number(e.target.value);
-    if(!state.chart){ syncUrl(); return; }
-    if(state.chart && state.lastRatioBars.length){
-      const range = currentVisibleRange(state.lastRatioBars);
-      if(range) state.chart.setVisibleRange(range);
-    }
-    syncUrl();
-  });
-
-  $('style').addEventListener('change', (e) => {
-    state.priceStyle = e.target.value;
-    applyRendererChange();
-    syncUrl();
-  });
-
-  $('adjustedBtn').addEventListener('click', () => changeMode(true));
-  $('rawBtn').addEventListener('click', () => changeMode(false));
-
-  $('logBtn').addEventListener('click', () => {
-    state.logScale = !state.logScale;
-    $('logBtn').classList.toggle('active', state.logScale);
-    applyRendererChange();
-    syncUrl();
-  });
-
-  $('resetBtn').addEventListener('click', resetView);
-  $('fullscreenBtn').addEventListener('click', toggleFullscreen);
-  $('shotBtn').addEventListener('click', takeScreenshot);
-
-  window.addEventListener('resize', () => state.chart?.resize?.());
-
-  function applyUrlState(){
-    const params = new URLSearchParams(window.location.search);
-    const a = params.get('a');
-    const b = params.get('b');
-    const tf = params.get('tf');
-    const style = params.get('style');
-    const mode = params.get('mode');
-    const log = params.get('log');
-
-    if(a && state.symbolIndex.has(a)) state.a = state.symbolIndex.get(a);
-    if(b && state.symbolIndex.has(b)) state.b = state.symbolIndex.get(b);
-    if(['1D','1W','1M'].includes(tf)) state.timeframe = tf;
-    if(['candles','bars','line','area','baseline'].includes(style)) state.priceStyle = style;
-    if(mode === 'adjusted') state.adjusted = true;
-    if(mode === 'raw') state.adjusted = false;
-    state.logScale = log === '1';
-
-    updatePairUI();
-    $('timeframe').value = state.timeframe;
-    $('style').value = state.priceStyle;
-    updateModeUI();
-    $('logBtn').classList.toggle('active', state.logScale);
+  function applyUrlAndPrefs(){
+    const pref=loadUi();
+    if(pref.a && state.symbolIndex.has(String(pref.a)))state.a=state.symbolIndex.get(String(pref.a));
+    if(pref.b && state.symbolIndex.has(String(pref.b)))state.b=state.symbolIndex.get(String(pref.b));
+    if(['1D','1W','1M'].includes(pref.timeframe))state.timeframe=pref.timeframe;
+    if([0,30,90,180,365,1825].includes(Number(pref.rangeDays)))state.rangeDays=Number(pref.rangeDays);
+    if(['candles','bars','line','area','baseline'].includes(pref.priceStyle))state.priceStyle=pref.priceStyle;
+    if(typeof pref.adjusted==='boolean')state.adjusted=pref.adjusted;
+    if(typeof pref.logScale==='boolean')state.logScale=pref.logScale;
+    if(pref.theme==='light'||pref.theme==='dark')state.theme=pref.theme;
+    const p=new URLSearchParams(location.search);
+    const a=p.get('a'),b=p.get('b'),tf=p.get('tf'),range=p.get('range'),style=p.get('style'),mode=p.get('mode'),log=p.get('log');
+    if(a&&state.symbolIndex.has(a))state.a=state.symbolIndex.get(a);
+    if(b&&state.symbolIndex.has(b))state.b=state.symbolIndex.get(b);
+    if(['1D','1W','1M'].includes(tf))state.timeframe=tf;
+    if([0,30,90,180,365,1825].includes(Number(range)))state.rangeDays=Number(range);
+    if(['candles','bars','line','area','baseline'].includes(style))state.priceStyle=style;
+    if(mode==='adjusted')state.adjusted=true; if(mode==='raw')state.adjusted=false; if(log==='1'||log==='0')state.logScale=log==='1';
+    updatePairUI();syncToolbarState();
   }
 
-  function syncUrl(){
-    if(!state.a || !state.b) return;
-    const params = new URLSearchParams();
-    params.set('a', state.a.id);
-    params.set('b', state.b.id);
-    params.set('tf', state.timeframe);
-    params.set('style', state.priceStyle);
-    params.set('mode', state.adjusted ? 'adjusted' : 'raw');
-    params.set('log', state.logScale ? '1' : '0');
-    const next = window.location.pathname + '?' + params.toString();
-    window.history.replaceState(null, '', next);
-  }
+  $('slotA').addEventListener('click',()=>openSearch('A')); $('slotB').addEventListener('click',()=>openSearch('B'));
+  $('swapBtn').addEventListener('click',swapSymbols); $('analyzeBtn').addEventListener('click',()=>buildAndRender('manual').catch(()=>{}));
+  $('searchInput').addEventListener('input',e=>renderSearch(e.target.value)); $('searchInput').addEventListener('focus',e=>renderSearch(e.target.value));
+  $('searchInput').addEventListener('keydown',e=>{if(e.key==='Escape'){closeSearch();return} if(e.key==='ArrowDown'){e.preventDefault();if(state.searchResults.length){state.searchCursor=Math.min(state.searchCursor+1,state.searchResults.length-1);highlightSearch()}} if(e.key==='ArrowUp'){e.preventDefault();if(state.searchResults.length){state.searchCursor=Math.max(state.searchCursor-1,0);highlightSearch()}} if(e.key==='Enter'){e.preventDefault();const s=state.searchResults[state.searchCursor];if(s)chooseSymbolById(s.id)}});
+  $('results').addEventListener('mousedown',e=>e.preventDefault()); $('results').addEventListener('click',e=>{const row=e.target.closest('.result[data-id]');if(row)chooseSymbolById(row.dataset.id)}); document.addEventListener('click',e=>{if(!$('searchBox').contains(e.target))closeSearch()});
+  $('timeframe').addEventListener('change',e=>changeTimeframe(e.target.value));
+  $('range').addEventListener('change',e=>{state.rangeDays=Number(e.target.value);if(state.chart&&state.lastRatioBars.length){const r=currentVisibleRange(state.lastRatioBars);if(r)state.chart.setVisibleRange?.(r)}saveUiOnly();scheduleSave()});
+  $('style').addEventListener('change',e=>{state.priceStyle=e.target.value;applyRendererChange();saveUiOnly()}); $('adjustedBtn').addEventListener('click',()=>changeMode(true)); $('rawBtn').addEventListener('click',()=>changeMode(false));
+  $('logBtn').addEventListener('click',()=>{state.logScale=!state.logScale;$('logBtn').classList.toggle('active',state.logScale);applyRendererChange();saveUiOnly()});
+  $('themeBtn').addEventListener('click',()=>applyTheme(state.theme==='dark'?'light':'dark'));
+  $('saveBtn').addEventListener('click',()=>storeSnapshot('manual')); $('resetBtn').addEventListener('click',resetView); $('shareBtn').addEventListener('click',shareChart); $('shotBtn').addEventListener('click',takeScreenshot); $('fullscreenBtn').addEventListener('click',toggleFullscreen); $('indicatorBtn').addEventListener('click',()=>openModal('indicatorModal')); $('settingsBtn').addEventListener('click',()=>openModal('settingsModal'));
+  $('indicatorSearch').addEventListener('input',()=>renderActiveIndicators()); document.querySelectorAll('.modal-close').forEach(b=>b.addEventListener('click',closeModal)); $('modalBackdrop').addEventListener('click',e=>{if(e.target===$('modalBackdrop'))closeModal()});
+  $('resetCurrentBtn').addEventListener('click',()=>{const all=getStored();if(all.charts)delete all.charts[pairKey()];safeStorageSet(all);closeModal();clearChartDrawings();resetView();setSaveState('ذخیره این نمودار پاک شد')});
+  $('resetAllBtn').addEventListener('click',()=>{try{localStorage.removeItem(STORAGE_KEY)}catch{};closeModal();setSaveState('همه ذخیره‌ها پاک شد')});
+  window.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();storeSnapshot('manual')} if(e.key==='Escape'&&!$('modalBackdrop').hidden)closeModal()});
+  window.addEventListener('beforeunload',()=>storeSnapshot('unload')); window.addEventListener('resize',()=>state.chart?.resize?.());
 
   (async function boot(){
     try{
-      if(!VELA) throw new Error('Vela بارگذاری نشده است.');
-      setLoading(true, 'در حال بارگذاری فهرست نمادها...');
-      await loadSymbols();
-      applyUrlState();
-      await buildAndRender();
-      syncUrl();
-    }catch(e){
-      setLoading(false);
-      showError(e.message);
-      setStatus('نیاز به بررسی داده یا مسیر فایل‌ها');
-    }
+      if(!VELA)throw new Error('Vela بارگذاری نشده است.');
+      setLoading(true,'در حال بارگذاری فهرست نمادها...'); const data=await fetchJSON(SYMBOLS_URL); if(!Array.isArray(data)||!data.length)throw new Error('symbols.json خالی یا نامعتبر است.');
+      state.symbols=data.filter(s=>s&&s.name!==undefined&&s.id!==undefined).map(s=>({name:String(s.name),id:String(s.id),key:normalizeText(s.name)})); state.symbols.forEach((s,i)=>state.symbolIndex.set(s.id,{...s,index:i}));
+      const find=n=>state.symbols.find(s=>s.name===n); state.a=find('فولاد')||state.symbols[0]; state.b=find('فملی')||state.symbols[1]||state.symbols[0];
+      applyUrlAndPrefs(); applyTheme(state.theme,false); setStatus(state.symbols.length.toLocaleString('fa-IR')+' نماد آماده'); await buildAndRender('boot');
+    }catch(e){setLoading(false);showError(e.message||String(e));setStatus('خطا در راه‌اندازی نمودار')}
   })();
 })();
 </script>
