@@ -4,14 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#131722">
-<link rel="manifest" href="/manifest.webmanifest">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="color-scheme" content="dark">
-<title>MHDI Ratio</title>
+<title>MHDI Ratio — Vela Workspace</title>
 <style>
-:root{color-scheme:dark;--bg:#131722;--panel:#1e222d;--border:#2a2e39;--text:#d1d4dc;--muted:#787b86;--accent:#2962ff;--danger:#ef5350;--success:#26a69a}
+:root{color-scheme:dark;--bg:#131722;--panel:#1e222d;--border:#2a2e39;--text:#d1d4dc;--muted:#787b86;--accent:#2962ff;--danger:#ef5350}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif;font-size:12px}
 body{touch-action:none;-webkit-tap-highlight-color:transparent}
@@ -21,59 +20,37 @@ button:hover{background:rgba(255,255,255,.06);color:var(--text)}
 button.active{background:var(--accent);color:#fff}
 button:disabled{opacity:.45;cursor:default}
 input{outline:none}
-.app{height:100vh;display:grid;grid-template-rows:44px 1fr;background:var(--bg)}
-.topbar{height:44px;display:flex;align-items:center;gap:5px;padding:0 7px;border-bottom:1px solid var(--border);background:var(--bg);direction:ltr;white-space:nowrap;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain}
-.topbar::-webkit-scrollbar{display:none}
+.app{height:100vh;display:grid;grid-template-rows:42px 1fr;background:var(--bg)}
+.hostbar{height:42px;display:flex;align-items:center;gap:5px;padding:0 7px;border-bottom:1px solid var(--border);background:var(--bg);direction:ltr;white-space:nowrap;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;z-index:32000}
+.hostbar::-webkit-scrollbar{display:none}
 .separator{width:1px;height:24px;background:var(--border);margin:0 3px;flex:0 0 auto}
 .brand{font-weight:800;color:#fff;letter-spacing:.5px;padding:5px 7px;flex:0 0 auto;user-select:none}
-.search{position:relative;width:250px;height:30px;display:flex;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:3px;flex:0 0 auto}
+.search{position:relative;width:170px;height:30px;display:flex;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:3px;flex:0 0 auto}
 .search:focus-within{border-color:#3f6cff;box-shadow:0 0 0 1px rgba(41,98,255,.18)}
 .search input{width:100%;height:100%;padding:0 10px;background:transparent;border:0;color:var(--text);direction:rtl}
 .search input::placeholder{color:#5f636d}
-.results{position:fixed;display:none;max-height:min(56vh,420px);overflow:auto;background:#1e222d;border:1px solid var(--border);border-radius:4px;z-index:30000;direction:rtl;box-shadow:0 12px 30px rgba(0,0,0,.48);overscroll-behavior:contain}
+.results{position:fixed;display:none;max-height:min(56vh,420px);overflow:auto;background:#1e222d;border:1px solid var(--border);border-radius:4px;z-index:50000;direction:rtl;box-shadow:0 12px 30px rgba(0,0,0,.48);overscroll-behavior:contain}
 .results.open{display:block}
 .result{min-height:36px;padding:8px 11px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04)}
-.result:last-child{border-bottom:0}
-.result:hover,.result.selected{background:#2a2e39}
-.result .name{font-weight:700;color:#e6e8eb;overflow:hidden;text-overflow:ellipsis}
-.result .code{font-size:10px;color:var(--muted);direction:ltr;flex:0 0 auto}
-.result.empty{cursor:default;color:var(--muted)}
-.pair{display:flex;align-items:center;gap:2px;background:var(--panel);border:1px solid var(--border);border-radius:3px;height:30px;flex:0 0 auto}
-.pair-slot{min-width:82px;max-width:130px;height:28px;padding:0 9px;display:flex;align-items:center;justify-content:center;color:#e5e7eb;font-weight:700;cursor:pointer;overflow:hidden;text-overflow:ellipsis;direction:rtl}
-.pair-slot:hover{background:rgba(255,255,255,.05)}
-.pair-slot.active{background:rgba(41,98,255,.18);outline:1px solid var(--accent)}
-.pair-sep{color:var(--muted);padding:0 2px}
-.go{height:24px;padding:0 11px;background:var(--accent);color:#fff!important;font-weight:700;margin-left:3px}
-.go:hover{background:#1f55e5}
-.control,select{height:30px;padding:0 8px;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:3px;cursor:pointer;outline:none}
-select{direction:rtl}
-.tool{height:30px;padding:0 9px;flex:0 0 auto}
-.status{margin-left:auto;height:30px;display:flex;align-items:center;padding:0 8px;color:var(--muted);direction:rtl;max-width:380px;overflow:hidden;text-overflow:ellipsis;min-width:120px}
-.main{position:relative;min-width:0;min-height:0;overflow:hidden;background:var(--bg)}
-#chartWrap{position:absolute;inset:0}
-#chart{width:100%;height:100%;min-width:0;min-height:0;contain:layout paint size}
-#loading{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(19,23,34,.82);z-index:9000;color:#aed581;font-size:13px;direction:rtl;backdrop-filter:blur(2px)}
-#loading.on{display:flex}
-#loading span{padding:10px 14px;border:1px solid var(--border);border-radius:4px;background:rgba(30,34,45,.94);box-shadow:0 10px 30px rgba(0,0,0,.3)}
-#error{position:absolute;left:10px;right:10px;bottom:10px;display:none;padding:10px 12px;border-radius:4px;background:var(--danger);color:#fff;z-index:9500;direction:rtl;white-space:pre-wrap;word-break:break-word;box-shadow:0 8px 20px rgba(0,0,0,.3)}
-#error.on{display:block}
-#pairTitle{position:absolute;top:9px;right:12px;z-index:7000;padding:5px 8px;border-radius:3px;background:rgba(19,23,34,.72);border:1px solid rgba(255,255,255,.06);pointer-events:none;direction:rtl;backdrop-filter:blur(4px);user-select:none}
-#pairTitle b{color:#fff}
-#pairMeta{position:absolute;top:39px;right:12px;z-index:7000;padding:4px 7px;border-radius:3px;background:rgba(19,23,34,.58);border:1px solid rgba(255,255,255,.04);pointer-events:none;direction:rtl;color:#a8adb8;font-size:10px;backdrop-filter:blur(4px);user-select:none}
-.mobile-only{display:none}
-@media(max-width:1050px){.brand{display:none}.search{width:205px}.status{max-width:220px}.pair-slot{min-width:70px}}
-@media(max-width:760px){.topbar{gap:4px}.status{display:none}.search{width:185px}.tool{padding:0 8px}.pair-slot{min-width:64px;max-width:90px}.control,select,.tool,.pair,.search{height:32px}.pair-slot{height:30px}.go{height:26px}.pair{height:32px}}
+.result:last-child{border-bottom:0}.result:hover,.result.selected{background:#2a2e39}.result .name{font-weight:700;color:#e6e8eb;overflow:hidden;text-overflow:ellipsis}.result .code{font-size:10px;color:var(--muted);direction:ltr;flex:0 0 auto}.result.empty{cursor:default;color:var(--muted)}
+.pair{display:flex;align-items:center;gap:2px;background:var(--panel);border:1px solid var(--border);border-radius:3px;height:30px;flex:0 0 auto}.pair-slot{min-width:76px;max-width:116px;height:28px;padding:0 9px;display:flex;align-items:center;justify-content:center;color:#e5e7eb;font-weight:700;cursor:pointer;overflow:hidden;text-overflow:ellipsis;direction:rtl}.pair-slot:hover{background:rgba(255,255,255,.05)}.pair-slot.active{background:rgba(41,98,255,.18);outline:1px solid var(--accent)}.pair-sep{color:var(--muted);padding:0 2px}.go{height:24px;padding:0 11px;background:var(--accent);color:#fff!important;font-weight:700;margin-left:3px}.go:hover{background:#1f55e5}
+.control,select{height:30px;padding:0 8px;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:3px;cursor:pointer;outline:none}select{direction:rtl}.tool{height:30px;padding:0 9px;flex:0 0 auto}.status{margin-left:auto;height:30px;display:flex;align-items:center;padding:0 8px;color:var(--muted);direction:rtl;max-width:330px;overflow:hidden;text-overflow:ellipsis;min-width:100px}
+.main{position:relative;min-width:0;min-height:0;overflow:hidden;background:var(--bg)}#chartWrap{position:absolute;inset:0}#chart{width:100%;height:100%;min-width:0;min-height:0;contain:layout paint size}
+#loading{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(19,23,34,.82);z-index:45000;color:#aed581;font-size:13px;direction:rtl;backdrop-filter:blur(2px)}#loading.on{display:flex}#loading span{padding:10px 14px;border:1px solid var(--border);border-radius:4px;background:rgba(30,34,45,.94);box-shadow:0 10px 30px rgba(0,0,0,.3)}
+#error{position:absolute;left:10px;right:10px;bottom:10px;display:none;padding:10px 12px;border-radius:4px;background:var(--danger);color:#fff;z-index:45000;direction:rtl;white-space:pre-wrap;word-break:break-word;box-shadow:0 8px 20px rgba(0,0,0,.3)}#error.on{display:block}
+#pairTitle{position:absolute;top:54px;right:12px;z-index:12000;padding:5px 8px;border-radius:3px;background:rgba(19,23,34,.74);border:1px solid rgba(255,255,255,.06);pointer-events:none;direction:rtl;backdrop-filter:blur(4px);user-select:none}#pairTitle b{color:#fff}
+#pairMeta{position:absolute;top:84px;right:12px;z-index:12000;padding:4px 7px;border-radius:3px;background:rgba(19,23,34,.58);border:1px solid rgba(255,255,255,.04);pointer-events:none;direction:rtl;color:#a8adb8;font-size:10px;backdrop-filter:blur(4px);user-select:none}
+@media(max-width:1050px){.brand{display:none}.search{width:150px}.status{max-width:220px}.pair-slot{min-width:64px}}
+@media(max-width:760px){.hostbar{gap:4px}.status{display:none}.search{width:150px}.tool{padding:0 8px}.pair-slot{min-width:58px;max-width:86px}.control,select,.tool,.pair,.search{height:32px}.pair-slot{height:30px}.go{height:26px}.pair{height:32px}}
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="topbar">
+  <div class="hostbar">
     <div class="brand">MHDI</div>
-
     <div class="search" id="searchBox">
-      <input id="searchInput" type="text" autocomplete="off" spellcheck="false" placeholder="جستجوی نماد..." aria-label="جستجوی نماد">
+      <input id="searchInput" type="text" autocomplete="off" spellcheck="false" placeholder="نماد اول..." aria-label="جستجوی نماد">
     </div>
-
     <div class="pair">
       <button id="slotA" class="pair-slot active" title="انتخاب نماد اول">—</button>
       <span class="pair-sep">/</span>
@@ -81,33 +58,19 @@ select{direction:rtl}
       <button id="swapBtn" class="control" title="جابه‌جایی دو نماد">⇄</button>
       <button id="analyzeBtn" class="go" title="نمایش نسبت">تحلیل</button>
     </div>
-
     <div class="separator"></div>
-
     <select id="timeframe" title="تایم‌فریم">
       <option value="1D">روزانه</option>
       <option value="1W" selected>هفتگی</option>
       <option value="1M">ماهانه</option>
     </select>
-
-    <select id="range" title="بازه نمایش">
-      <option value="30">۱ ماه</option>
-      <option value="90">۳ ماه</option>
-      <option value="180">۶ ماه</option>
-      <option value="365">۱ سال</option>
-      <option value="1825">۵ سال</option>
-      <option value="0" selected>همه</option>
-    </select>
-
-    <button id="adjustedBtn" class="tool" title="نمایش عملکردی؛ RAW دست‌نخورده می‌ماند">عملکردی</button>
-    <button id="rawBtn" class="tool active" title="نمایش RAW">خام</button>
+    <button id="adjustedBtn" class="tool" title="نمایش عملکردی؛ داده RAW تغییر نمی‌کند">عملکردی</button>
+    <button id="rawBtn" class="tool active" title="نمایش داده خام">خام</button>
     <button id="logBtn" class="tool" title="مقیاس لگاریتمی">Log</button>
-    <button id="resetBtn" class="tool" title="بازنشانی محدوده نمودار">بازنشانی</button>
+    <button id="resetBtn" class="tool" title="بازنشانی دید نمودار">بازنشانی</button>
     <button id="fullscreenBtn" class="tool" title="تمام صفحه">⛶</button>
-
-    <div id="status" class="status">در حال آماده‌سازی...</div>
+    <div id="status" class="status">Vela Workspace · آماده‌سازی...</div>
   </div>
-
   <main class="main">
     <div id="chartWrap"><div id="chart"></div></div>
     <div id="pairTitle"><b>—</b> / <b>—</b></div>
@@ -116,7 +79,6 @@ select{direction:rtl}
     <div id="error"></div>
   </main>
 </div>
-
 <div id="results" class="results" role="listbox" aria-label="نتایج جستجو"></div>
 
 <script type="module">
@@ -131,7 +93,6 @@ select{direction:rtl}
     console.error(e);
     return;
   }
-  if('serviceWorker' in navigator){ navigator.serviceWorker.register('/sw.js').catch(()=>{}); }
 
 
   const $ = (id) => document.getElementById(id);
@@ -139,7 +100,6 @@ select{direction:rtl}
   const SYMBOLS_URL = BASE + 'data/symbols.json';
   const VERSION_URL = BASE + 'data/version.json';
   const STORAGE_KEY = 'MHDI_RATIO_STATE_V2';
-  const RANGE_VALUES = new Set([0,30,90,180,365,1825]);
   const TF_VALUES = new Set(['1D','1W','1M']);
   const STYLE_VALUES = new Set(['candles','bars','line','area','baseline']);
   const DATA_FETCH_TIMEOUT_MS = 20000;
@@ -151,7 +111,6 @@ select{direction:rtl}
     a: null,
     b: null,
     timeframe: '1W',
-    rangeDays: 0,
     priceStyle: 'candles',
     adjusted: false,
     logScale: false,
@@ -221,99 +180,25 @@ select{direction:rtl}
         if(bars.length<2) throw new Error('داده قابل استفاده کافی نیست.');
         return bars;
       }
-      async function fetchBars(url, signal){
-        if(rawCache.has(url)) return rawCache.get(url);
-        let timer = null;
+      function parseBuffer(buffer){
+        let data;
         try{
-          const timeout = new Promise((_, reject) => {
-            timer = setTimeout(() => reject(new Error('TIMEOUT: دریافت داده بیش از ۲۰ ثانیه طول کشید.')), 20000);
-          });
-          const request = fetch(url,{cache:'default',signal});
-          const r = await Promise.race([request, timeout]);
-          if(!r.ok) throw new Error('HTTP '+r.status+' — '+url);
-          const d=await r.json();
-          const bars=normalize(d);
-          rawCache.set(url,bars);
-          return bars;
-        } finally {
-          if(timer) clearTimeout(timer);
+          const text=new TextDecoder('utf-8').decode(new Uint8Array(buffer));
+          data=JSON.parse(text);
+        }catch(e){
+          throw new Error('پاسخ JSON نامعتبر است.');
         }
+        return normalize(data);
       }
-      function findGaps(bars){
-        const gaps=[];
-        for(let i=1;i<bars.length;i++){
-          const p=bars[i-1].close, c=bars[i].close;
-          if(p>0&&c>0){
-            const q=c/p;
-            if(q>1.4||q<0.7) gaps.push({idx:i,ratio:q});
-          }
-        }
-        return gaps;
-      }
-      function adjusted(id,bars){
-        const key='A|'+id;
-        if(adjustedCache.has(key)) return adjustedCache.get(key);
-        const out=bars.map(b=>({...b}));
-        // Heuristic only: gap correction from price history, not corporate-action source data.
-        for(let pass=0;pass<5;pass++){
-          const gaps=findGaps(out);
-          if(!gaps.length) break;
-          for(let k=gaps.length-1;k>=0;k--){
-            const {idx,ratio}=gaps[k];
-            for(let j=0;j<idx;j++){
-              out[j].open*=ratio; out[j].high*=ratio; out[j].low*=ratio; out[j].close*=ratio;
-            }
-          }
-        }
-        adjustedCache.set(key,out);
-        return out;
-      }
-      function aggregate(bars,tf){
-        if(tf==='1D') return bars;
-        const key='G|'+tf+'|'+bars.length+'|'+(bars[0]?.time||0)+'|'+(bars[bars.length-1]?.time||0);
-        if(aggregateCache.has(key)) return aggregateCache.get(key);
-        const out=[]; let bucket=null;
-        for(const b of bars){
-          const d=new Date(b.time), day=d.getUTCDay();
-          let keyTime;
-          if(tf==='1W'){
-            // Tehran/Iran trading week starts Saturday. UTC bar timestamps are used consistently.
-            const offset=(day+1)%7;
-            keyTime=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()-offset);
-          }else{
-            keyTime=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),1);
-          }
-          if(!bucket||bucket.time!==keyTime){
-            if(bucket) out.push(bucket);
-            bucket={time:keyTime,open:b.open,high:b.high,low:b.low,close:b.close,volume:b.volume||0};
-          }else{
-            if(b.high>bucket.high) bucket.high=b.high;
-            if(b.low<bucket.low) bucket.low=b.low;
-            bucket.close=b.close;
-            bucket.volume+=(b.volume||0);
-          }
-        }
-        if(bucket) out.push(bucket);
-        aggregateCache.set(key,out);
-        return out;
-      }
-      function ratio(a,b,cacheKey){
-        if(ratioCache.has(cacheKey)) return ratioCache.get(cacheKey);
-        const m2=new Map(b.map(x=>[x.time,x]));
-        const out=[];
-        for(const x1 of a){
-          const x2=m2.get(x1.time);
-          if(!x2 || x1.close<=0 || x2.close<=0) continue;
-          const open=x1.open/x2.open;
-          const close=x1.close/x2.close;
-          const high=Math.max(x1.high/x2.low,open,close);
-          const low=Math.min(x1.low/x2.high,open,close);
-          if(!(high>0&&low>0&&high>=low)) continue;
-          out.push({time:x1.time,open,high,low,close,volume:0});
-        }
-        if(out.length<2) throw new Error('هم‌پوشانی زمانی دو نماد برای این تایم‌فریم کافی نیست.');
-        ratioCache.set(cacheKey,out);
-        return out;
+      function processBuffers(bufferA,bufferB,m){
+        const a=parseBuffer(bufferA);
+        const b=parseBuffer(bufferB);
+        const wa=m.adjusted?adjusted(m.idA,a):a;
+        const wb=m.adjusted?adjusted(m.idB,b):b;
+        const aa=aggregate(wa,m.timeframe);
+        const bb=aggregate(wb,m.timeframe);
+        const key=[m.idA,m.idB,m.timeframe,m.adjusted?'A':'R',m.version||''].join('|');
+        return ratio(aa,bb,key);
       }
       self.onmessage=async(e)=>{
         const m=e.data||{};
@@ -326,19 +211,10 @@ select{direction:rtl}
         const controller=new AbortController();
         activeController=controller;
         try{
-          self.postMessage({type:'progress',request:m.request,stage:'A'});
-          const a=await fetchBars(m.urlA,controller.signal);
+          self.postMessage({type:'progress',request:m.request,stage:'PARSE'});
           if(controller.signal.aborted) return;
-          self.postMessage({type:'progress',request:m.request,stage:'B'});
-          const b=await fetchBars(m.urlB,controller.signal);
+          const out=processBuffers(m.bufferA,m.bufferB,m);
           if(controller.signal.aborted) return;
-          self.postMessage({type:'progress',request:m.request,stage:'BUILD'});
-          const wa=m.adjusted?adjusted(m.idA,a):a;
-          const wb=m.adjusted?adjusted(m.idB,b):b;
-          const aa=aggregate(wa,m.timeframe);
-          const bb=aggregate(wb,m.timeframe);
-          const key=[m.idA,m.idB,m.timeframe,m.adjusted?'A':'R',m.version||''].join('|');
-          const out=ratio(aa,bb,key);
           self.postMessage({type:'result',request:m.request,data:out});
         }catch(error){
           if(controller.signal.aborted) return;
@@ -380,46 +256,94 @@ select{direction:rtl}
     return dataWorker;
   }
 
+  let activeFetchController = null;
+
+  async function fetchBuffer(url, signal=null){
+    const controller = new AbortController();
+    let timer = null;
+    const relay = () => controller.abort();
+    if(signal){
+      if(signal.aborted) controller.abort();
+      else signal.addEventListener('abort', relay, {once:true});
+    }
+    try{
+      timer=setTimeout(()=>controller.abort(),DATA_FETCH_TIMEOUT_MS);
+      let response;
+      try{
+        response=await fetch(url,{cache:'default',signal:controller.signal});
+        if(!response.ok) throw new Error('HTTP ' + response.status + ' — ' + url);
+        return await response.arrayBuffer();
+      }catch(e){
+        if(controller.signal.aborted && !signal?.aborted) throw new Error('TIMEOUT: دریافت داده بیش از ۲۰ ثانیه طول کشید.');
+        throw e;
+      }
+    }finally{
+      if(timer) clearTimeout(timer);
+      signal?.removeEventListener('abort',relay);
+    }
+  }
+
   function workerBuildRatio(a,b,timeframe,adjusted,version){
-    const worker = ensureDataWorker();
+    const worker=ensureDataWorker();
     if(!worker) return null;
-    const request = ++dataWorkerRequest;
-    const addVersion = (url) => version ? url + (url.includes('?')?'&':'?') + 'v=' + encodeURIComponent(version) : url;
-    // Abort/ignore the previous UI request immediately.
+    const request=++dataWorkerRequest;
+    const addVersion=(url)=>version ? url + (url.includes('?')?'&':'?') + 'v=' + encodeURIComponent(version) : url;
+
     if(dataWorkerPending.size){
+      if(activeFetchController){try{activeFetchController.abort();}catch(e){}}
       try{worker.postMessage({type:'cancel'});}catch(e){}
       for(const [id,p] of dataWorkerPending){
         dataWorkerPending.delete(id);
         p.reject(new DOMException('Request superseded','AbortError'));
       }
     }
+
+    activeFetchController=new AbortController();
+    const fetchSignal=activeFetchController.signal;
+
     return new Promise((resolve,reject)=>{
       dataWorkerPending.set(request,{resolve,reject});
-      try{
-        worker.postMessage({type:'build',request,urlA:addVersion(BASE+'data/raw/'+encodeURIComponent(a.id)+'.json'),urlB:addVersion(BASE+'data/raw/'+encodeURIComponent(b.id)+'.json'),idA:String(a.id),idB:String(b.id),timeframe,adjusted,version:version||''});
-      }catch(e){
-        dataWorkerPending.delete(request); reject(e);
-      }
+      (async()=>{
+        try{
+          const [bufferA,bufferB]=await Promise.all([
+            fetchBuffer(addVersion(BASE+'data/raw/'+encodeURIComponent(a.id)+'.json'),fetchSignal),
+            fetchBuffer(addVersion(BASE+'data/raw/'+encodeURIComponent(b.id)+'.json'),fetchSignal)
+          ]);
+          if(fetchSignal.aborted || !dataWorkerPending.has(request)) return;
+          worker.postMessage({type:'build',request,bufferA,bufferB,idA:String(a.id),idB:String(b.id),timeframe,adjusted,version:version||''},[bufferA,bufferB]);
+        }catch(e){
+          if(e?.name==='AbortError' || fetchSignal.aborted) {
+            if(dataWorkerPending.has(request)){dataWorkerPending.delete(request);reject(new DOMException('Request aborted','AbortError'));}
+            return;
+          }
+          if(dataWorkerPending.has(request)){
+            dataWorkerPending.delete(request);
+            reject(e);
+          }
+        }finally{
+          if(activeFetchController?.signal===fetchSignal) activeFetchController=null;
+        }
+      })();
     });
   }
 
   async function loadRatioData(a,b,timeframe,adjusted,version){
-    const fast = workerBuildRatio(a,b,timeframe,adjusted,version);
-    if(fast) {
-      try { return await fast; }
-      catch(e) {
+    setLoading(true,'دریافت داده‌های ' + a.name + ' و ' + b.name + '...');
+    const fast=workerBuildRatio(a,b,timeframe,adjusted,version);
+    if(fast){
+      try{
+        return await fast;
+      }catch(e){
         if(e?.name==='AbortError') throw e;
-        console.warn('Worker fallback:', e);
-        setLoading(true, 'مسیر سریع ناموفق بود؛ دریافت مستقیم داده...');
+        console.warn('Worker processing failed; using safe main-thread fallback.',e);
+        setLoading(true,'بازیابی امن داده‌ها...');
       }
     }
-    const [rawA,rawB] = await Promise.all([loadRaw(a),loadRaw(b)]);
-    setLoading(true, 'ساخت نمودار نسبت...');
-    const barsA = aggregate(getWorkingBars(a,rawA),timeframe);
-    const barsB = aggregate(getWorkingBars(b,rawB),timeframe);
+    const [rawA,rawB]=await Promise.all([loadRaw(a),loadRaw(b)]);
+    const barsA=aggregate(getWorkingBars(a,rawA),timeframe);
+    const barsB=aggregate(getWorkingBars(b,rawB),timeframe);
     return buildRatio(barsA,barsB);
   }
-
   function setStatus(text){ $('status').textContent = text || ''; }
 
   function setLoading(on, text){
@@ -575,7 +499,6 @@ select{direction:rtl}
     const aId = params.get('a') || saved.a;
     const bId = params.get('b') || saved.b;
     const tf = params.get('tf') || saved.tf;
-    const range = Number(params.get('range') ?? saved.range);
     const style = params.get('style') || saved.style;
     const mode = params.get('mode') || saved.mode;
     const log = params.get('log');
@@ -589,7 +512,6 @@ select{direction:rtl}
     if(state.a?.id === state.b?.id) state.b = state.symbols.find((s) => s.id !== state.a.id) || second;
 
     if(TF_VALUES.has(tf)) state.timeframe = tf;
-    if(RANGE_VALUES.has(range)) state.rangeDays = range;
     if(STYLE_VALUES.has(style)) state.priceStyle = style;
     if(mode === 'adjusted' || mode === 'raw') state.adjusted = mode === 'adjusted';
     if(log === '1' || log === '0') state.logScale = log === '1';
@@ -599,20 +521,19 @@ select{direction:rtl}
   }
 
   function persistState(updateURL=true){
-    const payload = {a:state.a?.id,b:state.b?.id,tf:state.timeframe,range:state.rangeDays,style:state.priceStyle,mode:state.adjusted?'adjusted':'raw',log:state.logScale};
+    const payload = {a:state.a?.id,b:state.b?.id,tf:state.timeframe,style:state.priceStyle,mode:state.adjusted?'adjusted':'raw',log:state.logScale};
     try{localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));}catch(e){}
     if(updateURL){
       const p = new URLSearchParams();
       if(payload.a) p.set('a',payload.a);
       if(payload.b) p.set('b',payload.b);
-      p.set('tf',payload.tf); p.set('range',String(payload.range)); p.set('style',payload.style); p.set('mode',payload.mode); p.set('log',payload.log?'1':'0');
+      p.set('tf',payload.tf); p.set('style',payload.style); p.set('mode',payload.mode); p.set('log',payload.log?'1':'0');
       history.replaceState(null,'','?' + p.toString());
     }
   }
 
   function syncControls(){
     $('timeframe').value = state.timeframe;
-    $('range').value = String(state.rangeDays);
     $('adjustedBtn').classList.toggle('active', state.adjusted);
     $('rawBtn').classList.toggle('active', !state.adjusted);
     $('logBtn').classList.toggle('active', state.logScale);
@@ -875,11 +796,7 @@ select{direction:rtl}
 
   function currentVisibleRange(bars){
     if(!bars.length) return undefined;
-    if(state.rangeDays===0) return {from:bars[0].time,to:bars[bars.length-1].time};
-    const last = bars[bars.length-1].time;
-    const from = last - state.rangeDays*86400000;
-    const first = bars.find((b) => b.time>=from) || bars[0];
-    return {from:first.time,to:last};
+    return {from:bars[0].time,to:bars[bars.length-1].time};
   }
 
   async function ensureChart(bars,serial){
@@ -903,12 +820,13 @@ select{direction:rtl}
       drawingToolbar:true,
       statusline:true,
       watermark:true,
-      bottombar:false,
+      bottombar:true,
       autofocus:true,
       topbar:{
-        left:['indicators','undo-redo'],
+        left:['style','indicators','undo-redo'],
         right:['alerts','panels','screenshot']
-      }
+      },
+      persist:false
     };
 
     syncRendererStateFromWorkspace();
@@ -1070,12 +988,6 @@ select{direction:rtl}
   });
 
   $('timeframe').addEventListener('change',(e) => changeTimeframe(e.target.value));
-  $('range').addEventListener('change',(e) => {
-    state.rangeDays = Number(e.target.value);
-    if(!RANGE_VALUES.has(state.rangeDays)) state.rangeDays = 0;
-    persistState();
-    resetView();
-  });
   $('adjustedBtn').addEventListener('click',() => changeMode(true));
   $('rawBtn').addEventListener('click',() => changeMode(false));
   $('logBtn').addEventListener('click',() => {
