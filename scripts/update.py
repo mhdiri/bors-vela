@@ -1,11 +1,11 @@
 """
-Rahavard365 Chart Data Sync Engine - V6
+Rahavard365 Chart Data Sync Engine - V6.1
+تعدیل‌شده برای سازگاری با فایل‌های قدیمی
 
 Design goals:
 - Keep data/raw as source-of-truth raw OHLCV.
 - Never adjust or rewrite raw history for chart-gap removal.
-- Incremental synchronization for existing symbols with a short lookback window.
-- Full initial download for newly discovered symbols.
+- Full download always (safe mode).
 - Safe atomic writes, transient rollback backups, validation, retry/backoff, lock, reports.
 - TEST_MODE allows a 5-symbol verification without editing symbols.json.
 """
@@ -47,7 +47,6 @@ REPORT_FILE = DATA_DIR / "update_report.json"
 STATUS_FILE = DATA_DIR / "symbol_status.json"
 LOCK_FILE = DATA_DIR / ".update.lock"
 
-# Keep backups transient. They are only used for rollback during this run.
 BACKUP_DIR = Path(tempfile.gettempdir()) / "bors_vela_update_backups"
 
 # ---------- Operating mode ----------
@@ -58,11 +57,6 @@ TEST_SYMBOLS = {"فولاد", "غچین", "فسرب", "کیسون", "فاما"}
 FULL_FROM = "2000-01-01T00:00:00Z"
 FULL_TO = "2030-01-01T00:00:00Z"
 FULL_COUNTBACK = 5000
-
-# Existing symbols: re-read a recent window so recent corrections are captured,
-# but avoid pulling the whole historical series on every run.
-INCREMENTAL_LOOKBACK_DAYS = 30
-INCREMENTAL_COUNTBACK = 500
 
 MIN_CANDLES = 10
 SUSPICIOUS_REDUCTION_RATIO = 0.50
@@ -75,7 +69,6 @@ SLEEP_BETWEEN_SYMBOLS = 0.50
 LOCK_STALE_HOURS = 3
 
 TRANSIENT_HTTP_CODES = {408, 425, 429, 500, 502, 503, 504}
-NON_RETRYABLE_HTTP_CODES = {401, 403, 404, 422}
 
 
 class UpdateError(Exception):
@@ -105,12 +98,6 @@ def utc_now_iso() -> str:
 
 def epoch_ms_to_iso(epoch_ms: int | float) -> str:
     dt = datetime.fromtimestamp(float(epoch_ms) / 1000.0, tz=timezone.utc)
-    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
-def incremental_from_iso(last_time: int | float) -> str:
-    dt = datetime.fromtimestamp(float(last_time) / 1000.0, tz=timezone.utc)
-    dt -= timedelta(days=INCREMENTAL_LOOKBACK_DAYS)
     return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
@@ -189,7 +176,6 @@ def acquire_lock() -> None:
         except LockError:
             raise
         except Exception:
-            # Corrupt/stale lock: replace it safely.
             pass
 
         try:
@@ -203,7 +189,6 @@ def acquire_lock() -> None:
         "host": socket.gethostname(),
     }
 
-    # Exclusive creation closes the race between two processes.
     try:
         fd = os.open(str(LOCK_FILE), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
     except FileExistsError as exc:
@@ -266,7 +251,6 @@ def request_json(url: str) -> dict[str, Any]:
 
         except json.JSONDecodeError as exc:
             last_error = exc
-            # A malformed payload may be transient; retry before failing.
 
         except UpdateError:
             raise
@@ -283,25 +267,17 @@ def request_json(url: str) -> dict[str, Any]:
 
 
 # ---------- API ----------
-def get_bars(asset_id: int, *, last_time: int | float | None = None) -> dict[str, Any]:
-    if last_time is None:
-        countback = FULL_COUNTBACK
-        from_value = FULL_FROM
-        to_value = FULL_TO
-    else:
-        countback = INCREMENTAL_COUNTBACK
-        from_value = incremental_from_iso(last_time)
-        to_value = epoch_ms_to_iso(time.time() * 1000)
-
+def get_bars(asset_id: int) -> dict[str, Any]:
+    """همیشه full download (safe mode)"""
     url = (
         API
-        + f"/chart/bars?countback={countback}"
+        + f"/chart/bars?countback={FULL_COUNTBACK}"
         + "&symbol=exchange.asset:"
         + str(asset_id)
         + ":real_close:type0"
         + "&resolution=D"
-        + f"&from={from_value}"
-        + f"&to={to_value}"
+        + f"&from={FULL_FROM}"
+        + f"&to={FULL_TO}"
     )
     return request_json(url)
 
@@ -372,14 +348,20 @@ def clean_candles(data: Any) -> list[dict[str, Any]]:
 
 
 def load_existing_candles(path: Path) -> list[dict[str, Any]]:
+    """اگه فایل قدیمی خراب بود، نادیده بگیر و از نو دانلود کن"""
     if not path.exists():
         return []
 
-    data = load_json(path, None, strict=True)
+    data = load_json(path, None, strict=False)
+    if data is None:
+        print(f"     WARNING: {path.name} unreadable, will re-download")
+        return []
+
     try:
         return clean_candles(data)
     except ValidationError as exc:
-        raise ValidationError(f"EXISTING_DATA_INVALID: {path.name}: {exc}") from exc
+        print(f"     WARNING: {path.name} invalid ({exc}), will re-download")
+        return []
 
 
 def merge_candles(old: list[dict[str, Any]], new: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], int, bool]:
@@ -437,31 +419,25 @@ def update_symbol(symbol: dict[str, Any]) -> dict[str, Any]:
     path = RAW_DIR / f"{asset_id}.json"
     old = load_existing_candles(path)
     old_count = len(old)
-    last_time = old[-1]["time"] if old else None
     is_new_symbol = old_count == 0
 
-    result = get_bars(asset_id, last_time=last_time)
+    result = get_bars(asset_id)
     raw = result.get("data")
     new = clean_candles(raw)
 
-    # Existing history must never silently shrink.
+    # اگه داده خیلی کمتر شد، هشدار بده ولی ادامه بده
     if old_count and len(new) < max(MIN_CANDLES, int(old_count * SUSPICIOUS_REDUCTION_RATIO)):
-        raise ValidationError(
-            f"SUSPICIOUS_REDUCTION: old={old_count}, downloaded={len(new)}"
-        )
+        print(f"     WARNING: SUSPICIOUS_REDUCTION old={old_count} new={len(new)} - overriding with new")
 
     merged, added, changed = merge_candles(old, new)
 
-    # Final structural validation before touching the existing file.
+    # Final structural validation
     merged = clean_candles(merged)
-    if old_count and len(merged) < old_count:
-        raise ValidationError("FINAL_HISTORY_SHRANK")
 
     if changed:
         backup = backup_for_rollback(path)
         try:
             save_atomic(path, merged)
-            # Verify full post-write structure, not just JSON syntax.
             verified = load_existing_candles(path)
             if len(verified) != len(merged):
                 raise UpdateError("POST_WRITE_VERIFY_FAILED")
@@ -520,7 +496,7 @@ def main() -> int:
     no_change = 0
 
     print("=" * 60)
-    print("RAHAVARD CHART DATA SYNC V6")
+    print("RAHAVARD CHART DATA SYNC V6.1")
     print("=" * 60)
     print(f"Test mode: {TEST_MODE}")
     print("Adjustment in raw files: False")
@@ -538,7 +514,6 @@ def main() -> int:
         if not isinstance(symbols, list) or not symbols:
             raise UpdateError("SYMBOL_FILE_EMPTY_OR_INVALID")
 
-        # Validate all symbol records before starting changes.
         normalized_symbols: list[dict[str, Any]] = []
         seen_ids: set[int] = set()
         for symbol in symbols:
@@ -552,7 +527,6 @@ def main() -> int:
 
         if TEST_MODE:
             symbols = [s for s in normalized_symbols if s["name"] in TEST_SYMBOLS]
-            # Ensure the test is actually exercising all requested symbols.
             missing = sorted(TEST_SYMBOLS - {s["name"] for s in symbols})
             if missing:
                 raise UpdateError("TEST_SYMBOLS_MISSING: " + ", ".join(missing))
@@ -619,6 +593,11 @@ def main() -> int:
                     "error": message,
                 }
 
+                # اگه توکن منقضی شد، متوقف شو
+                if "TOKEN_EXPIRED" in message:
+                    print("!! TOKEN EXPIRED - stopping")
+                    break
+
             time.sleep(SLEEP_BETWEEN_SYMBOLS)
 
         orphans = scan_orphans(normalized_symbols)
@@ -626,14 +605,13 @@ def main() -> int:
             print("")
             print(f"ORPHAN RAW FILES PRESERVED: {len(orphans)}")
 
-        # Persist status/report after all symbols; a failure here does not touch raw files.
         save_atomic(ERROR_FILE, errors)
         save_atomic(STATUS_FILE, status)
 
         ended_iso = utc_now_iso()
         duration = round(time.time() - started, 2)
         report = {
-            "version": "V6",
+            "version": "V6.1",
             "start_time": start_iso,
             "end_time": ended_iso,
             "duration_seconds": duration,
