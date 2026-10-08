@@ -4,12 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#131722">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="color-scheme" content="dark">
 <title>MHDI Ratio</title>
 <style>
-:root{color-scheme:dark;--bg:#131722;--panel:#1e222d;--border:#2a2e39;--text:#d1d4dc;--muted:#787b86;--accent:#2962ff;--danger:#ef5350}
+:root{color-scheme:dark;--bg:#131722;--panel:#1e222d;--border:#2a2e39;--text:#d1d4dc;--muted:#787b86;--accent:#2962ff;--danger:#ef5350;--success:#26a69a}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,Tahoma,Arial,sans-serif;font-size:12px}
-body{touch-action:none}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif;font-size:12px}
+body{touch-action:none;-webkit-tap-highlight-color:transparent}
 button,input,select{font:inherit}
 button{border:0;background:transparent;color:var(--muted);cursor:pointer;border-radius:3px}
 button:hover{background:rgba(255,255,255,.06);color:var(--text)}
@@ -17,22 +22,24 @@ button.active{background:var(--accent);color:#fff}
 button:disabled{opacity:.45;cursor:default}
 input{outline:none}
 .app{height:100vh;display:grid;grid-template-rows:44px 1fr;background:var(--bg)}
-.topbar{height:44px;display:flex;align-items:center;gap:5px;padding:0 7px;border-bottom:1px solid var(--border);background:var(--bg);direction:ltr;white-space:nowrap;overflow-x:auto}
+.topbar{height:44px;display:flex;align-items:center;gap:5px;padding:0 7px;border-bottom:1px solid var(--border);background:var(--bg);direction:ltr;white-space:nowrap;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain}
 .topbar::-webkit-scrollbar{display:none}
 .separator{width:1px;height:24px;background:var(--border);margin:0 3px;flex:0 0 auto}
-.brand{font-weight:800;color:#fff;letter-spacing:.5px;padding:5px 7px;flex:0 0 auto}
-.search{position:relative;width:220px;height:30px;display:flex;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:3px;flex:0 0 auto}
+.brand{font-weight:800;color:#fff;letter-spacing:.5px;padding:5px 7px;flex:0 0 auto;user-select:none}
+.search{position:relative;width:250px;height:30px;display:flex;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:3px;flex:0 0 auto}
+.search:focus-within{border-color:#3f6cff;box-shadow:0 0 0 1px rgba(41,98,255,.18)}
 .search input{width:100%;height:100%;padding:0 10px;background:transparent;border:0;color:var(--text);direction:rtl}
 .search input::placeholder{color:#5f636d}
-.results{position:absolute;left:0;right:0;top:34px;display:none;max-height:340px;overflow:auto;background:#1e222d;border:1px solid var(--border);border-radius:3px;z-index:10000;direction:rtl;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.results{position:fixed;display:none;max-height:min(56vh,420px);overflow:auto;background:#1e222d;border:1px solid var(--border);border-radius:4px;z-index:30000;direction:rtl;box-shadow:0 12px 30px rgba(0,0,0,.48);overscroll-behavior:contain}
 .results.open{display:block}
-.result{padding:9px 11px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.03)}
+.result{min-height:36px;padding:8px 11px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04)}
 .result:last-child{border-bottom:0}
 .result:hover,.result.selected{background:#2a2e39}
-.result .name{font-weight:700;color:#e6e8eb}
-.result .id{font-size:10px;color:var(--muted);direction:ltr}
+.result .name{font-weight:700;color:#e6e8eb;overflow:hidden;text-overflow:ellipsis}
+.result .code{font-size:10px;color:var(--muted);direction:ltr;flex:0 0 auto}
+.result.empty{cursor:default;color:var(--muted)}
 .pair{display:flex;align-items:center;gap:2px;background:var(--panel);border:1px solid var(--border);border-radius:3px;height:30px;flex:0 0 auto}
-.pair-slot{min-width:74px;max-width:120px;height:28px;padding:0 9px;display:flex;align-items:center;justify-content:center;color:#e5e7eb;font-weight:700;cursor:pointer;overflow:hidden;text-overflow:ellipsis;direction:rtl}
+.pair-slot{min-width:82px;max-width:130px;height:28px;padding:0 9px;display:flex;align-items:center;justify-content:center;color:#e5e7eb;font-weight:700;cursor:pointer;overflow:hidden;text-overflow:ellipsis;direction:rtl}
 .pair-slot:hover{background:rgba(255,255,255,.05)}
 .pair-slot.active{background:rgba(41,98,255,.18);outline:1px solid var(--accent)}
 .pair-sep{color:var(--muted);padding:0 2px}
@@ -40,18 +47,22 @@ input{outline:none}
 .go:hover{background:#1f55e5}
 .control,select{height:30px;padding:0 8px;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:3px;cursor:pointer;outline:none}
 select{direction:rtl}
-.tool{height:30px;padding:0 9px}
-.status{margin-left:auto;height:30px;display:flex;align-items:center;padding:0 8px;color:var(--muted);direction:rtl;max-width:300px;overflow:hidden;text-overflow:ellipsis}
+.tool{height:30px;padding:0 9px;flex:0 0 auto}
+.status{margin-left:auto;height:30px;display:flex;align-items:center;padding:0 8px;color:var(--muted);direction:rtl;max-width:380px;overflow:hidden;text-overflow:ellipsis;min-width:120px}
 .main{position:relative;min-width:0;min-height:0;overflow:hidden;background:var(--bg)}
 #chartWrap{position:absolute;inset:0}
-#chart{width:100%;height:100%}
-#loading{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(19,23,34,.82);z-index:9000;color:#aed581;font-family:monospace;font-size:13px;direction:rtl}
+#chart{width:100%;height:100%;min-width:0;min-height:0;contain:layout paint size}
+#loading{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(19,23,34,.82);z-index:9000;color:#aed581;font-size:13px;direction:rtl;backdrop-filter:blur(2px)}
 #loading.on{display:flex}
-#error{position:absolute;left:10px;right:10px;bottom:10px;display:none;padding:10px 12px;border-radius:3px;background:var(--danger);color:#fff;z-index:9500;direction:rtl;white-space:pre-wrap;word-break:break-word}
+#loading span{padding:10px 14px;border:1px solid var(--border);border-radius:4px;background:rgba(30,34,45,.94);box-shadow:0 10px 30px rgba(0,0,0,.3)}
+#error{position:absolute;left:10px;right:10px;bottom:10px;display:none;padding:10px 12px;border-radius:4px;background:var(--danger);color:#fff;z-index:9500;direction:rtl;white-space:pre-wrap;word-break:break-word;box-shadow:0 8px 20px rgba(0,0,0,.3)}
 #error.on{display:block}
-#pairTitle{position:absolute;top:9px;right:12px;z-index:7000;padding:5px 8px;border-radius:3px;background:rgba(19,23,34,.72);border:1px solid rgba(255,255,255,.06);pointer-events:none;direction:rtl;backdrop-filter:blur(4px)}
+#pairTitle{position:absolute;top:9px;right:12px;z-index:7000;padding:5px 8px;border-radius:3px;background:rgba(19,23,34,.72);border:1px solid rgba(255,255,255,.06);pointer-events:none;direction:rtl;backdrop-filter:blur(4px);user-select:none}
 #pairTitle b{color:#fff}
-@media(max-width:900px){.brand{display:none}.search{width:190px}.status{display:none}.pair-slot{min-width:68px}}
+#pairMeta{position:absolute;top:39px;right:12px;z-index:7000;padding:4px 7px;border-radius:3px;background:rgba(19,23,34,.58);border:1px solid rgba(255,255,255,.04);pointer-events:none;direction:rtl;color:#a8adb8;font-size:10px;backdrop-filter:blur(4px);user-select:none}
+.mobile-only{display:none}
+@media(max-width:1050px){.brand{display:none}.search{width:205px}.status{max-width:220px}.pair-slot{min-width:70px}}
+@media(max-width:760px){.topbar{gap:4px}.status{display:none}.search{width:185px}.tool{padding:0 8px}.pair-slot{min-width:64px;max-width:90px}.control,select,.tool,.pair,.search{height:32px}.pair-slot{height:30px}.go{height:26px}.pair{height:32px}}
 </style>
 </head>
 <body>
@@ -60,8 +71,7 @@ select{direction:rtl}
     <div class="brand">MHDI</div>
 
     <div class="search" id="searchBox">
-      <input id="searchInput" type="text" autocomplete="off" spellcheck="false" placeholder="جستجوی نماد...">
-      <div id="results" class="results"></div>
+      <input id="searchInput" type="text" autocomplete="off" spellcheck="false" placeholder="جستجوی نماد..." aria-label="جستجوی نماد">
     </div>
 
     <div class="pair">
@@ -94,12 +104,14 @@ select{direction:rtl}
       <option value="bars">میله‌ای</option>
       <option value="line">خط</option>
       <option value="area">ناحیه</option>
+      <option value="baseline">Baseline</option>
     </select>
 
     <button id="adjustedBtn" class="tool" title="نمایش عملکردی؛ RAW دست‌نخورده می‌ماند">عملکردی</button>
     <button id="rawBtn" class="tool active" title="نمایش RAW">خام</button>
     <button id="logBtn" class="tool" title="مقیاس لگاریتمی">Log</button>
     <button id="resetBtn" class="tool" title="بازنشانی محدوده نمودار">بازنشانی</button>
+    <button id="shareBtn" class="tool" title="کپی لینک تنظیمات فعلی">اشتراک</button>
     <button id="fullscreenBtn" class="tool" title="تمام صفحه">⛶</button>
     <button id="shotBtn" class="tool" title="تصویر نمودار">PNG</button>
 
@@ -109,21 +121,30 @@ select{direction:rtl}
   <main class="main">
     <div id="chartWrap"><div id="chart"></div></div>
     <div id="pairTitle"><b>—</b> / <b>—</b></div>
+    <div id="pairMeta">—</div>
     <div id="loading"><span>در حال بارگذاری...</span></div>
     <div id="error"></div>
   </main>
 </div>
 
+<div id="results" class="results" role="listbox" aria-label="نتایج جستجو"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/@luxalgo/vela@0.8.3/dist/vela.global.min.js"></script>
 <script>
 (() => {
   'use strict';
+  if('serviceWorker' in navigator){ navigator.serviceWorker.register('/sw.js').catch(()=>{}); }
+
 
   const $ = (id) => document.getElementById(id);
-
   const BASE = '/';
   const SYMBOLS_URL = BASE + 'data/symbols.json';
+  const VERSION_URL = BASE + 'data/version.json';
   const VELA = window.Vela && (window.Vela.Vela || window.Vela);
+  const STORAGE_KEY = 'MHDI_RATIO_STATE_V2';
+  const RANGE_VALUES = new Set([0,30,90,180,365,1825]);
+  const TF_VALUES = new Set(['1D','1W','1M']);
+  const STYLE_VALUES = new Set(['candles','bars','line','area','baseline']);
 
   const state = {
     symbols: [],
@@ -133,17 +154,241 @@ select{direction:rtl}
     b: null,
     timeframe: '1W',
     rangeDays: 0,
-    lastRatioBars: [],
     priceStyle: 'candles',
     adjusted: false,
     logScale: false,
+    dataVersion: '',
     rawCache: new Map(),
     adjustedCache: new Map(),
     ratioCache: new Map(),
     chart: null,
     searchResults: [],
-    searchCursor: -1
+    searchCursor: -1,
+    buildSerial: 0,
+    lastRatioBars: [],
+    lastRenderedKey: '',
+    searchOpen: false
   };
+
+  // ------------------------------------------------------------
+  // DATA WORKER: keeps JSON parsing, adjustment, aggregation and
+  // ratio construction off the main UI thread so the chart stays responsive.
+  // ------------------------------------------------------------
+  let dataWorker = null;
+  let dataWorkerURL = '';
+  let dataWorkerRequest = 0;
+  const dataWorkerPending = new Map();
+
+  function ensureDataWorker(){
+    if(dataWorker) return dataWorker;
+    if(!window.Worker || !window.Blob || !window.URL?.createObjectURL) return null;
+
+    const source = `
+      'use strict';
+      const rawCache = new Map();
+      const adjustedCache = new Map();
+      const aggregateCache = new Map();
+      const ratioCache = new Map();
+      let activeController = null;
+
+      function num(v){
+        const n = Number(v);
+        return Number.isFinite(n) ? n : null;
+      }
+      function epoch(v){
+        if(typeof v === 'number' && Number.isFinite(v)) return v < 100000000000 ? v * 1000 : v;
+        if(typeof v === 'string'){
+          const n = Number(v);
+          if(Number.isFinite(n)) return n < 100000000000 ? n * 1000 : n;
+          const t = Date.parse(v);
+          return Number.isFinite(t) ? t : null;
+        }
+        return null;
+      }
+      function normalize(data){
+        if(!Array.isArray(data)) throw new Error('ساختار فایل RAW معتبر نیست.');
+        const map = new Map();
+        for(const row of data){
+          if(!row || typeof row !== 'object') continue;
+          const time = epoch(row.time ?? row.timestamp ?? row.t ?? row.date);
+          const open = num(row.open), high = num(row.high), low = num(row.low), close = num(row.close);
+          const volume = num(row.volume) ?? 0;
+          if(time===null || open===null || high===null || low===null || close===null) continue;
+          if(![open,high,low,close].every(x=>Number.isFinite(x) && x>0)) continue;
+          if(high < low || high < open || high < close || low > open || low > close) continue;
+          map.set(time,{time,open,high,low,close,volume:Number.isFinite(volume)&&volume>=0?volume:0});
+        }
+        const bars=[...map.values()].sort((a,b)=>a.time-b.time);
+        if(bars.length<2) throw new Error('داده قابل استفاده کافی نیست.');
+        return bars;
+      }
+      async function fetchBars(url, signal){
+        if(rawCache.has(url)) return rawCache.get(url);
+        const r=await fetch(url,{cache:'default',signal});
+        if(!r.ok) throw new Error('HTTP '+r.status+' — '+url);
+        const d=await r.json();
+        const bars=normalize(d);
+        rawCache.set(url,bars);
+        return bars;
+      }
+      function findGaps(bars){
+        const gaps=[];
+        for(let i=1;i<bars.length;i++){
+          const p=bars[i-1].close, c=bars[i].close;
+          if(p>0&&c>0){
+            const q=c/p;
+            if(q>1.4||q<0.7) gaps.push({idx:i,ratio:q});
+          }
+        }
+        return gaps;
+      }
+      function adjusted(id,bars){
+        const key='A|'+id;
+        if(adjustedCache.has(key)) return adjustedCache.get(key);
+        const out=bars.map(b=>({...b}));
+        // Heuristic only: gap correction from price history, not corporate-action source data.
+        for(let pass=0;pass<5;pass++){
+          const gaps=findGaps(out);
+          if(!gaps.length) break;
+          for(let k=gaps.length-1;k>=0;k--){
+            const {idx,ratio}=gaps[k];
+            for(let j=0;j<idx;j++){
+              out[j].open*=ratio; out[j].high*=ratio; out[j].low*=ratio; out[j].close*=ratio;
+            }
+          }
+        }
+        adjustedCache.set(key,out);
+        return out;
+      }
+      function aggregate(bars,tf){
+        if(tf==='1D') return bars;
+        const key='G|'+tf+'|'+bars.length+'|'+(bars[0]?.time||0)+'|'+(bars[bars.length-1]?.time||0);
+        if(aggregateCache.has(key)) return aggregateCache.get(key);
+        const out=[]; let bucket=null;
+        for(const b of bars){
+          const d=new Date(b.time), day=d.getUTCDay();
+          let keyTime;
+          if(tf==='1W'){
+            // Tehran/Iran trading week starts Saturday. UTC bar timestamps are used consistently.
+            const offset=(day+1)%7;
+            keyTime=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()-offset);
+          }else{
+            keyTime=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),1);
+          }
+          if(!bucket||bucket.time!==keyTime){
+            if(bucket) out.push(bucket);
+            bucket={time:keyTime,open:b.open,high:b.high,low:b.low,close:b.close,volume:b.volume||0};
+          }else{
+            if(b.high>bucket.high) bucket.high=b.high;
+            if(b.low<bucket.low) bucket.low=b.low;
+            bucket.close=b.close;
+            bucket.volume+=(b.volume||0);
+          }
+        }
+        if(bucket) out.push(bucket);
+        aggregateCache.set(key,out);
+        return out;
+      }
+      function ratio(a,b,cacheKey){
+        if(ratioCache.has(cacheKey)) return ratioCache.get(cacheKey);
+        const m2=new Map(b.map(x=>[x.time,x]));
+        const out=[];
+        for(const x1 of a){
+          const x2=m2.get(x1.time);
+          if(!x2 || x1.close<=0 || x2.close<=0) continue;
+          const open=x1.open/x2.open;
+          const close=x1.close/x2.close;
+          const high=Math.max(x1.high/x2.low,open,close);
+          const low=Math.min(x1.low/x2.high,open,close);
+          if(!(high>0&&low>0&&high>=low)) continue;
+          out.push({time:x1.time,open,high,low,close,volume:0});
+        }
+        if(out.length<2) throw new Error('هم‌پوشانی زمانی دو نماد برای این تایم‌فریم کافی نیست.');
+        ratioCache.set(cacheKey,out);
+        return out;
+      }
+      self.onmessage=async(e)=>{
+        const m=e.data||{};
+        if(m.type==='cancel'){
+          try{activeController?.abort();}catch(_e){}
+          return;
+        }
+        if(m.type!=='build') return;
+        try{activeController?.abort();}catch(_e){}
+        const controller=new AbortController();
+        activeController=controller;
+        const a=await fetchBars(m.urlA,controller.signal);
+        const b=await fetchBars(m.urlB,controller.signal);
+        if(controller.signal.aborted) return;
+        const wa=m.adjusted?adjusted(m.idA,a):a;
+        const wb=m.adjusted?adjusted(m.idB,b):b;
+        const aa=aggregate(wa,m.timeframe);
+        const bb=aggregate(wb,m.timeframe);
+        const key=[m.idA,m.idB,m.timeframe,m.adjusted?'A':'R',m.version||''].join('|');
+        const out=ratio(aa,bb,key);
+        self.postMessage({type:'result',request:m.request,data:out});
+      };
+    `;
+    const blob = new Blob([source], {type:'application/javascript'});
+    dataWorkerURL = URL.createObjectURL(blob);
+    dataWorker = new Worker(dataWorkerURL);
+    dataWorker.onmessage = (event) => {
+      const msg = event.data || {};
+      if(msg.type !== 'result') return;
+      const pending = dataWorkerPending.get(msg.request);
+      if(!pending) return;
+      dataWorkerPending.delete(msg.request);
+      pending.resolve(msg.data);
+    };
+    dataWorker.onerror = (event) => {
+      for(const [id,pending] of dataWorkerPending){
+        dataWorkerPending.delete(id);
+        pending.reject(new Error(event?.message || 'خطا در پردازش Worker داده.'));
+      }
+      try{dataWorker.terminate();}catch(e){}
+      dataWorker = null;
+      if(dataWorkerURL){ URL.revokeObjectURL(dataWorkerURL); dataWorkerURL=''; }
+    };
+    return dataWorker;
+  }
+
+  function workerBuildRatio(a,b,timeframe,adjusted,version){
+    const worker = ensureDataWorker();
+    if(!worker) return null;
+    const request = ++dataWorkerRequest;
+    const addVersion = (url) => version ? url + (url.includes('?')?'&':'?') + 'v=' + encodeURIComponent(version) : url;
+    // Abort/ignore the previous UI request immediately.
+    if(dataWorkerPending.size){
+      try{worker.postMessage({type:'cancel'});}catch(e){}
+      for(const [id,p] of dataWorkerPending){
+        dataWorkerPending.delete(id);
+        p.reject(new DOMException('Request superseded','AbortError'));
+      }
+    }
+    return new Promise((resolve,reject)=>{
+      dataWorkerPending.set(request,{resolve,reject});
+      try{
+        worker.postMessage({type:'build',request,urlA:addVersion(BASE+'data/raw/'+encodeURIComponent(a.id)+'.json'),urlB:addVersion(BASE+'data/raw/'+encodeURIComponent(b.id)+'.json'),idA:String(a.id),idB:String(b.id),timeframe,adjusted,version:version||''});
+      }catch(e){
+        dataWorkerPending.delete(request); reject(e);
+      }
+    });
+  }
+
+  async function loadRatioData(a,b,timeframe,adjusted,version){
+    const fast = workerBuildRatio(a,b,timeframe,adjusted,version);
+    if(fast) {
+      try { return await fast; }
+      catch(e) {
+        if(e?.name==='AbortError') throw e;
+        console.warn('Worker fallback:', e);
+      }
+    }
+    const [rawA,rawB] = await Promise.all([loadRaw(a),loadRaw(b)]);
+    const barsA = aggregate(getWorkingBars(a,rawA),timeframe);
+    const barsB = aggregate(getWorkingBars(b,rawB),timeframe);
+    return buildRatio(barsA,barsB);
+  }
 
   function setStatus(text){ $('status').textContent = text || ''; }
 
@@ -159,9 +404,10 @@ select{direction:rtl}
   }
 
   function showError(message){
-    $('error').textContent = 'خطا: ' + message;
+    const safe = String(message || 'خطای نامشخص');
+    $('error').textContent = 'خطا: ' + safe;
     $('error').classList.add('on');
-    console.error(message);
+    console.error(safe);
   }
 
   function normalizeText(value){
@@ -169,8 +415,10 @@ select{direction:rtl}
       .replace(/[يى]/g, 'ی')
       .replace(/ك/g, 'ک')
       .replace(/ۀ/g, 'ه')
-      .replace(/[۰-۹]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+      .replace(/[\u0660-\u0669]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+      .replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
       .replace(/[\u200c\u200f\u200e]/g, '')
+      .replace(/\s+/g, ' ')
       .trim()
       .toLowerCase();
   }
@@ -181,9 +429,7 @@ select{direction:rtl}
   }
 
   function toEpochMs(v){
-    if(typeof v === 'number' && Number.isFinite(v)){
-      return v < 100000000000 ? v * 1000 : v;
-    }
+    if(typeof v === 'number' && Number.isFinite(v)) return v < 100000000000 ? v * 1000 : v;
     if(typeof v === 'string'){
       const numeric = Number(v);
       if(Number.isFinite(numeric)) return numeric < 100000000000 ? numeric * 1000 : numeric;
@@ -193,9 +439,33 @@ select{direction:rtl}
     return null;
   }
 
-  function normalizeBars(data){
-    if(!Array.isArray(data)) throw new Error('ساختار فایل RAW معتبر نیست.');
+  function escapeHTML(value){
+    return String(value).replace(/[&<>'"]/g, (c) => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'
+    }[c]));
+  }
 
+  function symbolSearchText(s){
+    return [s.name,s.symbol,s.ticker,s.code,s.shortName,s.key].filter(Boolean).join(' ');
+  }
+
+  function buildSymbolRecord(s){
+    const name = String(s.name ?? s.title ?? s.label ?? '').trim();
+    const id = String(s.id ?? s.instrumentId ?? s.code ?? '').trim();
+    const ticker = String(s.symbol ?? s.ticker ?? s.shortName ?? '').trim();
+    return {
+      name: name || id,
+      id,
+      symbol: ticker,
+      ticker,
+      code: String(s.code ?? id),
+      key: normalizeText(name),
+      searchKey: normalizeText(symbolSearchText({name,id,symbol:ticker,ticker,code:String(s.code ?? id)}))
+    };
+  }
+
+  function validateBars(data){
+    if(!Array.isArray(data)) throw new Error('ساختار فایل داده معتبر نیست.');
     const map = new Map();
     for(const row of data){
       if(!row || typeof row !== 'object') continue;
@@ -206,17 +476,30 @@ select{direction:rtl}
       const close = toNumber(row.close);
       const volume = toNumber(row.volume) ?? 0;
       if(time === null || open === null || high === null || low === null || close === null) continue;
-      if(close <= 0) continue;
-      map.set(time, { time, open, high, low, close, volume });
+      if(![open,high,low,close].every((n) => Number.isFinite(n) && n > 0)) continue;
+      if(high < low) continue;
+      map.set(time, { time, open, high, low, close, volume:Number.isFinite(volume) && volume >= 0 ? volume : 0 });
     }
-
-    return [...map.values()].sort((x,y) => x.time - y.time);
+    const bars = [...map.values()].sort((a,b) => a.time - b.time);
+    if(bars.length < 2) throw new Error('داده قابل استفاده کافی نیست.');
+    return bars;
   }
 
-  async function fetchJSON(url){
-    const response = await fetch(url, { cache: 'default' });
+  async function fetchJSON(url, options={}){
+    const response = await fetch(url, {cache:'default', ...options});
     if(!response.ok) throw new Error('HTTP ' + response.status + ' — ' + url);
-    return response.json();
+    try{return await response.json();}
+    catch(e){throw new Error('پاسخ JSON نامعتبر است.');}
+  }
+
+  async function loadDataVersion(){
+    try{
+      const data = await fetchJSON(VERSION_URL, {cache:'no-store'});
+      const version = String(data?.version ?? data?.updated_at ?? '').trim();
+      state.dataVersion = version || '';
+    }catch(e){
+      state.dataVersion = '';
+    }
   }
 
   async function loadSymbols(){
@@ -224,36 +507,103 @@ select{direction:rtl}
     if(!Array.isArray(data) || data.length === 0) throw new Error('symbols.json خالی یا نامعتبر است.');
 
     state.symbols = data
-      .filter((s) => s && s.name !== undefined && s.id !== undefined)
-      .map((s) => ({
-        name: String(s.name),
-        id: String(s.id),
-        key: normalizeText(s.name)
-      }));
+      .map(buildSymbolRecord)
+      .filter((s) => s.id && s.name)
+      .sort((a,b) => normalizeText(a.name).localeCompare(normalizeText(b.name),'fa'));
 
     state.symbolIndex.clear();
-    state.symbols.forEach((s, i) => state.symbolIndex.set(s.id, { ...s, index: i }));
+    state.symbols.forEach((s) => state.symbolIndex.set(s.id, s));
+    if(state.symbols.length < 2) throw new Error('حداقل دو نماد برای نسبت لازم است.');
+  }
 
-    const find = (name) => state.symbols.find((s) => s.name === name);
-    state.a = find('فولاد') || state.symbols[0];
-    state.b = find('فملی') || state.symbols[1] || state.symbols[0];
+  function readSavedState(){
+    let saved = {};
+    try{saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') || {};}catch(e){}
 
+    const params = new URLSearchParams(location.search);
+    const aId = params.get('a') || saved.a;
+    const bId = params.get('b') || saved.b;
+    const tf = params.get('tf') || saved.tf;
+    const range = Number(params.get('range') ?? saved.range);
+    const style = params.get('style') || saved.style;
+    const mode = params.get('mode') || saved.mode;
+    const log = params.get('log');
+
+    const byId = (id) => id ? state.symbolIndex.get(String(id)) : null;
+    const first = state.symbols.find((s) => s.name === 'فولاد') || state.symbols[0];
+    const second = state.symbols.find((s) => s.name === 'فملی') || state.symbols.find((s) => s.id !== first?.id) || state.symbols[1];
+
+    state.a = byId(aId) || first;
+    state.b = byId(bId) || second;
+    if(state.a?.id === state.b?.id) state.b = state.symbols.find((s) => s.id !== state.a.id) || second;
+
+    if(TF_VALUES.has(tf)) state.timeframe = tf;
+    if(RANGE_VALUES.has(range)) state.rangeDays = range;
+    if(STYLE_VALUES.has(style)) state.priceStyle = style;
+    if(mode === 'adjusted' || mode === 'raw') state.adjusted = mode === 'adjusted';
+    if(log === '1' || log === '0') state.logScale = log === '1';
+    else if(typeof saved.log === 'boolean') state.logScale = saved.log;
+
+    syncControls();
+  }
+
+  function persistState(updateURL=true){
+    const payload = {a:state.a?.id,b:state.b?.id,tf:state.timeframe,range:state.rangeDays,style:state.priceStyle,mode:state.adjusted?'adjusted':'raw',log:state.logScale};
+    try{localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));}catch(e){}
+    if(updateURL){
+      const p = new URLSearchParams();
+      if(payload.a) p.set('a',payload.a);
+      if(payload.b) p.set('b',payload.b);
+      p.set('tf',payload.tf); p.set('range',String(payload.range)); p.set('style',payload.style); p.set('mode',payload.mode); p.set('log',payload.log?'1':'0');
+      history.replaceState(null,'','?' + p.toString());
+    }
+  }
+
+  function syncControls(){
+    $('timeframe').value = state.timeframe;
+    $('range').value = String(state.rangeDays);
+    $('style').value = state.priceStyle;
+    $('adjustedBtn').classList.toggle('active', state.adjusted);
+    $('rawBtn').classList.toggle('active', !state.adjusted);
+    $('logBtn').classList.toggle('active', state.logScale);
     updatePairUI();
-    setStatus(state.symbols.length + ' نماد آماده');
   }
 
   function updatePairUI(){
-    $('slotA').textContent = state.a?.name || '—';
-    $('slotB').textContent = state.b?.name || '—';
-    $('slotA').classList.toggle('active', state.targetSlot === 'A');
-    $('slotB').classList.toggle('active', state.targetSlot === 'B');
     const a = state.a?.name || '—';
     const b = state.b?.name || '—';
+    $('slotA').textContent = a;
+    $('slotB').textContent = b;
+    $('slotA').classList.toggle('active', state.targetSlot === 'A');
+    $('slotB').classList.toggle('active', state.targetSlot === 'B');
     $('pairTitle').innerHTML = '<b>' + escapeHTML(a) + '</b> / <b>' + escapeHTML(b) + '</b>';
   }
 
-  function escapeHTML(value){
-    return String(value).replace(/[&<>'"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  function updatePairMeta(bars){
+    if(!bars?.length){ $('pairMeta').textContent = '—'; return; }
+    const last = bars[bars.length-1];
+    const prev = bars.length > 1 ? bars[bars.length-2] : null;
+    const change = prev && prev.close !== 0 ? ((last.close / prev.close) - 1) * 100 : 0;
+    const sign = change > 0 ? '+' : '';
+    const date = new Date(last.time).toLocaleDateString('fa-IR');
+    $('pairMeta').textContent = 'نسبت آخر: ' + formatValue(last.close) + '  |  تغییر: ' + sign + change.toFixed(2) + '%  |  ' + date;
+  }
+
+  function formatValue(value){
+    if(!Number.isFinite(value)) return '—';
+    const abs = Math.abs(value);
+    if(abs >= 1000) return value.toLocaleString('en-US',{maximumFractionDigits:2});
+    if(abs >= 1) return value.toLocaleString('en-US',{maximumFractionDigits:4});
+    return value.toLocaleString('en-US',{maximumFractionDigits:8});
+  }
+
+  function positionResults(){
+    if(!state.searchOpen) return;
+    const rect = $('searchBox').getBoundingClientRect();
+    const maxW = Math.max(220, Math.min(420, window.innerWidth - 20));
+    $('results').style.left = Math.round(Math.min(rect.left, window.innerWidth - maxW - 10)) + 'px';
+    $('results').style.top = Math.round(rect.bottom + 4) + 'px';
+    $('results').style.width = Math.round(Math.min(rect.width, maxW)) + 'px';
   }
 
   function openSearch(slot){
@@ -261,11 +611,14 @@ select{direction:rtl}
     updatePairUI();
     $('searchInput').value = '';
     $('searchInput').placeholder = slot === 'A' ? 'جستجوی نماد اول...' : 'جستجوی نماد دوم...';
+    state.searchOpen = true;
+    positionResults();
     $('searchInput').focus();
     renderSearch('');
   }
 
   function closeSearch(){
+    state.searchOpen = false;
     $('results').classList.remove('open');
     state.searchResults = [];
     state.searchCursor = -1;
@@ -275,105 +628,127 @@ select{direction:rtl}
     const q = normalizeText(query);
     let matches;
     if(!q){
-      matches = state.symbols.slice(0, 20);
-    } else {
+      matches = state.symbols.slice(0,24);
+    }else{
       matches = state.symbols
-        .map((s) => ({s, score: s.key === q ? 0 : (s.key.startsWith(q) ? 1 : (s.key.includes(q) ? 2 : 99))}))
+        .map((s) => {
+          const name = s.key;
+          const full = s.searchKey;
+          const exact = normalizeText(s.name) === q || normalizeText(s.ticker) === q || normalizeText(s.id) === q;
+          const starts = name.startsWith(q) || full.startsWith(q);
+          const includes = full.includes(q);
+          return {s,score:exact?0:(starts?1:(includes?2:99))};
+        })
         .filter((x) => x.score < 99)
-        .sort((x,y) => x.score - y.score || x.s.name.localeCompare(y.s.name, 'fa'))
-        .slice(0, 30)
+        .sort((a,b) => a.score - b.score || a.s.name.localeCompare(b.s.name,'fa'))
+        .slice(0,40)
         .map((x) => x.s);
     }
 
     state.searchResults = matches;
     state.searchCursor = matches.length ? 0 : -1;
-
     const box = $('results');
     if(!matches.length){
-      box.innerHTML = '<div class="result"><span class="name">یافت نشد</span></div>';
+      box.innerHTML = '<div class="result empty"><span class="name">نمادی با این مشخصات پیدا نشد</span></div>';
       box.classList.add('open');
+      positionResults();
       return;
     }
 
-    box.innerHTML = matches.map((s, i) =>
-      '<div class="result' + (i === 0 ? ' selected' : '') + '" data-id="' + escapeHTML(s.id) + '" data-i="' + i + '">' +
+    box.innerHTML = matches.map((s,i) =>
+      '<div class="result' + (i===0?' selected':'') + '" role="option" aria-selected="' + (i===0?'true':'false') + '" data-id="' + escapeHTML(s.id) + '" data-i="' + i + '">' +
       '<span class="name">' + escapeHTML(s.name) + '</span>' +
-      '<span class="id">' + escapeHTML(s.id) + '</span>' +
+      '<span class="code">' + escapeHTML(s.ticker || s.id) + '</span>' +
       '</div>'
     ).join('');
     box.classList.add('open');
+    positionResults();
   }
 
   function highlightSearch(){
-    document.querySelectorAll('.result').forEach((el) => el.classList.remove('selected'));
+    document.querySelectorAll('.result[data-i]').forEach((el) => {
+      const active = Number(el.dataset.i) === state.searchCursor;
+      el.classList.toggle('selected', active);
+      el.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
     const el = document.querySelector('.result[data-i="' + state.searchCursor + '"]');
-    if(el){
-      el.classList.add('selected');
-      el.scrollIntoView({block:'nearest'});
-    }
+    if(el) el.scrollIntoView({block:'nearest'});
   }
 
   function chooseSymbolById(id){
     const sym = state.symbolIndex.get(String(id));
     if(!sym) return;
-    if(state.targetSlot === 'A') state.a = sym;
-    else state.b = sym;
-    updatePairUI();
+    if(state.targetSlot === 'A'){
+      if(state.b?.id === sym.id){
+        showError('دو نماد باید متفاوت باشند. برای جابه‌جایی از ⇄ استفاده کنید.');
+        return;
+      }
+      state.a = sym;
+    }else{
+      if(state.a?.id === sym.id){
+        showError('دو نماد باید متفاوت باشند. برای جابه‌جایی از ⇄ استفاده کنید.');
+        return;
+      }
+      state.b = sym;
+    }
     closeSearch();
     $('searchInput').value = '';
-    setStatus('در حال ساخت نسبت...');
-    buildAndRender().catch((e) => showError(e.message));
+    persistState();
+    buildAndRender();
   }
 
-  function cacheKey(){
-    return [state.a?.id, state.b?.id, state.timeframe, state.adjusted ? 'A' : 'R'].join('|');
+  function dataUrlFor(id){
+    const version = state.dataVersion ? '?v=' + encodeURIComponent(state.dataVersion) : '';
+    return BASE + 'data/raw/' + encodeURIComponent(id) + '.json' + version;
   }
 
   async function loadRaw(symbol){
     const id = String(symbol.id);
     if(state.rawCache.has(id)) return state.rawCache.get(id);
 
-    const promise = fetchJSON(BASE + 'data/raw/' + encodeURIComponent(id) + '.json')
-      .then(normalizeBars)
-      .then((bars) => {
-        if(bars.length < 2) throw new Error('داده کافی برای ' + symbol.name + ' وجود ندارد.');
-        return bars;
-      });
+    const promise = fetchJSON(dataUrlFor(id))
+      .then(validateBars)
+      .then((bars) => bars);
 
-    state.rawCache.set(id, promise);
+    state.rawCache.set(id,promise);
     try{
       const bars = await promise;
-      state.rawCache.set(id, bars);
+      state.rawCache.set(id,bars);
       return bars;
     }catch(e){
       state.rawCache.delete(id);
-      throw e;
+      throw new Error('داده نماد «' + symbol.name + '» در data/raw موجود نیست یا معتبر نیست.');
     }
+  }
+
+  function clearDataCaches(){
+    state.rawCache.clear();
+    state.adjustedCache.clear();
+    state.ratioCache.clear();
   }
 
   function findGaps(bars){
     const gaps = [];
-    for(let i=1; i<bars.length; i++){
-      const p = bars[i-1].close;
-      const c = bars[i].close;
-      if(p > 0 && c > 0){
-        const ratio = c / p;
-        if(ratio > 1.4 || ratio < 0.7) gaps.push({ idx:i, ratio });
+    for(let i=1;i<bars.length;i++){
+      const prev = bars[i-1].close;
+      const curr = bars[i].close;
+      if(prev>0 && curr>0){
+        const ratio = curr/prev;
+        if(ratio>1.4 || ratio<0.7) gaps.push({idx:i,ratio});
       }
     }
     return gaps;
   }
 
-  function adjustedBars(id, bars){
+  function adjustedBars(id,bars){
     if(state.adjustedCache.has(id)) return state.adjustedCache.get(id);
-
     const out = bars.map((b) => ({...b}));
-    for(let pass=0; pass<5; pass++){
+    for(let pass=0;pass<8;pass++){
       const gaps = findGaps(out);
       if(!gaps.length) break;
-      for(let g=gaps.length-1; g>=0; g--){
-        const {idx, ratio} = gaps[g];
-        for(let j=0; j<idx; j++){
+      for(let i=gaps.length-1;i>=0;i--){
+        const {idx,ratio} = gaps[i];
+        for(let j=0;j<idx;j++){
           out[j].open *= ratio;
           out[j].high *= ratio;
           out[j].low *= ratio;
@@ -381,143 +756,162 @@ select{direction:rtl}
         }
       }
     }
-    state.adjustedCache.set(id, out);
+    state.adjustedCache.set(id,out);
     return out;
   }
 
-  function getWorkingBars(symbol, raw){
-    return state.adjusted ? adjustedBars(String(symbol.id), raw) : raw;
+  function getWorkingBars(symbol,raw){
+    return state.adjusted ? adjustedBars(String(symbol.id),raw) : raw;
   }
 
-  function aggregate(bars, tf){
-    if(tf === '1D') return bars;
-    const out = [];
-    let bucket = null;
-
+  function aggregate(bars,tf){
+    if(tf==='1D') return bars;
+    const out=[];
+    let bucket=null;
     for(const b of bars){
       const d = new Date(b.time);
       let key;
-      if(tf === '1W'){
-        const day = d.getUTCDay() || 7;
-        const monday = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - day + 1));
-        key = monday.getTime();
-      } else {
-        key = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1);
+      if(tf==='1W'){
+        // Iranian market week starts Saturday. JS UTC day: Sun=0 ... Sat=6.
+        const offset = (d.getUTCDay() + 1) % 7;
+        key = Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()-offset);
+      }else{
+        key = Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),1);
       }
-
-      if(!bucket || bucket.time !== key){
+      if(!bucket || bucket.time!==key){
         if(bucket) out.push(bucket);
-        bucket = {time:key, open:b.open, high:b.high, low:b.low, close:b.close, volume:b.volume || 0};
-      } else {
-        if(b.high > bucket.high) bucket.high = b.high;
-        if(b.low < bucket.low) bucket.low = b.low;
-        bucket.close = b.close;
-        bucket.volume += b.volume || 0;
+        bucket = {time:key,open:b.open,high:b.high,low:b.low,close:b.close,volume:b.volume||0};
+      }else{
+        if(b.high>bucket.high) bucket.high=b.high;
+        if(b.low<bucket.low) bucket.low=b.low;
+        bucket.close=b.close;
+        bucket.volume += b.volume||0;
       }
     }
     if(bucket) out.push(bucket);
     return out;
   }
 
-  function buildRatio(a, b){
-    const key = [state.a.id, state.b.id, state.timeframe, state.adjusted ? 'A' : 'R'].join('|');
-    if(state.ratioCache.has(key)) return state.ratioCache.get(key);
-
-    const m1 = new Map(a.map((x) => [x.time, x]));
-    const m2 = new Map(b.map((x) => [x.time, x]));
-    const out = [];
-    let prevClose = null;
-
-    for(const [time, x1] of m1){
-      const x2 = m2.get(time);
-      if(!x2 || x1.close <= 0 || x2.close <= 0) continue;
-
-      const open = prevClose ?? (x1.open / x2.open);
-      const close = x1.close / x2.close;
-      const high = Math.max(x1.high / x2.low, x1.high / x2.close, x1.close / x2.low, open, close);
-      const low = Math.min(x1.low / x2.high, x1.low / x2.close, x1.close / x2.high, open, close);
-
-      out.push({time, open, high, low, close, volume:0});
-      prevClose = close;
-    }
-
-    state.ratioCache.set(key, out);
-    return out;
+  function ratioKey(){
+    return [state.a?.id,state.b?.id,state.timeframe,state.adjusted?'A':'R'].join('|');
   }
 
-  function applyRange(bars){
-    if(!bars.length || state.rangeDays === 0) return bars;
-    const last = bars[bars.length - 1].time;
-    const from = last - state.rangeDays * 86400000;
-    return bars.filter((b) => b.time >= from);
+  function buildRatio(a,b){
+    const key = ratioKey();
+    if(state.ratioCache.has(key)) return state.ratioCache.get(key);
+
+    const left = new Map(a.map((x) => [x.time,x]));
+    const right = new Map(b.map((x) => [x.time,x]));
+    const out=[];
+
+    for(const [time,x1] of left){
+      const x2 = right.get(time);
+      if(!x2) continue;
+      if([x1.open,x1.high,x1.low,x1.close,x2.open,x2.high,x2.low,x2.close].some((v) => !Number.isFinite(v) || v<=0)) continue;
+
+      // Ratio OHLC from the two synchronized OHLC bars. Open is the current period's
+      // open ratio, not the previous close. High/low are conservative ratio envelopes.
+      const open = x1.open / x2.open;
+      const close = x1.close / x2.close;
+      const high = Math.max(x1.high/x2.low, x1.high/x2.close, x1.close/x2.low, open, close);
+      const low = Math.min(x1.low/x2.high, x1.low/x2.close, x1.close/x2.high, open, close);
+      if(!(high>0) || !(low>0) || !Number.isFinite(high) || !Number.isFinite(low)) continue;
+      out.push({time,open,high,low,close,volume:0});
+    }
+
+    state.ratioCache.set(key,out);
+    return out;
   }
 
   function currentVisibleRange(bars){
     if(!bars.length) return undefined;
-    if(state.rangeDays === 0) return { from:bars[0].time, to:bars[bars.length-1].time };
-    const last = bars[bars.length - 1].time;
-    const from = last - state.rangeDays * 86400000;
-    const first = bars.find((b) => b.time >= from) || bars[0];
-    return { from:first.time, to:bars[bars.length-1].time };
+    if(state.rangeDays===0) return {from:bars[0].time,to:bars[bars.length-1].time};
+    const last = bars[bars.length-1].time;
+    const from = last - state.rangeDays*86400000;
+    const first = bars.find((b) => b.time>=from) || bars[0];
+    return {from:first.time,to:last};
   }
 
-  async function ensureChart(bars){
+  async function ensureChart(bars,serial){
     if(!VELA) throw new Error('کتابخانه Vela بارگذاری نشده است.');
-
+    if(serial !== state.buildSerial) return false;
     if(!bars.length) throw new Error('داده‌ای برای نمودار وجود ندارد.');
 
-    if(!state.chart){
-      state.chart = new VELA('#chart', {
-        data:bars,
-        timeframe: state.timeframe,
-        theme:'dark',
-        priceStyle:state.priceStyle,
-        logScale:state.logScale,
-        currentPriceLine:true,
-        nativeBackend:'auto',
-        animations:{zoom:true, pan:true},
-        drawings:{toolbar:true, tools:['trendline','hline','ray','box','text']}
-      });
-      await state.chart.ready();
-      return;
-    }
-
-    await state.chart.setMarket({
+    const chartOptions = {
       data:bars,
       timeframe:state.timeframe,
-      visibleRange:currentVisibleRange(bars)
-    }).then(() => state.chart.ready());
+      theme:'dark',
+      priceStyle:state.priceStyle,
+      logScale:state.logScale,
+      currentPriceLine:true,
+      upColor:'#089981',
+      downColor:'#f23645',
+      nativeBackend:'auto',
+      animations:{zoom:true,pan:true},
+      drawings:{toolbar:true},
+      settings:{hidden:[]},
+      volume:false
+    };
+
+    if(!state.chart){
+      state.chart = new VELA('#chart',chartOptions);
+      await state.chart.ready();
+      restoreRendererConfig();
+      restoreDrawingsForCurrentPair();
+      attachChartPersistence();
+    }else{
+      saveDrawingsForCurrentPair();
+      await state.chart.setMarket({
+        data:bars,
+        timeframe:state.timeframe,
+        visibleRange:currentVisibleRange(bars)
+      });
+      await state.chart.ready();
+      restoreDrawingsForCurrentPair();
+    }
+
+    if(serial !== state.buildSerial) return false;
+    if(state.chart?.renderer?.set) state.chart.renderer.set({priceStyle:state.priceStyle,logScale:state.logScale});
+    if(state.chart?.renderer?.set) state.chart.renderer.set({upColor:'#089981',downColor:'#f23645',currentPriceLine:true});
+    return true;
   }
 
   async function buildAndRender(){
-    if(!state.a || !state.b) throw new Error('دو نماد را انتخاب کنید.');
-    if(String(state.a.id) === String(state.b.id)) throw new Error('دو نماد باید متفاوت باشند.');
-
+    const serial = ++state.buildSerial;
     clearError();
-    setLoading(true, 'دریافت داده‌های ' + state.a.name + ' و ' + state.b.name + '...');
+    if(!state.a || !state.b) throw new Error('دو نماد را انتخاب کنید.');
+    if(String(state.a.id)===String(state.b.id)) throw new Error('دو نماد باید متفاوت باشند.');
 
-    const [rawA, rawB] = await Promise.all([loadRaw(state.a), loadRaw(state.b)]);
-    const barsA = aggregate(getWorkingBars(state.a, rawA), state.timeframe);
-    const barsB = aggregate(getWorkingBars(state.b, rawB), state.timeframe);
-    const ratio = buildRatio(barsA, barsB);
-    state.lastRatioBars = ratio;
-
-    if(ratio.length < 2) throw new Error('تقاطع زمانی دو نماد داده کافی ندارد.');
-
-    await ensureChart(ratio);
-
-    if(state.chart?.renderer?.set){
-      state.chart.renderer.set({priceStyle:state.priceStyle, logScale:state.logScale});
+    setLoading(true,'دریافت داده‌های ' + state.a.name + ' و ' + state.b.name + '...');
+    try{
+      const ratio = await loadRatioData(state.a,state.b,state.timeframe,state.adjusted,state.dataVersion);
+      if(serial !== state.buildSerial) return;
+      if(ratio.length<2) throw new Error('هم‌پوشانی زمانی دو نماد برای این تایم‌فریم کافی نیست.');
+      if(!(await ensureChart(ratio,serial))) return;
+      state.lastRatioBars = ratio;
+      state.lastRenderedKey = [state.a.id,state.b.id,state.timeframe,state.adjusted?'A':'R',state.priceStyle,state.logScale].join('|');
+      updatePairUI();
+      updatePairMeta(ratio);
+      setStatus(ratio.length.toLocaleString('fa-IR') + ' کندل نسبت');
+      setLoading(false);
+      persistState();
+      requestAnimationFrame(() => state.chart?.resize?.());
+    }catch(e){
+      if(serial !== state.buildSerial) return;
+      setLoading(false);
+      showError(e.message || 'خطای نامشخص');
+      setStatus('نیاز به بررسی داده یا مسیر فایل‌ها');
     }
-
-    updatePairUI();
-    setStatus(ratio.length.toLocaleString('fa-IR') + ' کندل نسبت');
-    setLoading(false);
   }
 
   function applyRendererChange(){
-    if(!state.chart) return;
-    state.chart.renderer.set({priceStyle:state.priceStyle, logScale:state.logScale});
+    if(!state.chart?.renderer?.set) return;
+    const patch = {};
+    if(state.chart.renderer.supports?.('priceStyle') !== false) patch.priceStyle = state.priceStyle;
+    if(state.chart.renderer.supports?.('logScale') !== false) patch.logScale = state.logScale;
+    if(state.chart.renderer.supports?.('upColor') !== false) patch.upColor = '#089981';
+    if(state.chart.renderer.supports?.('downColor') !== false) patch.downColor = '#f23645';
+    state.chart.renderer.set(patch);
   }
 
   function resetView(){
@@ -527,136 +921,205 @@ select{direction:rtl}
   }
 
   async function changeTimeframe(value){
+    if(!TF_VALUES.has(value)) return;
     state.timeframe = value;
     state.ratioCache.clear();
-    try{
-      await buildAndRender();
-    }catch(e){ setLoading(false); showError(e.message); }
+    persistState();
+    await buildAndRender();
   }
 
   async function changeMode(adjusted){
     if(state.adjusted === adjusted) return;
     state.adjusted = adjusted;
-    updateModeUI();
     state.ratioCache.clear();
-    try{
-      await buildAndRender();
-    }catch(e){ setLoading(false); showError(e.message); }
-  }
-
-  function updateModeUI(){
-    $('adjustedBtn').classList.toggle('active', state.adjusted);
-    $('rawBtn').classList.toggle('active', !state.adjusted);
+    syncControls();
+    persistState();
+    await buildAndRender();
   }
 
   function swapSymbols(){
-    const temp = state.a;
-    state.a = state.b;
-    state.b = temp;
+    if(!state.a || !state.b) return;
+    const temp = state.a; state.a = state.b; state.b = temp;
     state.ratioCache.clear();
     updatePairUI();
-    buildAndRender().catch((e) => { setLoading(false); showError(e.message); });
+    persistState();
+    buildAndRender();
+  }
+
+  async function copyShareLink(){
+    persistState(true);
+    const url = location.href;
+    try{
+      await navigator.clipboard.writeText(url);
+      setStatus('لینک تنظیمات کپی شد');
+      setTimeout(() => setStatus(state.lastRatioBars.length.toLocaleString('fa-IR') + ' کندل نسبت'),1400);
+    }catch(e){
+      showError('مرورگر اجازه کپی خودکار نداد. لینک فعلی را از نوار آدرس کپی کنید.');
+    }
   }
 
   async function takeScreenshot(){
-    if(!state.chart?.renderer?.screenshot) return;
+    if(!state.chart?.renderer?.screenshot){
+      showError('خروجی PNG این renderer در دسترس نیست.');
+      return;
+    }
     const dataURL = state.chart.renderer.screenshot();
-    if(!dataURL) return;
+    if(!dataURL){showError('ساخت تصویر نمودار ناموفق بود.');return;}
     const a = document.createElement('a');
     a.href = dataURL;
-    a.download = 'MHDI-' + (state.a?.name || 'A') + '-' + (state.b?.name || 'B') + '.png';
-    a.click();
+    a.download = 'MHDI-' + (state.a?.name||'A') + '-' + (state.b?.name||'B') + '-' + state.timeframe + '.png';
+    document.body.appendChild(a); a.click(); a.remove();
   }
 
   async function toggleFullscreen(){
-    const root = document.documentElement;
     try{
-      if(!document.fullscreenElement) await root.requestFullscreen();
+      if(!document.fullscreenElement) await document.documentElement.requestFullscreen();
       else await document.exitFullscreen();
-      setTimeout(() => state.chart?.resize?.(), 50);
-    }catch(e){
-      showError('تمام‌صفحه در این مرورگر در دسترس نیست.');
-    }
+      setTimeout(() => state.chart?.resize?.(),80);
+    }catch(e){showError('تمام‌صفحه در این مرورگر در دسترس نیست.');}
   }
 
-  $('slotA').addEventListener('click', () => openSearch('A'));
-  $('slotB').addEventListener('click', () => openSearch('B'));
-  $('swapBtn').addEventListener('click', swapSymbols);
-  $('analyzeBtn').addEventListener('click', () => buildAndRender().catch((e) => { setLoading(false); showError(e.message); }));
-
-  $('searchInput').addEventListener('input', (e) => renderSearch(e.target.value));
-  $('searchInput').addEventListener('focus', (e) => renderSearch(e.target.value));
-  $('searchInput').addEventListener('keydown', (e) => {
-    if(e.key === 'Escape') { closeSearch(); return; }
-    if(e.key === 'ArrowDown'){
+  $('slotA').addEventListener('click',() => openSearch('A'));
+  $('slotB').addEventListener('click',() => openSearch('B'));
+  $('swapBtn').addEventListener('click',swapSymbols);
+  $('analyzeBtn').addEventListener('click',buildAndRender);
+  $('searchInput').addEventListener('input',(e) => renderSearch(e.target.value));
+  $('searchInput').addEventListener('focus',(e) => {if(!state.searchOpen) openSearch(state.targetSlot); else renderSearch(e.target.value);});
+  $('searchInput').addEventListener('keydown',(e) => {
+    if(e.key==='Escape'){closeSearch();return;}
+    if(e.key==='ArrowDown'){
       e.preventDefault();
-      if(!state.searchResults.length) return;
-      state.searchCursor = Math.min(state.searchCursor + 1, state.searchResults.length - 1);
-      highlightSearch();
+      if(state.searchResults.length){state.searchCursor=Math.min(state.searchCursor+1,state.searchResults.length-1);highlightSearch();}
+      return;
     }
-    if(e.key === 'ArrowUp'){
+    if(e.key==='ArrowUp'){
       e.preventDefault();
-      if(!state.searchResults.length) return;
-      state.searchCursor = Math.max(state.searchCursor - 1, 0);
-      highlightSearch();
+      if(state.searchResults.length){state.searchCursor=Math.max(state.searchCursor-1,0);highlightSearch();}
+      return;
     }
-    if(e.key === 'Enter'){
+    if(e.key==='Enter'){
       e.preventDefault();
       const sym = state.searchResults[state.searchCursor];
       if(sym) chooseSymbolById(sym.id);
     }
   });
 
-  $('results').addEventListener('mousedown', (e) => e.preventDefault());
-  $('results').addEventListener('click', (e) => {
+  $('results').addEventListener('mousedown',(e) => e.preventDefault());
+  $('results').addEventListener('click',(e) => {
     const row = e.target.closest('.result[data-id]');
     if(row) chooseSymbolById(row.dataset.id);
   });
 
-  document.addEventListener('click', (e) => {
-    if(!$('searchBox').contains(e.target)) closeSearch();
+  document.addEventListener('click',(e) => {
+    if(!$('searchBox').contains(e.target) && !$('results').contains(e.target)) closeSearch();
   });
 
-  $('timeframe').addEventListener('change', (e) => changeTimeframe(e.target.value));
-  $('range').addEventListener('change', (e) => {
+  $('timeframe').addEventListener('change',(e) => changeTimeframe(e.target.value));
+  $('range').addEventListener('change',(e) => {
     state.rangeDays = Number(e.target.value);
-    if(!state.chart){ return; }
-    if(state.chart && state.lastRatioBars.length){
-      const range = currentVisibleRange(state.lastRatioBars);
-      if(range) state.chart.setVisibleRange(range);
-    }
+    if(!RANGE_VALUES.has(state.rangeDays)) state.rangeDays = 0;
+    persistState();
+    resetView();
   });
-
-  $('style').addEventListener('change', (e) => {
-    state.priceStyle = e.target.value;
+  $('style').addEventListener('change',(e) => {
+    const value = e.target.value;
+    if(!STYLE_VALUES.has(value)) return;
+    state.priceStyle = value;
     applyRendererChange();
+    persistState();
   });
-
-  $('adjustedBtn').addEventListener('click', () => changeMode(true));
-  $('rawBtn').addEventListener('click', () => changeMode(false));
-
-  $('logBtn').addEventListener('click', () => {
+  $('adjustedBtn').addEventListener('click',() => changeMode(true));
+  $('rawBtn').addEventListener('click',() => changeMode(false));
+  $('logBtn').addEventListener('click',() => {
     state.logScale = !state.logScale;
-    $('logBtn').classList.toggle('active', state.logScale);
+    $('logBtn').classList.toggle('active',state.logScale);
     applyRendererChange();
+    persistState();
+  });
+  $('resetBtn').addEventListener('click',resetView);
+  $('shareBtn').addEventListener('click',copyShareLink);
+  $('fullscreenBtn').addEventListener('click',toggleFullscreen);
+  $('shotBtn').addEventListener('click',takeScreenshot);
+  window.addEventListener('resize',() => {positionResults();state.chart?.resize?.();});
+  document.addEventListener('visibilitychange',() => { if(document.visibilityState==='hidden'){saveDrawingsForCurrentPair();saveRendererConfig();} });
+  window.addEventListener('beforeunload',() => {saveDrawingsForCurrentPair();saveRendererConfig();try{dataWorker?.terminate();}catch(e){}});
+  window.addEventListener('scroll',positionResults,{passive:true});
+
+  document.addEventListener('keydown',(e) => {
+    if((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==='k'){
+      e.preventDefault(); openSearch(state.targetSlot);
+    }
+    if(e.key==='Escape' && state.searchOpen) closeSearch();
   });
 
-  $('resetBtn').addEventListener('click', resetView);
-  $('fullscreenBtn').addEventListener('click', toggleFullscreen);
-  $('shotBtn').addEventListener('click', takeScreenshot);
+  // ------------------------------------------------------------
+  // PERSISTENCE: chart cosmetics + drawings survive reloads and
+  // are keyed per ratio pair/timeframe/mode. RAW data is untouched.
+  // ------------------------------------------------------------
+  const CONFIG_STORAGE_KEY = 'MHDI_RATIO_RENDERER_CONFIG_V1';
+  const DRAWINGS_STORAGE_PREFIX = 'MHDI_RATIO_DRAWINGS_V1|';
+  let drawingSaveTimer = null;
 
-  window.addEventListener('resize', () => state.chart?.resize?.());
+  function drawingKey(){
+    return DRAWINGS_STORAGE_PREFIX + [state.a?.id||'',state.b?.id||'',state.timeframe,state.adjusted?'A':'R'].join('|');
+  }
+  function saveRendererConfig(){
+    try{
+      const config = state.chart?.renderer?.getConfig?.();
+      if(config) localStorage.setItem(CONFIG_STORAGE_KEY,JSON.stringify(config));
+    }catch(e){}
+  }
+  function restoreRendererConfig(){
+    try{
+      const raw = localStorage.getItem(CONFIG_STORAGE_KEY);
+      if(raw && state.chart?.renderer?.applyConfig) state.chart.renderer.applyConfig(JSON.parse(raw));
+    }catch(e){}
+  }
+  function saveDrawingsForCurrentPair(){
+    try{
+      const doc = state.chart?.drawings?.toJSON?.();
+      if(doc) localStorage.setItem(drawingKey(),JSON.stringify(doc));
+    }catch(e){}
+  }
+  function clearChartDrawings(){
+    try{
+      const drawings = state.chart?.drawings?.all?.() || [];
+      for(const d of drawings){ if(d?.id) state.chart.drawings.remove(d.id); }
+    }catch(e){}
+  }
+  function restoreDrawingsForCurrentPair(){
+    try{
+      const raw = localStorage.getItem(drawingKey());
+      clearChartDrawings();
+      if(raw && state.chart?.drawings?.fromJSON) state.chart.drawings.fromJSON(JSON.parse(raw));
+    }catch(e){}
+  }
+  function scheduleDrawingSave(){
+    clearTimeout(drawingSaveTimer);
+    drawingSaveTimer = setTimeout(saveDrawingsForCurrentPair,180);
+  }
+  function attachChartPersistence(){
+    if(!state.chart) return;
+    const events=['drawing:created','drawing:edited','drawing:removed','drawing:selected','drawing:settings'];
+    for(const event of events){
+      try{ state.chart.on?.(event,scheduleDrawingSave); }catch(e){}
+    }
+    try{
+      state.chart.renderer?.onConfigChanged?.(saveRendererConfig);
+    }catch(e){}
+  }
 
   (async function boot(){
     try{
-      if(!VELA) throw new Error('Vela بارگذاری نشده است.');
-      setLoading(true, 'در حال بارگذاری فهرست نمادها...');
+      if(!VELA) throw new Error('کتابخانه Vela بارگذاری نشده است.');
+      setLoading(true,'در حال بارگذاری فهرست نمادها...');
+      await loadDataVersion();
       await loadSymbols();
-      updateModeUI();
+      readSavedState();
       await buildAndRender();
     }catch(e){
       setLoading(false);
-      showError(e.message);
+      showError(e.message || 'خطای نامشخص');
       setStatus('نیاز به بررسی داده یا مسیر فایل‌ها');
     }
   })();
