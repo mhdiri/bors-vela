@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="color-scheme" content="dark">
-<title>MHDI Ratio — Vela Workspace</title>
+<title>MHDI Ratio V19 — Vela Workspace</title>
 <style>
 :root{color-scheme:dark;--bg:#131722;--panel:#1e222d;--border:#2a2e39;--text:#d1d4dc;--muted:#787b86;--accent:#2962ff;--danger:#ef5350}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -21,8 +21,16 @@ button.active{background:var(--accent);color:#fff}
 button:disabled{opacity:.45;cursor:default}
 input{outline:none}
 .app{height:100vh;display:grid;grid-template-rows:42px 1fr;background:var(--bg)}
+.app.toolbar-mounted{grid-template-rows:1fr}.app.toolbar-mounted .hostbar{display:none}
 .hostbar{height:42px;display:flex;align-items:center;gap:5px;padding:0 7px;border-bottom:1px solid var(--border);background:var(--bg);direction:ltr;white-space:nowrap;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;z-index:32000}
 .hostbar::-webkit-scrollbar{display:none}
+.mdhi-controls{display:flex;align-items:center;gap:5px;min-width:0;max-width:100%;flex:0 1 auto;white-space:nowrap;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;direction:ltr}
+.mdhi-controls::-webkit-scrollbar{display:none}
+.mdhi-controls.mounted{max-width:min(76vw,980px);flex:0 1 auto;padding:1px 4px;overflow-x:auto;border-radius:3px}
+#iranUtcClock{position:absolute;top:47px;left:54px;right:auto;z-index:11900;display:flex;align-items:center;gap:9px;padding:4px 7px;background:rgba(19,23,34,.72);border:1px solid rgba(255,255,255,.07);border-radius:3px;color:#a8adb8;font-size:10px;direction:ltr;pointer-events:none;backdrop-filter:blur(4px);font-variant-numeric:tabular-nums;white-space:nowrap}
+#iranUtcClock b{color:#e1e5ed;font-weight:600}
+#pairMeta{position:absolute;top:75px;left:54px;right:auto;z-index:11900;max-width:min(520px,calc(100% - 120px));padding:4px 7px;border-radius:3px;background:rgba(19,23,34,.58);border:1px solid rgba(255,255,255,.04);pointer-events:none;direction:rtl;color:#a8adb8;font-size:10px;backdrop-filter:blur(4px);user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:760px){.mdhi-controls.mounted{max-width:calc(100vw - 150px);gap:4px;padding:0 2px}#iranUtcClock{left:48px;top:46px;font-size:9px;gap:6px}#pairMeta{left:48px;top:72px;max-width:calc(100% - 95px)}}
 .separator{width:1px;height:24px;background:var(--border);margin:0 3px;flex:0 0 auto}
 .brand{font-weight:800;color:#fff;letter-spacing:.5px;padding:5px 7px;flex:0 0 auto;user-select:none}
 .search{position:relative;width:170px;height:30px;display:flex;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:3px;flex:0 0 auto}
@@ -34,56 +42,46 @@ input{outline:none}
 .result{min-height:36px;padding:8px 11px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04)}
 .result:last-child{border-bottom:0}.result:hover,.result.selected{background:#2a2e39}.result .name{font-weight:700;color:#e6e8eb;overflow:hidden;text-overflow:ellipsis}.result .code{font-size:10px;color:var(--muted);direction:ltr;flex:0 0 auto}.result.empty{cursor:default;color:var(--muted)}
 .pair{display:flex;align-items:center;gap:2px;background:var(--panel);border:1px solid var(--border);border-radius:3px;height:30px;flex:0 0 auto}.pair-slot{min-width:76px;max-width:116px;height:28px;padding:0 9px;display:flex;align-items:center;justify-content:center;color:#e5e7eb;font-weight:700;cursor:pointer;overflow:hidden;text-overflow:ellipsis;direction:rtl}.pair-slot:hover{background:rgba(255,255,255,.05)}.pair-slot.active{background:rgba(41,98,255,.18);outline:1px solid var(--accent)}.pair-sep{color:var(--text);padding:0 4px;font-size:14px;font-weight:800;line-height:1}.go{height:24px;padding:0 11px;background:var(--accent);color:#fff!important;font-weight:700;margin-left:3px}.go:hover{background:#1f55e5}
-.control,select{height:30px;padding:0 8px;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:3px;cursor:pointer;outline:none}select{direction:rtl}.tool{height:30px;padding:0 9px;flex:0 0 auto}.status{margin-left:auto;height:30px;display:flex;align-items:center;padding:0 8px;color:var(--muted);direction:rtl;max-width:330px;overflow:hidden;text-overflow:ellipsis;min-width:100px}
+.control,select{height:30px;padding:0 8px;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:3px;cursor:pointer;outline:none}select{direction:rtl}.tool{height:30px;padding:0 9px;flex:0 0 auto}.status{margin-left:auto;flex:0 1 auto;height:30px;display:flex;align-items:center;padding:0 8px;color:var(--muted);direction:rtl;max-width:330px;overflow:hidden;text-overflow:ellipsis;min-width:100px}
 .main{position:relative;min-width:0;min-height:0;overflow:hidden;background:var(--bg);direction:ltr}#chartWrap{position:absolute;inset:0;direction:ltr;unicode-bidi:isolate}#chart{width:100%;height:100%;min-width:0;min-height:0;contain:layout paint size;direction:ltr;unicode-bidi:isolate}
 #loading{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(19,23,34,.82);z-index:45000;color:#aed581;font-size:13px;direction:rtl;backdrop-filter:blur(2px)}#loading.on{display:flex}#loading span{padding:10px 14px;border:1px solid var(--border);border-radius:4px;background:rgba(30,34,45,.94);box-shadow:0 10px 30px rgba(0,0,0,.3)}
 #error{position:absolute;left:10px;right:10px;bottom:10px;display:none;padding:10px 12px;border-radius:4px;background:var(--danger);color:#fff;z-index:45000;direction:rtl;white-space:pre-wrap;word-break:break-word;box-shadow:0 8px 20px rgba(0,0,0,.3)}#error.on{display:block}
-#pairTitle{position:absolute;top:54px;right:12px;z-index:12000;padding:5px 8px;border-radius:3px;background:rgba(19,23,34,.74);border:1px solid rgba(255,255,255,.06);pointer-events:none;direction:rtl;backdrop-filter:blur(4px);user-select:none}#pairTitle b{color:#fff}
-#pairMeta{position:absolute;top:84px;right:12px;z-index:12000;padding:4px 7px;border-radius:3px;background:rgba(19,23,34,.58);border:1px solid rgba(255,255,255,.04);pointer-events:none;direction:rtl;color:#a8adb8;font-size:10px;backdrop-filter:blur(4px);user-select:none}
 @media(max-width:1050px){.brand{display:none}.search{width:150px}.status{max-width:220px}.pair-slot{min-width:64px}}
 @media(max-width:760px){.hostbar{gap:4px}.status{display:none}.search{width:150px}.tool{padding:0 8px}.pair-slot{min-width:58px;max-width:86px}.control,select,.tool,.pair,.search{height:32px}.pair-slot{height:30px}.go{height:26px}.pair{height:32px}}
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="hostbar">
-    <div class="brand">MHDI</div>
-    <div class="search" id="searchBox">
-      <input id="searchInput" type="text" autocomplete="off" spellcheck="false" placeholder="نماد اول..." aria-label="جستجوی نماد">
+  <div class="hostbar" id="hostbar">
+    <div id="hostControls" class="mdhi-controls">
+      <div class="brand">MHDI</div>
+      <div class="search" id="searchBox">
+        <input id="searchInput" type="text" autocomplete="off" spellcheck="false" placeholder="جستجوی نماد..." aria-label="جستجوی نماد">
+      </div>
+      <div class="pair">
+        <button id="slotA" class="pair-slot active" title="انتخاب نماد اول">—</button>
+        <span class="pair-sep">به</span>
+        <button id="slotB" class="pair-slot" title="انتخاب نماد دوم">—</button>
+        <button id="swapBtn" class="control" title="جابه‌جایی دو نماد">⇄</button>
+        <button id="analyzeBtn" class="go" title="نمایش نسبت">تحلیل</button>
+      </div>
+      <div class="separator"></div>
+      <select id="timeframe" title="تایم‌فریم">
+        <option value="1D">روزانه</option>
+        <option value="1W" selected>هفتگی</option>
+        <option value="1M">ماهانه</option>
+      </select>
+      <button id="customTfBtn" class="tool" title="افزودن تایم‌فریم سفارشی بالاتر از روزانه">بازه دلخواه</button>
+      <button id="adjustedBtn" class="tool" title="نمایش عملکردی؛ داده RAW تغییر نمی‌کند">عملکردی</button>
+      <button id="rawBtn" class="tool active" title="نمایش داده خام">خام</button>
+      <button id="fullscreenBtn" class="tool" title="تمام صفحه">⛶</button>
+      <button id="themeBtn" class="tool" title="تغییر تم روشن / مشکی">تم: مشکی</button>
+      <div id="status" class="status">Vela Workspace · آماده‌سازی...</div>
     </div>
-    <div class="pair">
-      <button id="slotA" class="pair-slot active" title="انتخاب نماد اول">—</button>
-      <span class="pair-sep">به</span>
-      <button id="slotB" class="pair-slot" title="انتخاب نماد دوم">—</button>
-      <button id="swapBtn" class="control" title="جابه‌جایی دو نماد">⇄</button>
-      <button id="analyzeBtn" class="go" title="نمایش نسبت">تحلیل</button>
-    </div>
-    <div class="separator"></div>
-    <select id="timeframe" title="تایم‌فریم">
-      <option value="1D">روزانه</option>
-      <option value="1W" selected>هفتگی</option>
-      <option value="1M">ماهانه</option>
-    </select>
-    <button id="adjustedBtn" class="tool" title="نمایش عملکردی؛ داده RAW تغییر نمی‌کند">عملکردی</button>
-    <button id="rawBtn" class="tool active" title="نمایش داده خام">خام</button>
-    <button id="logBtn" class="tool" title="مقیاس لگاریتمی">Log</button>
-    <button id="resetBtn" class="tool" title="بازنشانی دید نمودار">بازنشانی</button>
-    <button id="fullscreenBtn" class="tool" title="تمام صفحه">⛶</button>
-    <button id="shareBtn" class="tool" title="کپی لینک این چارت">اشتراک</button>
-    <button id="themeBtn" class="tool" title="تغییر تم روشن / مشکی">تم: مشکی</button>
-    <select id="range" title="بازه نمایش">
-      <option value="30">۱ ماه</option>
-      <option value="90">۳ ماه</option>
-      <option value="180">۶ ماه</option>
-      <option value="365">۱ سال</option>
-      <option value="1825">۵ سال</option>
-      <option value="0" selected>همه</option>
-    </select>
-    <div id="status" class="status">Vela Workspace · آماده‌سازی...</div>
   </div>
   <main class="main">
     <div id="chartWrap"><div id="chart"></div></div>
-    <div id="pairTitle"><b>—</b> <span>به</span> <b>—</b></div>
+    <div id="iranUtcClock" aria-live="off"><span>UTC <b id="utcTime">--:--:--</b></span><span>تاریخ ایران <b id="iranDate">----</b></span></div>
     <div id="pairMeta">—</div>
     <div id="loading"><span>در حال بارگذاری...</span></div>
     <div id="error"></div>
@@ -110,9 +108,8 @@ input{outline:none}
   const SYMBOLS_URL = BASE + 'data/symbols.json';
   const VERSION_URL = BASE + 'data/version.json';
   const STORAGE_KEY = 'MHDI_RATIO_STATE_V2';
-  const TF_VALUES = new Set(['1D','1W','1M']);
   const STYLE_VALUES = new Set(['candles','bars','line','area','baseline']);
-  const RANGE_VALUES = new Set([0,30,90,180,365,1825]);
+  const CHART_STORAGE_PREFIX = 'MHDI_RATIO_CHART_V2|';
   const DATA_FETCH_TIMEOUT_MS = 20000;
 
   const state = {
@@ -122,7 +119,6 @@ input{outline:none}
     a: null,
     b: null,
     timeframe: '1W',
-    rangeDays: 0,
     priceStyle: 'candles',
     adjusted: false,
     logScale: false,
@@ -138,7 +134,13 @@ input{outline:none}
     buildSerial: 0,
     lastRatioBars: [],
     lastRenderedKey: '',
-    searchOpen: false
+    searchOpen: false,
+    activeChartKey: '',
+    defaultRendererConfig: null,
+    defaultWorkspaceChart: null,
+    isRestoring: false,
+    controlsObserver: null,
+    wheelAttached: false
   };
 
   // ------------------------------------------------------------
@@ -202,6 +204,67 @@ input{outline:none}
           throw new Error('پاسخ JSON نامعتبر است.');
         }
         return normalize(data);
+      }
+      function findGaps(bars){
+        const gaps=[];
+        for(let i=1;i<bars.length;i++){
+          const prev=bars[i-1].close, curr=bars[i].close;
+          if(prev>0 && curr>0){const ratio=curr/prev;if(ratio>1.4 || ratio<0.7) gaps.push({idx:i,ratio});}
+        }
+        return gaps;
+      }
+      function adjusted(id,bars){
+        if(adjustedCache.has(id)) return adjustedCache.get(id);
+        const out=bars.map((b)=>({...b}));
+        for(let pass=0;pass<8;pass++){
+          const gaps=findGaps(out); if(!gaps.length) break;
+          for(let i=gaps.length-1;i>=0;i--){
+            const {idx,ratio}=gaps[i];
+            for(let j=0;j<idx;j++){out[j].open*=ratio;out[j].high*=ratio;out[j].low*=ratio;out[j].close*=ratio;}
+          }
+        }
+        adjustedCache.set(id,out); return out;
+      }
+      function aggregate(bars,tf){
+        const match=/^(\d{1,2})(D|W|M)$/.exec(String(tf||''));
+        if(!match) throw new Error('تایم‌فریم معتبر نیست: '+tf);
+        const count=Number(match[1]), unit=match[2];
+        if(unit==='D' && count===1) return bars;
+        const out=[];let bucket=null;const DAY=86400000;const anchorSaturday=Date.UTC(1970,0,3);
+        for(const b of bars){
+          const d=new Date(b.time);let key;
+          if(unit==='D'){
+            const day=Math.floor(Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate())/DAY);
+            const anchorDay=Math.floor(anchorSaturday/DAY);
+            key=(anchorDay+Math.floor((day-anchorDay)/count)*count)*DAY;
+          }else if(unit==='W'){
+            const offset=(d.getUTCDay()+1)%7;
+            const weekStart=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()-offset);
+            const width=count*7*DAY;
+            key=anchorSaturday+Math.floor((weekStart-anchorSaturday)/width)*width;
+          }else{
+            const monthIndex=(d.getUTCFullYear()-1970)*12+d.getUTCMonth();
+            const groupIndex=Math.floor(monthIndex/count)*count;
+            key=Date.UTC(1970+Math.floor(groupIndex/12),((groupIndex%12)+12)%12,1);
+          }
+          if(!bucket || bucket.time!==key){if(bucket)out.push(bucket);bucket={time:key,open:b.open,high:b.high,low:b.low,close:b.close,volume:b.volume||0};}
+          else{if(b.high>bucket.high)bucket.high=b.high;if(b.low<bucket.low)bucket.low=b.low;bucket.close=b.close;bucket.volume+=b.volume||0;}
+        }
+        if(bucket)out.push(bucket);return out;
+      }
+      function ratio(a,b,key){
+        if(ratioCache.has(key)) return ratioCache.get(key);
+        const right=new Map(b.map((x)=>[x.time,x]));const out=[];
+        for(const x1 of a){
+          const x2=right.get(x1.time);if(!x2)continue;
+          if([x1.open,x1.high,x1.low,x1.close,x2.open,x2.high,x2.low,x2.close].some((v)=>!Number.isFinite(v)||v<=0))continue;
+          const open=x1.open/x2.open, close=x1.close/x2.close;
+          const high=Math.max(x1.high/x2.low,x1.high/x2.close,x1.close/x2.low,open,close);
+          const low=Math.min(x1.low/x2.high,x1.low/x2.close,x1.close/x2.high,open,close);
+          if(!(high>0)||!(low>0)||!Number.isFinite(high)||!Number.isFinite(low))continue;
+          out.push({time:x1.time,open,high,low,close,volume:0});
+        }
+        ratioCache.set(key,out);return out;
       }
       function processBuffers(bufferA,bufferB,m){
         const a=parseBuffer(bufferA);
@@ -504,6 +567,50 @@ input{outline:none}
     if(state.symbols.length < 2) throw new Error('حداقل دو نماد برای نسبت لازم است.');
   }
 
+  function parseTimeframe(value){
+    const tf = String(value || '').trim().toUpperCase();
+    const match = /^(\d{1,2})(D|W|M)$/.exec(tf);
+    if(!match) return null;
+    const count = Number(match[1]);
+    if(!Number.isInteger(count) || count < 1 || count > 99) return null;
+    if(match[2] === 'D' && count === 1) return {count,unit:'D',value:tf};
+    if((match[2] === 'W' || match[2] === 'M') && count === 1) return {count,unit:match[2],value:tf};
+    if(count < 2) return null;
+    return {count,unit:match[2],value:tf};
+  }
+
+  function isValidTimeframe(value){ return !!parseTimeframe(value); }
+
+  function timeframeLabel(value){
+    const parsed = parseTimeframe(value);
+    if(!parsed) return String(value || '');
+    if(value === '1D') return 'روزانه';
+    if(value === '1W') return 'هفتگی';
+    if(value === '1M') return 'ماهانه';
+    const n = parsed.count.toLocaleString('fa-IR');
+    if(parsed.unit === 'D') return n + ' روزه';
+    if(parsed.unit === 'W') return n + ' هفته';
+    return n + ' ماهه';
+  }
+
+  function syncTimeframeControl(){
+    const select = $('timeframe');
+    if(!select) return;
+    const value = state.timeframe;
+    let option = [...select.options].find((item)=>item.value===value);
+    if(!option){
+      option = document.createElement('option');
+      option.value = value;
+      option.textContent = 'دلخواه: ' + timeframeLabel(value);
+      select.appendChild(option);
+    }
+    select.value = value;
+  }
+
+  function chartStorageKey(a=state.a,b=state.b,tf=state.timeframe,adjusted=state.adjusted){
+    return CHART_STORAGE_PREFIX + [a?.id||'',b?.id||'',tf,adjusted?'A':'R'].join('|');
+  }
+
   function readSavedState(){
     let saved = {};
     try{saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') || {};}catch(e){}
@@ -512,7 +619,6 @@ input{outline:none}
     const aId = params.get('a') || saved.a;
     const bId = params.get('b') || saved.b;
     const tf = params.get('tf') || saved.tf;
-    const range = Number(params.get('range') ?? saved.range);
     const style = params.get('style') || saved.style;
     const mode = params.get('mode') || saved.mode;
     const log = params.get('log');
@@ -526,8 +632,7 @@ input{outline:none}
     state.b = byId(bId) || second;
     if(state.a?.id === state.b?.id) state.b = state.symbols.find((s) => s.id !== state.a.id) || second;
 
-    if(TF_VALUES.has(tf)) state.timeframe = tf;
-    if(RANGE_VALUES.has(range)) state.rangeDays = range;
+    if(isValidTimeframe(tf)) state.timeframe = tf;
     if(STYLE_VALUES.has(style)) state.priceStyle = style;
     if(mode === 'adjusted' || mode === 'raw') state.adjusted = mode === 'adjusted';
     if(log === '1' || log === '0') state.logScale = log === '1';
@@ -539,17 +644,9 @@ input{outline:none}
     syncThemeButton();
   }
 
-  function persistState(updateURL=false){
-    const payload = {a:state.a?.id,b:state.b?.id,tf:state.timeframe,range:state.rangeDays,style:state.priceStyle,mode:state.adjusted?'adjusted':'raw',log:state.logScale,theme:state.theme};
+  function persistState(){
+    const payload = {a:state.a?.id,b:state.b?.id,tf:state.timeframe,style:state.priceStyle,mode:state.adjusted?'adjusted':'raw',log:state.logScale,theme:state.theme};
     try{localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));}catch(e){}
-    if(updateURL){
-      const p = new URLSearchParams();
-      if(payload.a) p.set('a',payload.a);
-      if(payload.b) p.set('b',payload.b);
-      p.set('tf',payload.tf); p.set('range',String(payload.range)); p.set('style',payload.style); p.set('mode',payload.mode); p.set('log',payload.log?'1':'0');
-      p.set('theme',payload.theme);
-      history.replaceState(null,'','?' + p.toString());
-    }
   }
 
   function syncThemeButton(){
@@ -564,15 +661,13 @@ input{outline:none}
     state.theme = theme === 'light' ? 'light' : 'dark';
     try{ state.workspace?.setTheme?.(state.theme); }catch(e){}
     syncThemeButton();
-    if(save) persistState(false);
+    if(save){persistState();scheduleChartSave();}
   }
 
   function syncControls(){
-    $('timeframe').value = state.timeframe;
-    $('range').value = String(state.rangeDays);
+    syncTimeframeControl();
     $('adjustedBtn').classList.toggle('active', state.adjusted);
     $('rawBtn').classList.toggle('active', !state.adjusted);
-    $('logBtn').classList.toggle('active', state.logScale);
     updatePairUI();
   }
 
@@ -583,7 +678,6 @@ input{outline:none}
     $('slotB').textContent = b;
     $('slotA').classList.toggle('active', state.targetSlot === 'A');
     $('slotB').classList.toggle('active', state.targetSlot === 'B');
-    $('pairTitle').innerHTML = '<b>' + escapeHTML(a) + '</b> + <b>' + escapeHTML(b) + '</b>';
   }
 
   function updatePairMeta(bars){
@@ -685,6 +779,7 @@ input{outline:none}
   function chooseSymbolById(id){
     const sym = state.symbolIndex.get(String(id));
     if(!sym) return;
+    saveCurrentChartState();
     if(state.targetSlot === 'A'){
       if(state.b?.id === sym.id){
         showError('دو نماد باید متفاوت باشند. برای جابه‌جایی از ⇄ استفاده کنید.');
@@ -772,18 +867,30 @@ input{outline:none}
   }
 
   function aggregate(bars,tf){
-    if(tf==='1D') return bars;
+    const parsed = parseTimeframe(tf);
+    if(!parsed) throw new Error('تایم‌فریم معتبر نیست: ' + tf);
+    if(tf === '1D') return bars;
     const out=[];
     let bucket=null;
+    const DAY = 86400000;
+    const anchorSaturday = Date.UTC(1970,0,3);
     for(const b of bars){
       const d = new Date(b.time);
       let key;
-      if(tf==='1W'){
-        // Iranian market week starts Saturday. JS UTC day: Sun=0 ... Sat=6.
-        const offset = (d.getUTCDay() + 1) % 7;
-        key = Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()-offset);
+      if(parsed.unit === 'D'){
+        // Calendar-day groups anchored to Saturday, the Iranian market week start.
+        const day = Math.floor(Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()) / DAY);
+        const anchorDay = Math.floor(anchorSaturday / DAY);
+        key = (anchorDay + Math.floor((day - anchorDay) / parsed.count) * parsed.count) * DAY;
+      }else if(parsed.unit === 'W'){
+        const offset = (d.getUTCDay() + 1) % 7; // Saturday = first day
+        const weekStart = Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()-offset);
+        const groupWidth = parsed.count * 7 * DAY;
+        key = anchorSaturday + Math.floor((weekStart - anchorSaturday) / groupWidth) * groupWidth;
       }else{
-        key = Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),1);
+        const monthIndex = (d.getUTCFullYear()-1970)*12 + d.getUTCMonth();
+        const groupIndex = Math.floor(monthIndex / parsed.count) * parsed.count;
+        key = Date.UTC(1970 + Math.floor(groupIndex/12), ((groupIndex%12)+12)%12, 1);
       }
       if(!bucket || bucket.time!==key){
         if(bucket) out.push(bucket);
@@ -832,11 +939,7 @@ input{outline:none}
 
   function currentVisibleRange(bars){
     if(!bars.length) return undefined;
-    if(!state.rangeDays) return {from:bars[0].time,to:bars[bars.length-1].time};
-    const last=bars[bars.length-1].time;
-    const from=last-state.rangeDays*86400000;
-    const first=bars.find((b)=>b.time>=from)||bars[0];
-    return {from:first.time,to:last};
+    return {from:bars[0].time,to:bars[bars.length-1].time};
   }
 
   async function ensureChart(bars,serial){
@@ -844,78 +947,101 @@ input{outline:none}
     if(serial !== state.buildSerial) return false;
     if(!bars.length) throw new Error('داده‌ای برای نمودار وجود ندارد.');
 
-    const chartOptions = {
-      layout:false,
-      data:bars,
-      timeframe:state.timeframe,
-      theme:state.theme,
-      priceStyle:state.priceStyle,
-      logScale:state.logScale,
-      currentPriceLine:true,
-      upColor:'#089981',
-      downColor:'#f23645',
-      nativeBackend:'auto',
-      animations:{zoom:true,pan:true},
-      animZoom:true,
-      animPan:true,
-      zoomAnchor:'right',
-      axisDrag:true,
-      paneResize:true,
-      autoScale:true,
-      gridlines:true,
-      axisLabels:true,
-      priceLabel:true,
-      countdown:false,
-      timezone:'Asia/Tehran',
-      scaleMode:'price',
-      drawings:{toolbar:true},
-      drawingToolbar:true,
-      statusline:true,
-      watermark:true,
-      bottombar:true,
-      autofocus:true,
-      topbar:{
-        left:['style','indicators','undo-redo'],
-        right:['panels','screenshot']
-      },
-      persist:false
-    };
-
-    syncRendererStateFromWorkspace();
-
-    if(!state.workspace){
-      if(typeof VelaWorkspace !== 'function') throw new Error('Vela Workspace بارگذاری نشده است.');
-      state.workspace = new VelaWorkspace('#chart',chartOptions);
-      state.chart = state.workspace.chart;
-      await state.chart.ready();
-      try{ state.workspace.setTheme(state.theme); }catch(e){}
-      restoreRendererConfig();
-      restoreDrawingsForCurrentPair();
-      attachChartPersistence();
-      try{
-        state.workspace.on('state:changed',() => {
-          syncRendererStateFromWorkspace();
-          saveRendererConfig();
-          scheduleDrawingSave();
-        });
-      }catch(e){}
-    }else{
-      saveDrawingsForCurrentPair();
-      await state.workspace.chart.setMarket({
+    const targetKey = chartStorageKey(state.a,state.b,state.timeframe,state.adjusted);
+    if(state.activeChartKey && state.activeChartKey !== targetKey) saveCurrentChartState();
+    state.isRestoring = true;
+    try{
+      const chartOptions = {
+        layout:false,
         data:bars,
         timeframe:state.timeframe,
-        visibleRange:currentVisibleRange(bars)
-      });
-      state.chart = state.workspace.chart;
-      await state.chart.ready();
-      try{ state.workspace.setTheme(state.theme); }catch(e){}
-      restoreDrawingsForCurrentPair();
-    }
+        theme:state.theme,
+        priceStyle:state.priceStyle,
+        logScale:state.logScale,
+        currentPriceLine:true,
+        upColor:'#089981',
+        downColor:'#f23645',
+        nativeBackend:'auto',
+        animations:{zoom:true,pan:false},
+        animZoom:true,
+        animPan:false,
+        zoomAnchor:'cursor',
+        axisDrag:true,
+        paneResize:true,
+        autoScale:true,
+        gridlines:true,
+        axisLabels:true,
+        priceLabel:true,
+        countdown:false,
+        timezone:'Asia/Tehran',
+        scaleMode:'price',
+        drawings:{toolbar:true},
+        drawingToolbar:true,
+        statusline:true,
+        watermark:true,
+        bottombar:true,
+        autofocus:true,
+        topbar:{left:['style','indicators','undo-redo'],right:['panels','screenshot']},
+        persist:false
+      };
 
-    if(serial !== state.buildSerial) return false;
-    if(state.chart?.renderer?.set) state.chart.renderer.set({priceStyle:state.priceStyle,logScale:state.logScale});
-    if(state.chart?.renderer?.set) state.chart.renderer.set({upColor:'#089981',downColor:'#f23645',currentPriceLine:true});
-    return true;
+      if(!state.workspace){
+        state.workspace = new VelaWorkspace('#chart',chartOptions);
+        state.chart = state.workspace.chart;
+        await state.chart.ready();
+        state.defaultRendererConfig = cloneJSON(state.chart?.renderer?.getConfig?.());
+        const freshDoc = safeWorkspaceState();
+        state.defaultWorkspaceChart = extractWorkspaceChart(freshDoc?.charts?.[0] || null);
+        try{ state.workspace.setTheme(state.theme); }catch(e){}
+        attachChartPersistence();
+        try{
+          state.workspace.on('state:changed',() => {
+            if(state.isRestoring) return;
+            syncRendererStateFromWorkspace();
+            scheduleChartSave();
+          });
+          state.workspace.on('theme:changed',(resolvedTheme) => {
+            if(state.isRestoring) return;
+            if(resolvedTheme === 'light' || resolvedTheme === 'dark') state.theme = resolvedTheme;
+            else if(resolvedTheme && typeof resolvedTheme === 'object'){
+              const bg=String(resolvedTheme.background || resolvedTheme.backgroundColor || '').trim();
+              const hex=bg.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+              const rgb=bg.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+              let brightness=null;
+              if(hex){let value=hex[1];if(value.length===3)value=value.split('').map((c)=>c+c).join('');brightness=(parseInt(value.slice(0,2),16)*299+parseInt(value.slice(2,4),16)*587+parseInt(value.slice(4,6),16)*114)/1000;}
+              else if(rgb)brightness=(Number(rgb[1])*299+Number(rgb[2])*587+Number(rgb[3])*114)/1000;
+              if(brightness!==null) state.theme=brightness>=128?'light':'dark';
+            }
+            syncThemeButton();
+            scheduleChartSave();
+          });
+        }catch(e){}
+        mountHostControlsIntoVelaTopbar();
+        attachSlowWheelZoom();
+        if(!state.controlsObserver && window.MutationObserver){
+          state.controlsObserver = new MutationObserver(() => {
+            if(!$('hostControls').isConnected || !$('chart').contains($('hostControls'))) mountHostControlsIntoVelaTopbar();
+          });
+          state.controlsObserver.observe($('chart'),{childList:true,subtree:true});
+        }
+      }else{
+        await state.workspace.chart.setMarket({data:bars,timeframe:state.timeframe,visibleRange:currentVisibleRange(bars)});
+        state.chart = state.workspace.chart;
+        await state.chart.ready();
+      }
+
+      if(serial !== state.buildSerial) return false;
+      restoreChartState(targetKey,bars);
+      state.activeChartKey = targetKey;
+      applyRendererChange();
+      try{ state.workspace.setTheme(state.theme); }catch(e){}
+      syncControls();
+      syncThemeButton();
+      mountHostControlsIntoVelaTopbar();
+      return true;
+    }finally{
+      state.isRestoring = false;
+    }
   }
 
   async function buildAndRender(){
@@ -966,14 +1092,10 @@ input{outline:none}
     state.chart.renderer.set(patch);
   }
 
-  function resetView(){
-    if(!state.chart || !state.lastRatioBars.length) return;
-    const range = currentVisibleRange(state.lastRatioBars);
-    if(range) state.chart.setVisibleRange(range);
-  }
 
   async function changeTimeframe(value){
-    if(!TF_VALUES.has(value)) return;
+    if(!isValidTimeframe(value)) return;
+    saveCurrentChartState();
     state.timeframe = value;
     state.ratioCache.clear();
     persistState();
@@ -982,6 +1104,7 @@ input{outline:none}
 
   async function changeMode(adjusted){
     if(state.adjusted === adjusted) return;
+    saveCurrentChartState();
     state.adjusted = adjusted;
     state.ratioCache.clear();
     syncControls();
@@ -991,6 +1114,7 @@ input{outline:none}
 
   function swapSymbols(){
     if(!state.a || !state.b) return;
+    saveCurrentChartState();
     const temp = state.a; state.a = state.b; state.b = temp;
     state.ratioCache.clear();
     updatePairUI();
@@ -1042,43 +1166,24 @@ input{outline:none}
   });
 
   $('timeframe').addEventListener('change',(e) => changeTimeframe(e.target.value));
-  $('range').addEventListener('change',(e) => {
-    const value=Number(e.target.value);
-    if(!RANGE_VALUES.has(value)) return;
-    state.rangeDays=value;
-    persistState();
-    resetView();
+  $('customTfBtn').addEventListener('click',async()=>{
+    const raw = window.prompt('تایم‌فریم دلخواه را وارد کنید؛ نمونه: 2D، 3D، 10D، 2W یا 3M. بازه‌ها فقط از داده روزانه و بالاتر ساخته می‌شوند.','2D');
+    if(raw === null) return;
+    const value = normalizeText(raw).replace(/\s+/g,'').toUpperCase();
+    if(!isValidTimeframe(value)){
+      showError('تایم‌فریم نامعتبر است. از 1D، 1W، 1M یا بازه‌هایی مانند 2D، 3D، 2W، 3M با عدد حداکثر 99 استفاده کنید.');
+      return;
+    }
+    clearError();
+    await changeTimeframe(value);
   });
   $('adjustedBtn').addEventListener('click',() => changeMode(true));
   $('rawBtn').addEventListener('click',() => changeMode(false));
-  $('logBtn').addEventListener('click',() => {
-    state.logScale = !state.logScale;
-    $('logBtn').classList.toggle('active',state.logScale);
-    applyRendererChange();
-    persistState();
-  });
-  $('resetBtn').addEventListener('click',resetView);
   $('fullscreenBtn').addEventListener('click',toggleFullscreen);
-  $('shareBtn').addEventListener('click',async()=>{
-    persistState(false);
-    const u=new URL(location.href);
-    u.search='';
-    const p=new URLSearchParams();
-    if(state.a?.id) p.set('a',state.a.id);
-    if(state.b?.id) p.set('b',state.b.id);
-    p.set('tf',state.timeframe); p.set('range',String(state.rangeDays)); p.set('style',state.priceStyle); p.set('mode',state.adjusted?'adjusted':'raw'); p.set('log',state.logScale?'1':'0'); p.set('theme',state.theme);
-    const url=u.origin+u.pathname+'?'+p.toString();
-    try{
-      await navigator.clipboard.writeText(url);
-      setStatus('لینک چارت کپی شد');
-    }catch(e){
-      try{window.prompt('لینک چارت:',url);}catch(_e){}
-    }
-  });
   $('themeBtn').addEventListener('click',()=>applyTheme(state.theme==='dark'?'light':'dark'));
   window.addEventListener('resize',() => {positionResults();state.chart?.resize?.();});
-  document.addEventListener('visibilitychange',() => { if(document.visibilityState==='hidden'){saveDrawingsForCurrentPair();saveRendererConfig();} });
-  window.addEventListener('beforeunload',() => {saveDrawingsForCurrentPair();saveRendererConfig();try{dataWorker?.terminate();}catch(e){}});
+  document.addEventListener('visibilitychange',() => { if(document.visibilityState==='hidden') saveCurrentChartState(); });
+  window.addEventListener('beforeunload',() => {saveCurrentChartState();try{dataWorker?.terminate();}catch(e){}});
   window.addEventListener('scroll',positionResults,{passive:true});
 
   document.addEventListener('keydown',(e) => {
@@ -1089,61 +1194,208 @@ input{outline:none}
   });
 
   // ------------------------------------------------------------
-  // PERSISTENCE: chart cosmetics + drawings survive reloads and
-  // are keyed per ratio pair/timeframe/mode. RAW data is untouched.
+  // Per-chart persistence: drawing document, renderer settings,
+  // indicators, theme, and viewport are keyed independently.
   // ------------------------------------------------------------
-  const CONFIG_STORAGE_KEY = 'MHDI_RATIO_RENDERER_CONFIG_V1';
-  const DRAWINGS_STORAGE_PREFIX = 'MHDI_RATIO_DRAWINGS_V1|';
-  let drawingSaveTimer = null;
+  let chartSaveTimer = null;
 
-  function drawingKey(){
-    return DRAWINGS_STORAGE_PREFIX + [state.a?.id||'',state.b?.id||'',state.timeframe,state.adjusted?'A':'R'].join('|');
+  function cloneJSON(value){
+    if(value === undefined || value === null) return value ?? null;
+    try{return JSON.parse(JSON.stringify(value));}catch(e){return null;}
   }
-  function saveRendererConfig(){
+
+  function safeWorkspaceState(){
+    try{return state.workspace?.getState?.() || null;}catch(e){return null;}
+  }
+
+  function extractWorkspaceChart(chartState){
+    if(!chartState || typeof chartState!=='object') return null;
+    const copy={};
+    for(const key of ['priceStyle','watermark','indicatorTitles','indicators','ext']){
+      if(Object.prototype.hasOwnProperty.call(chartState,key)) copy[key]=cloneJSON(chartState[key]);
+    }
+    return copy;
+  }
+
+  function saveCurrentChartState(){
+    if(state.isRestoring || !state.chart || !state.activeChartKey) return;
     try{
-      const config = state.chart?.renderer?.getConfig?.();
-      if(config) localStorage.setItem(CONFIG_STORAGE_KEY,JSON.stringify(config));
-    }catch(e){}
+      const workspaceState = safeWorkspaceState();
+      const workspaceChart = extractWorkspaceChart(workspaceState?.charts?.[0] || null);
+      const drawings = cloneJSON(state.chart?.drawings?.toJSON?.());
+      const rendererConfig = cloneJSON(state.chart?.renderer?.getConfig?.());
+      const visibleRange = cloneJSON(state.chart?.getVisibleRange?.());
+      const snapshot = {
+        version:2,
+        savedAt:Date.now(),
+        settings:{priceStyle:state.priceStyle,logScale:state.logScale,theme:state.theme},
+        visibleRange,
+        drawings,
+        rendererConfig,
+        workspaceChart
+      };
+      localStorage.setItem(state.activeChartKey,JSON.stringify(snapshot));
+      // Keep the general state key for the next visit's initial chart selection.
+      persistState();
+    }catch(e){console.warn('Chart state could not be saved.',e);}
   }
-  function restoreRendererConfig(){
+
+  function scheduleChartSave(){
+    if(state.isRestoring) return;
+    clearTimeout(chartSaveTimer);
+    chartSaveTimer=setTimeout(saveCurrentChartState,350);
+  }
+
+  function applyWorkspaceChartFields(savedChart){
+    if(!savedChart || !state.workspace?.applyState) return;
     try{
-      const raw = localStorage.getItem(CONFIG_STORAGE_KEY);
-      if(raw && state.chart?.renderer?.applyConfig) state.chart.renderer.applyConfig(JSON.parse(raw));
-    }catch(e){}
+      const doc=safeWorkspaceState();
+      const current=doc?.charts?.[0];
+      if(!doc || !current) return;
+      for(const key of ['priceStyle','watermark','indicatorTitles','indicators','ext']){
+        if(Object.prototype.hasOwnProperty.call(savedChart,key)) current[key]=cloneJSON(savedChart[key]);
+      }
+      state.workspace.applyState(doc);
+      state.chart=state.workspace.chart;
+    }catch(e){console.warn('Vela chart settings could not be restored.',e);}
   }
-  function saveDrawingsForCurrentPair(){
-    try{
-      const doc = state.chart?.drawings?.toJSON?.();
-      if(doc) localStorage.setItem(drawingKey(),JSON.stringify(doc));
-    }catch(e){}
-  }
+
   function clearChartDrawings(){
     try{
-      const drawings = state.chart?.drawings?.all?.() || [];
-      for(const d of drawings){ if(d?.id) state.chart.drawings.remove(d.id); }
+      const drawings=state.chart?.drawings?.all?.() || [];
+      for(const drawing of drawings){if(drawing?.id) state.chart.drawings.remove(drawing.id);}
     }catch(e){}
   }
-  function restoreDrawingsForCurrentPair(){
+
+  function restoreChartState(key,bars){
+    let saved=null;
+    try{saved=JSON.parse(localStorage.getItem(key)||'null');}catch(e){}
+
+    if(saved?.settings){
+      if(STYLE_VALUES.has(saved.settings.priceStyle)) state.priceStyle=saved.settings.priceStyle;
+      if(typeof saved.settings.logScale==='boolean') state.logScale=saved.settings.logScale;
+      if(saved.settings.theme==='light' || saved.settings.theme==='dark') state.theme=saved.settings.theme;
+    }
+
+    const wasRestoring=state.isRestoring;
+    state.isRestoring=true;
     try{
-      const raw = localStorage.getItem(drawingKey());
+      if(saved?.workspaceChart) applyWorkspaceChartFields(saved.workspaceChart);
+      else if(state.defaultWorkspaceChart) applyWorkspaceChartFields(state.defaultWorkspaceChart);
+
+      const config=saved?.rendererConfig || state.defaultRendererConfig;
+      if(config && state.chart?.renderer?.applyConfig){
+        try{state.chart.renderer.applyConfig(cloneJSON(config));}catch(e){}
+      }
+
       clearChartDrawings();
-      if(raw && state.chart?.drawings?.fromJSON) state.chart.drawings.fromJSON(JSON.parse(raw));
-    }catch(e){}
+      const drawingDoc=saved?.drawings ?? saved?.workspaceChart?.drawings;
+      if(drawingDoc && state.chart?.drawings?.fromJSON){
+        try{state.chart.drawings.fromJSON(cloneJSON(drawingDoc));}catch(e){console.warn('Drawings could not be restored.',e);}
+      }
+
+      if(!saved && state.defaultRendererConfig && state.chart?.renderer?.applyConfig){
+        try{state.chart.renderer.applyConfig(cloneJSON(state.defaultRendererConfig));}catch(e){}
+      }
+      applyRendererChange();
+      try{state.workspace?.setTheme?.(state.theme);}catch(e){}
+
+      const range=saved?.visibleRange;
+      const first=bars?.[0]?.time, last=bars?.[bars.length-1]?.time;
+      if(range && Number.isFinite(range.from) && Number.isFinite(range.to) && range.from < range.to && Number.isFinite(first) && Number.isFinite(last) && range.to >= first && range.from <= last){
+        try{state.chart?.setVisibleRange?.({from:range.from,to:range.to});}catch(e){}
+      }else if(first!==undefined && last!==undefined){
+        try{state.chart?.setVisibleRange?.({from:first,to:last});}catch(e){}
+      }
+    }finally{
+      state.isRestoring=wasRestoring;
+    }
   }
-  function scheduleDrawingSave(){
-    clearTimeout(drawingSaveTimer);
-    drawingSaveTimer = setTimeout(saveDrawingsForCurrentPair,180);
-  }
+
   function attachChartPersistence(){
     if(!state.chart) return;
-    const events=['drawing:created','drawing:edited','drawing:removed','drawing:selected','drawing:settings'];
-    for(const event of events){
-      try{ state.chart.on?.(event,scheduleDrawingSave); }catch(e){}
+    const onChange=()=>scheduleChartSave();
+    for(const event of ['drawing:created','drawing:edited','drawing:removed','drawing:settings','viewport:changed','indicator:added','indicator:removed']){
+      try{state.chart.on?.(event,onChange);}catch(e){}
     }
-    try{
-      state.chart.renderer?.onConfigChanged?.(saveRendererConfig);
-    }catch(e){}
+    try{state.chart.renderer?.onConfigChanged?.(()=>{if(state.isRestoring)return;syncRendererStateFromWorkspace();scheduleChartSave();});}catch(e){}
   }
+
+  function mountHostControlsIntoVelaTopbar(){
+    const root=$('chart'), controls=$('hostControls'), app=document.querySelector('.app');
+    if(!root || !controls || !app) return false;
+    if(controls.isConnected && root.contains(controls)){
+      app.classList.add('toolbar-mounted');
+      return true;
+    }
+
+    const elements=[...root.querySelectorAll('button,[role="button"], [title], [aria-label]')];
+    const textOf=(el)=>((el.getAttribute('aria-label')||'')+' '+(el.getAttribute('title')||'')+' '+(el.textContent||'')+' '+(el.className?.baseVal||el.className||'')).toLowerCase();
+    const indicator=elements.find((el)=>/indicator/.test(textOf(el)));
+    const screenshot=elements.find((el)=>/screenshot|camera|capture/.test(textOf(el)));
+    if(screenshot){screenshot.title='گرفتن تصویر نمودار (PNG)';screenshot.setAttribute('aria-label','گرفتن تصویر نمودار (PNG)');}
+    let target=[...root.querySelectorAll('.vela-topbar,[data-vela-topbar],[class*="topbar"]')]
+      .find((el)=>/indicator/.test(textOf(el)) || el.contains(indicator||document.createElement('i')));
+
+    if(!target && indicator){
+      for(let node=indicator.parentElement;node && node!==root;node=node.parentElement){
+        const rect=node.getBoundingClientRect();
+        if((!screenshot || node.contains(screenshot)) && rect.height>=22 && rect.height<=100 && getComputedStyle(node).display.includes('flex')){target=node;break;}
+      }
+    }
+    if(!target){
+      target=[...root.querySelectorAll('.vela-topbar,[data-vela-topbar],[class*="topbar"]')]
+        .find((el)=>el.getBoundingClientRect().height>=22 && el.getBoundingClientRect().height<=100);
+    }
+    if(!target || target===controls || controls.contains(target)) return false;
+
+    controls.classList.add('mounted');
+    controls.style.maxWidth='min(76vw, 980px)';
+    target.appendChild(controls);
+    app.classList.add('toolbar-mounted');
+    try{requestAnimationFrame(()=>state.chart?.resize?.());}catch(e){}
+    positionResults();
+    return true;
+  }
+
+  function attachSlowWheelZoom(){
+    if(state.wheelAttached) return;
+    const root=$('chart');
+    if(!root) return;
+    state.wheelAttached=true;
+    root.addEventListener('wheel',(event)=>{
+      if(event.ctrlKey || event.metaKey || event.shiftKey || Math.abs(event.deltaX)>Math.abs(event.deltaY) || event.deltaY===0) return;
+      if(event.target?.closest?.('button,input,select,[role="dialog"],[class*="toolbar"],[class*="panel"],[class*="menu"]')) return;
+      const rect=root.getBoundingClientRect();
+      const x=event.clientX-rect.left, y=event.clientY-rect.top;
+      if(x<52 || x>rect.width-84 || y<38 || y>rect.height-34) return;
+      const range=state.chart?.getVisibleRange?.();
+      if(!range || !Number.isFinite(range.from) || !Number.isFinite(range.to) || range.to<=range.from) return;
+      const delta=event.deltaMode===1?event.deltaY*18:(event.deltaMode===2?event.deltaY*120:event.deltaY);
+      const step=Math.max(-2,Math.min(2,delta/100));
+      const factor=Math.exp(step*0.055);
+      const anchorFraction=Math.max(0.05,Math.min(0.95,(x-52)/Math.max(1,rect.width-136)));
+      const anchor=range.from+(range.to-range.from)*anchorFraction;
+      const from=anchor-(anchor-range.from)*factor;
+      const to=anchor+(range.to-anchor)*factor;
+      if(!(to>from)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      try{state.chart.setVisibleRange({from,to});scheduleChartSave();}catch(e){}
+    },{capture:true,passive:false});
+  }
+
+  function updateIranUtcClock(){
+    const now=new Date();
+    const utc=$('utcTime'), iran=$('iranDate');
+    if(utc) utc.textContent=now.toLocaleTimeString('en-GB',{timeZone:'UTC',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+    if(iran){
+      try{iran.textContent=new Intl.DateTimeFormat('fa-IR-u-ca-persian',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);}
+      catch(e){iran.textContent=now.toLocaleDateString('fa-IR',{timeZone:'Asia/Tehran'});}
+    }
+  }
+  updateIranUtcClock();
+  setInterval(updateIranUtcClock,1000);
 
   (async function boot(){
     try{
