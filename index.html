@@ -145,6 +145,7 @@ select{direction:rtl}
   const RANGE_VALUES = new Set([0,30,90,180,365,1825]);
   const TF_VALUES = new Set(['1D','1W','1M']);
   const STYLE_VALUES = new Set(['candles','bars','line','area','baseline']);
+  const DATA_FETCH_TIMEOUT_MS = 20000;
 
   const state = {
     symbols: [],
@@ -224,12 +225,21 @@ select{direction:rtl}
       }
       async function fetchBars(url, signal){
         if(rawCache.has(url)) return rawCache.get(url);
-        const r=await fetch(url,{cache:'default',signal});
-        if(!r.ok) throw new Error('HTTP '+r.status+' — '+url);
-        const d=await r.json();
-        const bars=normalize(d);
-        rawCache.set(url,bars);
-        return bars;
+        let timer = null;
+        try{
+          const timeout = new Promise((_, reject) => {
+            timer = setTimeout(() => reject(new Error('TIMEOUT: دریافت داده بیش از ۲۰ ثانیه طول کشید.')), 20000);
+          });
+          const request = fetch(url,{cache:'default',signal});
+          const r = await Promise.race([request, timeout]);
+          if(!r.ok) throw new Error('HTTP '+r.status+' — '+url);
+          const d=await r.json();
+          const bars=normalize(d);
+          rawCache.set(url,bars);
+          return bars;
+        } finally {
+          if(timer) clearTimeout(timer);
+        }
       }
       function findGaps(bars){
         const gaps=[];
@@ -317,16 +327,25 @@ select{direction:rtl}
         try{activeController?.abort();}catch(_e){}
         const controller=new AbortController();
         activeController=controller;
-        const a=await fetchBars(m.urlA,controller.signal);
-        const b=await fetchBars(m.urlB,controller.signal);
-        if(controller.signal.aborted) return;
-        const wa=m.adjusted?adjusted(m.idA,a):a;
-        const wb=m.adjusted?adjusted(m.idB,b):b;
-        const aa=aggregate(wa,m.timeframe);
-        const bb=aggregate(wb,m.timeframe);
-        const key=[m.idA,m.idB,m.timeframe,m.adjusted?'A':'R',m.version||''].join('|');
-        const out=ratio(aa,bb,key);
-        self.postMessage({type:'result',request:m.request,data:out});
+        try{
+          self.postMessage({type:'progress',request:m.request,stage:'A'});
+          const a=await fetchBars(m.urlA,controller.signal);
+          if(controller.signal.aborted) return;
+          self.postMessage({type:'progress',request:m.request,stage:'B'});
+          const b=await fetchBars(m.urlB,controller.signal);
+          if(controller.signal.aborted) return;
+          self.postMessage({type:'progress',request:m.request,stage:'BUILD'});
+          const wa=m.adjusted?adjusted(m.idA,a):a;
+          const wb=m.adjusted?adjusted(m.idB,b):b;
+          const aa=aggregate(wa,m.timeframe);
+          const bb=aggregate(wb,m.timeframe);
+          const key=[m.idA,m.idB,m.timeframe,m.adjusted?'A':'R',m.version||''].join('|');
+          const out=ratio(aa,bb,key);
+          self.postMessage({type:'result',request:m.request,data:out});
+        }catch(error){
+          if(controller.signal.aborted) return;
+          self.postMessage({type:'error',request:m.request,message:String(error?.message||error||'خطای Worker')});
+        }
       };
     `;
     const blob = new Blob([source], {type:'application/javascript'});
@@ -334,9 +353,20 @@ select{direction:rtl}
     dataWorker = new Worker(dataWorkerURL);
     dataWorker.onmessage = (event) => {
       const msg = event.data || {};
-      if(msg.type !== 'result') return;
       const pending = dataWorkerPending.get(msg.request);
       if(!pending) return;
+      if(msg.type === 'progress'){
+        if(msg.stage === 'A') setLoading(true, 'دریافت داده‌های ' + state.a?.name + '...');
+        else if(msg.stage === 'B') setLoading(true, 'دریافت داده‌های ' + state.b?.name + '...');
+        else if(msg.stage === 'BUILD') setLoading(true, 'ساخت نمودار نسبت...');
+        return;
+      }
+      if(msg.type === 'error'){
+        dataWorkerPending.delete(msg.request);
+        pending.reject(new Error(msg.message || 'خطا در پردازش Worker داده.'));
+        return;
+      }
+      if(msg.type !== 'result') return;
       dataWorkerPending.delete(msg.request);
       pending.resolve(msg.data);
     };
@@ -382,9 +412,11 @@ select{direction:rtl}
       catch(e) {
         if(e?.name==='AbortError') throw e;
         console.warn('Worker fallback:', e);
+        setLoading(true, 'مسیر سریع ناموفق بود؛ دریافت مستقیم داده...');
       }
     }
     const [rawA,rawB] = await Promise.all([loadRaw(a),loadRaw(b)]);
+    setLoading(true, 'ساخت نمودار نسبت...');
     const barsA = aggregate(getWorkingBars(a,rawA),timeframe);
     const barsB = aggregate(getWorkingBars(b,rawB),timeframe);
     return buildRatio(barsA,barsB);
@@ -486,10 +518,31 @@ select{direction:rtl}
   }
 
   async function fetchJSON(url, options={}){
-    const response = await fetch(url, {cache:'default', ...options});
-    if(!response.ok) throw new Error('HTTP ' + response.status + ' — ' + url);
-    try{return await response.json();}
-    catch(e){throw new Error('پاسخ JSON نامعتبر است.');}
+    const controller = new AbortController();
+    const externalSignal = options.signal;
+    let timer = null;
+    const onAbort = () => controller.abort();
+    if(externalSignal){
+      if(externalSignal.aborted) controller.abort();
+      else externalSignal.addEventListener('abort', onAbort, {once:true});
+    }
+    try{
+      timer = setTimeout(() => controller.abort(), DATA_FETCH_TIMEOUT_MS);
+      const fetchOptions = {...options, cache:options.cache ?? 'default', signal:controller.signal};
+      let response;
+      try{
+        response = await fetch(url, fetchOptions);
+      }catch(e){
+        if(controller.signal.aborted && !(externalSignal?.aborted)) throw new Error('TIMEOUT: دریافت داده بیش از ۲۰ ثانیه طول کشید.');
+        throw e;
+      }
+      if(!response.ok) throw new Error('HTTP ' + response.status + ' — ' + url);
+      try{return await response.json();}
+      catch(e){throw new Error('پاسخ JSON نامعتبر است.');}
+    } finally {
+      if(timer) clearTimeout(timer);
+      externalSignal?.removeEventListener('abort', onAbort);
+    }
   }
 
   async function loadDataVersion(){
@@ -717,7 +770,7 @@ select{direction:rtl}
       return bars;
     }catch(e){
       state.rawCache.delete(id);
-      throw new Error('داده نماد «' + symbol.name + '» در data/raw موجود نیست یا معتبر نیست.');
+      throw new Error('داده نماد «' + symbol.name + '» دریافت نشد: ' + (e?.message || 'خطای نامشخص'));
     }
   }
 
@@ -899,8 +952,9 @@ select{direction:rtl}
     }catch(e){
       if(serial !== state.buildSerial) return;
       setLoading(false);
-      showError(e.message || 'خطای نامشخص');
-      setStatus('نیاز به بررسی داده یا مسیر فایل‌ها');
+      const message = e?.name === 'AbortError' ? 'درخواست قبلی لغو شد.' : (e?.message || 'خطای نامشخص');
+      showError(message);
+      setStatus('خطا در دریافت یا پردازش داده');
     }
   }
 
