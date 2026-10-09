@@ -7,51 +7,50 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="color-scheme" content="dark">
-<title>MHDI Ratio V20 — Vela Workspace</title>
+<meta name="color-scheme" content="dark light">
+<title>Bors-Vela — نمودار نسبت نمادها</title>
 <style>
-:root{color-scheme:dark;--bg:#131722;--panel:#1e222d;--border:#2a2e39;--text:#d1d4dc;--muted:#787b86;--accent:#2962ff;--danger:#ef5350}
+:root{color-scheme:dark;--bg:#131722;--panel:#1e222d;--border:#2a2e39;--text:#d1d4dc;--muted:#787b86;--accent:#2962ff;--danger:#ef5350;--hover-bg:rgba(255,255,255,.06);--input-placeholder:#8a8d98;--menu-bg:#1e222d;--menu-hover:#2a2e39;--pair-text:#e5e7eb;--meta-bg:rgba(19,23,34,.62);--meta-border:rgba(255,255,255,.06);--meta-text:#a8adb8;--menu-shadow:rgba(0,0,0,.32)}
+:root[data-theme="light"]{color-scheme:light;--bg:#fff;--panel:#f5f7fa;--border:#d1d4dc;--text:#131722;--muted:#6a6d78;--accent:#2962ff;--danger:#d93025;--hover-bg:rgba(19,23,34,.06);--input-placeholder:#787b86;--menu-bg:#fff;--menu-hover:#eef1f7;--pair-text:#131722;--meta-bg:rgba(255,255,255,.86);--meta-border:rgba(19,23,34,.12);--meta-text:#434651;--menu-shadow:rgba(0,0,0,.16)}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif;font-size:12px}
 body{touch-action:none;-webkit-tap-highlight-color:transparent}
 button,input,select{font:inherit}
-button{border:0;background:transparent;color:var(--muted);cursor:pointer;border-radius:3px}
-button:hover{background:rgba(255,255,255,.06);color:var(--text)}
+button{border:0;background:transparent;color:var(--muted);cursor:pointer;border-radius:4px;transition:background-color .12s ease,color .12s ease,border-color .12s ease}
+button:hover{background:var(--hover-bg);color:var(--text)}
 button.active{background:var(--accent);color:#fff}
 button:disabled{opacity:.45;cursor:default}
 input{outline:none}
-.app{height:100vh;display:grid;grid-template-rows:42px 1fr;background:var(--bg)}
+.app{height:100vh;display:grid;grid-template-rows:40px 1fr;background:var(--bg)}
 .app.toolbar-mounted{grid-template-rows:1fr}.app.toolbar-mounted .hostbar{display:none}
-.hostbar{height:42px;display:flex;align-items:center;gap:5px;padding:0 7px;border-bottom:1px solid var(--border);background:var(--bg);direction:ltr;white-space:nowrap;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;z-index:32000}
+.hostbar{height:40px;display:flex;align-items:center;gap:4px;padding:0 6px;border-bottom:1px solid var(--border);background:var(--bg);direction:ltr;white-space:nowrap;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;z-index:32000}
 .hostbar::-webkit-scrollbar{display:none}
-.mdhi-controls{display:flex;align-items:center;gap:5px;min-width:0;max-width:100%;flex:0 1 auto;white-space:nowrap;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;direction:ltr}
+.mdhi-controls{display:flex;align-items:center;gap:3px;min-width:0;max-width:100%;flex:0 1 auto;white-space:nowrap;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;direction:ltr}
 .mdhi-controls::-webkit-scrollbar{display:none}
-.mdhi-controls.mounted{max-width:min(76vw,980px);flex:0 1 auto;padding:1px 4px;overflow-x:auto;border-radius:3px}
-#pairMeta{position:absolute;top:47px;left:54px;right:auto;z-index:11900;max-width:min(520px,calc(100% - 120px));padding:4px 7px;border-radius:3px;background:rgba(19,23,34,.58);border:1px solid rgba(255,255,255,.04);pointer-events:none;direction:rtl;color:#a8adb8;font-size:10px;backdrop-filter:blur(4px);user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@media(max-width:760px){.mdhi-controls.mounted{max-width:calc(100vw - 150px);gap:4px;padding:0 2px}#pairMeta{left:48px;top:46px;max-width:calc(100% - 95px)}}
-.separator{width:1px;height:24px;background:var(--border);margin:0 3px;flex:0 0 auto}
-.brand{font-weight:800;color:#fff;letter-spacing:.5px;padding:5px 7px;flex:0 0 auto;user-select:none}
-.search{position:relative;width:170px;height:30px;display:flex;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:3px;flex:0 0 auto}
+.mdhi-controls.mounted{max-width:min(72vw,1000px);flex:0 1 auto;padding:1px 3px;overflow-x:auto;border-radius:4px;gap:3px}
+#pairMeta{position:absolute;top:45px;left:54px;right:auto;z-index:11900;max-width:min(520px,calc(100% - 120px));padding:4px 7px;border-radius:4px;background:var(--meta-bg);border:1px solid var(--meta-border);pointer-events:none;direction:rtl;color:var(--meta-text);font-size:10px;backdrop-filter:blur(4px);user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:760px){.mdhi-controls.mounted{max-width:calc(100vw - 16px);gap:3px;padding:1px 2px}#pairMeta{left:48px;top:44px;max-width:calc(100% - 95px)}}
+.separator{width:1px;height:22px;background:var(--border);margin:0 2px;flex:0 0 auto}
+.search{position:relative;width:156px;height:28px;display:flex;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:4px;flex:0 0 auto}
 .search:focus-within{border-color:#3f6cff;box-shadow:0 0 0 1px rgba(41,98,255,.18)}
-.search input{width:100%;height:100%;padding:0 10px;background:transparent;border:0;color:var(--text);direction:rtl}
-.search input::placeholder{color:#5f636d}
-.results{position:fixed;display:none;max-height:min(56vh,420px);overflow:auto;background:#1e222d;border:1px solid var(--border);border-radius:4px;z-index:50000;direction:rtl;box-shadow:0 12px 30px rgba(0,0,0,.48);overscroll-behavior:contain}
+.search input{width:100%;height:100%;padding:0 9px;background:transparent;border:0;color:var(--text);direction:rtl;font-size:11px}
+.search input::placeholder{color:var(--input-placeholder)}
+.results{position:fixed;display:none;max-height:min(56vh,420px);overflow:auto;background:var(--menu-bg);border:1px solid var(--border);border-radius:5px;z-index:50000;direction:rtl;box-shadow:0 10px 26px var(--menu-shadow);overscroll-behavior:contain}
 .results.open{display:block}
-.result{min-height:36px;padding:8px 11px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04)}
-.result:last-child{border-bottom:0}.result:hover,.result.selected{background:#2a2e39}.result .name{font-weight:700;color:#e6e8eb;overflow:hidden;text-overflow:ellipsis}.result .code{font-size:10px;color:var(--muted);direction:ltr;flex:0 0 auto}.result.empty{cursor:default;color:var(--muted)}
-.pair{display:flex;align-items:center;gap:2px;background:var(--panel);border:1px solid var(--border);border-radius:3px;height:30px;flex:0 0 auto}.pair-slot{min-width:76px;max-width:116px;height:28px;padding:0 9px;display:flex;align-items:center;justify-content:center;color:#e5e7eb;font-weight:700;cursor:pointer;overflow:hidden;text-overflow:ellipsis;direction:rtl}.pair-slot:hover{background:rgba(255,255,255,.05)}.pair-slot.active{background:rgba(41,98,255,.18);outline:1px solid var(--accent)}.pair-sep{color:var(--text);padding:0 4px;font-size:14px;font-weight:800;line-height:1}.go{height:24px;padding:0 11px;background:var(--accent);color:#fff!important;font-weight:700;margin-left:3px}.go:hover{background:#1f55e5}
-.control,select{height:30px;padding:0 8px;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:3px;cursor:pointer;outline:none}select{direction:rtl}.tool{height:30px;padding:0 9px;flex:0 0 auto}.status{margin-left:auto;flex:0 1 auto;height:30px;display:flex;align-items:center;padding:0 8px;color:var(--muted);direction:rtl;max-width:330px;overflow:hidden;text-overflow:ellipsis;min-width:100px}
+.result{min-height:34px;padding:7px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;border-bottom:1px solid var(--border)}
+.result:last-child{border-bottom:0}.result:hover,.result.selected{background:var(--menu-hover)}.result .name{font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis}.result .code{font-size:10px;color:var(--muted);direction:ltr;flex:0 0 auto}.result.empty{cursor:default;color:var(--muted)}
+.pair{display:flex;align-items:center;gap:2px;background:var(--panel);border:1px solid var(--border);border-radius:4px;height:28px;flex:0 0 auto}.pair-slot{min-width:68px;max-width:108px;height:26px;padding:0 7px;display:flex;align-items:center;justify-content:center;color:var(--pair-text);font-weight:650;cursor:pointer;overflow:hidden;text-overflow:ellipsis;direction:rtl;font-size:11px}.pair-slot:hover{background:var(--hover-bg)}.pair-slot.active{background:rgba(41,98,255,.14);outline:1px solid var(--accent)}.pair-sep{color:var(--text);padding:0 3px;font-size:12px;font-weight:700;line-height:1}.go{height:24px;padding:0 9px;background:var(--accent);color:#fff!important;font-weight:650;margin:0 2px;font-size:11px}.go:hover{background:#1f55e5}
+.control,select{height:28px;padding:0 7px;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:4px;cursor:pointer;outline:none;font-size:11px}select{direction:rtl}.tool{height:28px;padding:0 7px;flex:0 0 auto;font-size:11px;border:1px solid transparent}.tool:hover,.control:hover,select:hover{border-color:var(--border)}.tool.active{border-color:var(--accent)}
 .main{position:relative;min-width:0;min-height:0;overflow:hidden;background:var(--bg);direction:ltr}#chartWrap{position:absolute;inset:0;direction:ltr;unicode-bidi:isolate}#chart{width:100%;height:100%;min-width:0;min-height:0;contain:layout paint size;direction:ltr;unicode-bidi:isolate}
-#error{position:absolute;left:10px;right:10px;bottom:10px;display:none;padding:10px 12px;border-radius:4px;background:var(--danger);color:#fff;z-index:45000;direction:rtl;white-space:pre-wrap;word-break:break-word;box-shadow:0 8px 20px rgba(0,0,0,.3)}#error.on{display:block}
-@media(max-width:1050px){.brand{display:none}.search{width:150px}.status{max-width:220px}.pair-slot{min-width:64px}}
-@media(max-width:760px){.hostbar{gap:4px}.status{display:none}.search{width:150px}.tool{padding:0 8px}.pair-slot{min-width:58px;max-width:86px}.control,select,.tool,.pair,.search{height:32px}.pair-slot{height:30px}.go{height:26px}.pair{height:32px}}
+#error{position:absolute;left:10px;right:10px;bottom:10px;display:none;padding:10px 12px;border-radius:5px;background:var(--danger);color:#fff;z-index:45000;direction:rtl;white-space:pre-wrap;word-break:break-word;box-shadow:0 8px 20px rgba(0,0,0,.22)}#error.on{display:block}#error.notice{background:var(--panel);color:var(--text);border:1px solid var(--accent);box-shadow:0 6px 18px rgba(0,0,0,.12)}
+@media(max-width:1050px){.search{width:136px}.pair-slot{min-width:62px;max-width:92px}.mdhi-controls.mounted{max-width:74vw}}
+@media(max-width:760px){.hostbar{gap:3px;height:38px}.app{grid-template-rows:38px 1fr}.search{width:124px}.tool{padding:0 6px}.pair-slot{min-width:54px;max-width:78px}.control,select,.tool,.pair,.search{height:28px}.pair-slot{height:26px}.go{height:24px}.pair{height:28px}.mdhi-controls.mounted{max-width:calc(100vw - 8px);gap:2px}}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="hostbar" id="hostbar">
     <div id="hostControls" class="mdhi-controls">
-      <div class="brand">MHDI</div>
       <div class="search" id="searchBox">
         <input id="searchInput" type="text" autocomplete="off" spellcheck="false" placeholder="جستجوی نماد..." aria-label="جستجوی نماد">
       </div>
@@ -72,8 +71,7 @@ input{outline:none}
       <button id="adjustedBtn" class="tool" title="نمایش عملکردی؛ داده RAW تغییر نمی‌کند">عملکردی</button>
       <button id="rawBtn" class="tool active" title="نمایش داده خام">خام</button>
       <button id="fullscreenBtn" class="tool" title="تمام صفحه">⛶</button>
-      <button id="themeBtn" class="tool" title="تغییر تم روشن / مشکی">تم: مشکی</button>
-      <div id="status" class="status"></div>
+      <button id="themeBtn" class="tool" title="تغییر تم روشن / مشکی" aria-label="تغییر تم روشن / مشکی">☾ تیره</button>
     </div>
   </div>
   <main class="main">
@@ -467,18 +465,26 @@ input{outline:none}
     const barsB=aggregate(getWorkingBars(b,rawB),timeframe);
     return buildRatio(barsA,barsB);
   }
-  function setStatus(text){ const node=$('status'); if(node) node.textContent = text || ''; }
+  // Status text (including the candle count) is intentionally not shown in the UI.
+  function setStatus(_text){}
 
   function clearError(){
     $('error').textContent = '';
-    $('error').classList.remove('on');
+    $('error').classList.remove('on','notice');
   }
 
-  function showError(message){
+  function showError(message, logToConsole=true){
     const safe = String(message || 'خطای نامشخص');
     $('error').textContent = 'خطا: ' + safe;
+    $('error').classList.remove('notice');
     $('error').classList.add('on');
-    console.error(safe);
+    if(logToConsole) console.error(safe);
+  }
+
+  function showNotice(message){
+    const box=$('error');
+    box.textContent=String(message || 'ورودی را بررسی کنید.');
+    box.classList.add('on','notice');
   }
 
   function normalizeText(value){
@@ -656,6 +662,15 @@ input{outline:none}
     return CHART_STORAGE_PREFIX + [a?.id||'',b?.id||'',tf,adjusted?'A':'R'].join('|');
   }
 
+  function applyHostTheme(theme){
+    const resolved = theme === 'light' ? 'light' : 'dark';
+    const root = document.documentElement;
+    root.dataset.theme = resolved;
+    root.style.colorScheme = resolved;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if(meta) meta.content = resolved === 'light' ? '#ffffff' : '#131722';
+  }
+
   function readSavedState(){
     let saved = {};
     try{saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') || {};}catch(e){}
@@ -685,6 +700,7 @@ input{outline:none}
     if(theme === 'light' || theme === 'dark') state.theme = theme;
     else if(saved.theme === 'light' || saved.theme === 'dark') state.theme = saved.theme;
 
+    applyHostTheme(state.theme);
     syncControls();
     syncThemeButton();
   }
@@ -697,13 +713,14 @@ input{outline:none}
   function syncThemeButton(){
     const btn = $('themeBtn');
     if(!btn) return;
-    btn.textContent = state.theme === 'light' ? 'تم: روشن' : 'تم: مشکی';
+    btn.textContent = state.theme === 'light' ? '☀ روشن' : '☾ تیره';
     btn.classList.toggle('active', state.theme === 'light');
     btn.title = state.theme === 'light' ? 'تغییر به تم مشکی' : 'تغییر به تم روشن';
   }
 
   function applyTheme(theme, save=true){
     state.theme = theme === 'light' ? 'light' : 'dark';
+    applyHostTheme(state.theme);
     try{ state.workspace?.setTheme?.(state.theme); }catch(e){}
     syncThemeButton();
     if(save){persistState();scheduleChartSave();}
@@ -824,18 +841,15 @@ input{outline:none}
   function chooseSymbolById(id){
     const sym = state.symbolIndex.get(String(id));
     if(!sym) return;
+    // Reject duplicate pairs before saving or changing any chart state.
+    if((state.targetSlot === 'A' && state.b?.id === sym.id) || (state.targetSlot !== 'A' && state.a?.id === sym.id)){
+      showNotice('این نماد در بخش دیگر انتخاب شده است. دو نماد متفاوت وارد کنید. نمودار فعلی بدون تغییر باقی ماند.');
+      return;
+    }
     saveCurrentChartState();
     if(state.targetSlot === 'A'){
-      if(state.b?.id === sym.id){
-        showError('دو نماد باید متفاوت باشند. برای جابه‌جایی از ⇄ استفاده کنید.');
-        return;
-      }
       state.a = sym;
     }else{
-      if(state.a?.id === sym.id){
-        showError('دو نماد باید متفاوت باشند. برای جابه‌جایی از ⇄ استفاده کنید.');
-        return;
-      }
       state.b = sym;
     }
     closeSearch();
@@ -1065,6 +1079,7 @@ input{outline:none}
               else if(rgb)brightness=(Number(rgb[1])*299+Number(rgb[2])*587+Number(rgb[3])*114)/1000;
               if(brightness!==null) state.theme=brightness>=128?'light':'dark';
             }
+            applyHostTheme(state.theme);
             syncThemeButton();
             scheduleChartSave();
           });
@@ -1100,8 +1115,14 @@ input{outline:none}
   async function buildAndRender(){
     const serial = ++state.buildSerial;
     clearError();
-    if(!state.a || !state.b) throw new Error('دو نماد را انتخاب کنید.');
-    if(String(state.a.id)===String(state.b.id)) throw new Error('دو نماد باید متفاوت باشند.');
+    if(!state.a || !state.b){
+      showError('دو نماد را انتخاب کنید.');
+      return;
+    }
+    if(String(state.a.id)===String(state.b.id)){
+      showNotice('این دو نماد یکسان‌اند. دو نماد متفاوت انتخاب کنید؛ نمودار فعلی تا انتخاب معتبر حفظ می‌شود.');
+      return;
+    }
 
     try{
       const ratio = await loadRatioData(state.a,state.b,state.timeframe,state.adjusted,state.dataVersion);
@@ -1233,7 +1254,7 @@ input{outline:none}
   $('rawBtn').addEventListener('click',() => changeMode(false));
   $('fullscreenBtn').addEventListener('click',toggleFullscreen);
   $('themeBtn').addEventListener('click',()=>applyTheme(state.theme==='dark'?'light':'dark'));
-  window.addEventListener('resize',() => {positionResults();state.chart?.resize?.();});
+  window.addEventListener('resize',() => {mountHostControlsIntoVelaTopbar();positionResults();state.chart?.resize?.();});
   document.addEventListener('visibilitychange',() => { if(document.visibilityState==='hidden') saveCurrentChartState(); });
   window.addEventListener('beforeunload',() => {saveCurrentChartState();try{dataWorker?.terminate();}catch(e){}});
   window.addEventListener('scroll',positionResults,{passive:true});
@@ -1329,6 +1350,8 @@ input{outline:none}
       if(saved.settings.theme==='light' || saved.settings.theme==='dark') state.theme=saved.settings.theme;
     }
 
+    applyHostTheme(state.theme);
+    syncThemeButton();
     const wasRestoring=state.isRestoring;
     state.isRestoring=true;
     try{
@@ -1374,8 +1397,22 @@ input{outline:none}
   }
 
   function mountHostControlsIntoVelaTopbar(){
-    const root=$('chart'), controls=$('hostControls'), app=document.querySelector('.app');
-    if(!root || !controls || !app) return false;
+    const root=$('chart'), controls=$('hostControls'), hostbar=$('hostbar'), app=document.querySelector('.app');
+    if(!root || !controls || !hostbar || !app) return false;
+
+    // On narrow/tablet screens, keep host controls in their own horizontally-scrollable row.
+    // This avoids squeezing the site controls to a few pixels beside Vela's native buttons.
+    if(window.innerWidth <= 1050){
+      controls.classList.remove('mounted');
+      controls.style.maxWidth='100%';
+      controls.style.flex='0 1 auto';
+      if(!hostbar.contains(controls)) hostbar.appendChild(controls);
+      app.classList.remove('toolbar-mounted');
+      try{requestAnimationFrame(()=>state.chart?.resize?.());}catch(e){}
+      positionResults();
+      return true;
+    }
+
     if(controls.isConnected && root.contains(controls)){
       app.classList.add('toolbar-mounted');
       return true;
@@ -1402,8 +1439,9 @@ input{outline:none}
     if(!target || target===controls || controls.contains(target)) return false;
 
     controls.classList.add('mounted');
-    controls.style.maxWidth='min(76vw, 980px)';
-    target.appendChild(controls);
+    controls.style.maxWidth='min(72vw, 1000px)';
+    controls.style.flex='0 1 auto';
+    target.insertBefore(controls,target.firstChild);
     app.classList.add('toolbar-mounted');
     try{requestAnimationFrame(()=>state.chart?.resize?.());}catch(e){}
     positionResults();
