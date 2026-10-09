@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="color-scheme" content="dark">
-<title>MHDI Ratio V19 — Vela Workspace</title>
+<title>MHDI Ratio V20 — Vela Workspace</title>
 <style>
 :root{color-scheme:dark;--bg:#131722;--panel:#1e222d;--border:#2a2e39;--text:#d1d4dc;--muted:#787b86;--accent:#2962ff;--danger:#ef5350}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -27,10 +27,8 @@ input{outline:none}
 .mdhi-controls{display:flex;align-items:center;gap:5px;min-width:0;max-width:100%;flex:0 1 auto;white-space:nowrap;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;direction:ltr}
 .mdhi-controls::-webkit-scrollbar{display:none}
 .mdhi-controls.mounted{max-width:min(76vw,980px);flex:0 1 auto;padding:1px 4px;overflow-x:auto;border-radius:3px}
-#iranUtcClock{position:absolute;top:47px;left:54px;right:auto;z-index:11900;display:flex;align-items:center;gap:9px;padding:4px 7px;background:rgba(19,23,34,.72);border:1px solid rgba(255,255,255,.07);border-radius:3px;color:#a8adb8;font-size:10px;direction:ltr;pointer-events:none;backdrop-filter:blur(4px);font-variant-numeric:tabular-nums;white-space:nowrap}
-#iranUtcClock b{color:#e1e5ed;font-weight:600}
-#pairMeta{position:absolute;top:75px;left:54px;right:auto;z-index:11900;max-width:min(520px,calc(100% - 120px));padding:4px 7px;border-radius:3px;background:rgba(19,23,34,.58);border:1px solid rgba(255,255,255,.04);pointer-events:none;direction:rtl;color:#a8adb8;font-size:10px;backdrop-filter:blur(4px);user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@media(max-width:760px){.mdhi-controls.mounted{max-width:calc(100vw - 150px);gap:4px;padding:0 2px}#iranUtcClock{left:48px;top:46px;font-size:9px;gap:6px}#pairMeta{left:48px;top:72px;max-width:calc(100% - 95px)}}
+#pairMeta{position:absolute;top:47px;left:54px;right:auto;z-index:11900;max-width:min(520px,calc(100% - 120px));padding:4px 7px;border-radius:3px;background:rgba(19,23,34,.58);border:1px solid rgba(255,255,255,.04);pointer-events:none;direction:rtl;color:#a8adb8;font-size:10px;backdrop-filter:blur(4px);user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:760px){.mdhi-controls.mounted{max-width:calc(100vw - 150px);gap:4px;padding:0 2px}#pairMeta{left:48px;top:46px;max-width:calc(100% - 95px)}}
 .separator{width:1px;height:24px;background:var(--border);margin:0 3px;flex:0 0 auto}
 .brand{font-weight:800;color:#fff;letter-spacing:.5px;padding:5px 7px;flex:0 0 auto;user-select:none}
 .search{position:relative;width:170px;height:30px;display:flex;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:3px;flex:0 0 auto}
@@ -44,7 +42,6 @@ input{outline:none}
 .pair{display:flex;align-items:center;gap:2px;background:var(--panel);border:1px solid var(--border);border-radius:3px;height:30px;flex:0 0 auto}.pair-slot{min-width:76px;max-width:116px;height:28px;padding:0 9px;display:flex;align-items:center;justify-content:center;color:#e5e7eb;font-weight:700;cursor:pointer;overflow:hidden;text-overflow:ellipsis;direction:rtl}.pair-slot:hover{background:rgba(255,255,255,.05)}.pair-slot.active{background:rgba(41,98,255,.18);outline:1px solid var(--accent)}.pair-sep{color:var(--text);padding:0 4px;font-size:14px;font-weight:800;line-height:1}.go{height:24px;padding:0 11px;background:var(--accent);color:#fff!important;font-weight:700;margin-left:3px}.go:hover{background:#1f55e5}
 .control,select{height:30px;padding:0 8px;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:3px;cursor:pointer;outline:none}select{direction:rtl}.tool{height:30px;padding:0 9px;flex:0 0 auto}.status{margin-left:auto;flex:0 1 auto;height:30px;display:flex;align-items:center;padding:0 8px;color:var(--muted);direction:rtl;max-width:330px;overflow:hidden;text-overflow:ellipsis;min-width:100px}
 .main{position:relative;min-width:0;min-height:0;overflow:hidden;background:var(--bg);direction:ltr}#chartWrap{position:absolute;inset:0;direction:ltr;unicode-bidi:isolate}#chart{width:100%;height:100%;min-width:0;min-height:0;contain:layout paint size;direction:ltr;unicode-bidi:isolate}
-#loading{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(19,23,34,.82);z-index:45000;color:#aed581;font-size:13px;direction:rtl;backdrop-filter:blur(2px)}#loading.on{display:flex}#loading span{padding:10px 14px;border:1px solid var(--border);border-radius:4px;background:rgba(30,34,45,.94);box-shadow:0 10px 30px rgba(0,0,0,.3)}
 #error{position:absolute;left:10px;right:10px;bottom:10px;display:none;padding:10px 12px;border-radius:4px;background:var(--danger);color:#fff;z-index:45000;direction:rtl;white-space:pre-wrap;word-break:break-word;box-shadow:0 8px 20px rgba(0,0,0,.3)}#error.on{display:block}
 @media(max-width:1050px){.brand{display:none}.search{width:150px}.status{max-width:220px}.pair-slot{min-width:64px}}
 @media(max-width:760px){.hostbar{gap:4px}.status{display:none}.search{width:150px}.tool{padding:0 8px}.pair-slot{min-width:58px;max-width:86px}.control,select,.tool,.pair,.search{height:32px}.pair-slot{height:30px}.go{height:26px}.pair{height:32px}}
@@ -76,15 +73,13 @@ input{outline:none}
       <button id="rawBtn" class="tool active" title="نمایش داده خام">خام</button>
       <button id="fullscreenBtn" class="tool" title="تمام صفحه">⛶</button>
       <button id="themeBtn" class="tool" title="تغییر تم روشن / مشکی">تم: مشکی</button>
-      <div id="status" class="status">Vela Workspace · آماده‌سازی...</div>
+      <div id="status" class="status"></div>
     </div>
   </div>
   <main class="main">
     <div id="chartWrap"><div id="chart"></div></div>
-    <div id="iranUtcClock" aria-live="off"><span>UTC <b id="utcTime">--:--:--</b></span><span>تاریخ ایران <b id="iranDate">----</b></span></div>
     <div id="pairMeta">—</div>
-    <div id="loading"><span>در حال بارگذاری...</span></div>
-    <div id="error"></div>
+    <div id="error" role="alert" aria-live="polite"></div>
   </main>
 </div>
 <div id="results" class="results" role="listbox" aria-label="نتایج جستجو"></div>
@@ -93,13 +88,20 @@ input{outline:none}
 (async () => {
   'use strict';
   let VelaWorkspace = null;
+  let velaImportTimer = null;
   try{
-    ({VelaWorkspace} = await import('https://cdn.jsdelivr.net/npm/@luxalgo/vela@0.8.3/workspace/+esm'));
+    const importPromise = import('https://cdn.jsdelivr.net/npm/@luxalgo/vela@0.8.3/workspace/+esm');
+    const importTimeout = new Promise((_, reject) => {
+      velaImportTimer = setTimeout(() => reject(new Error('بارگذاری کتابخانه نمودار بیش از ۲۰ ثانیه طول کشید. اتصال اینترنت یا CDN را بررسی کنید.')), 20000);
+    });
+    ({VelaWorkspace} = await Promise.race([importPromise, importTimeout]));
   }catch(e){
     const box=document.getElementById('error');
-    if(box){ box.textContent='خطا: Vela Workspace بارگذاری نشد. اتصال اینترنت یا CDN را بررسی کنید.'; box.classList.add('on'); }
+    if(box){ box.textContent='خطا: ' + String(e?.message || 'کتابخانه Vela Workspace بارگذاری نشد. اتصال اینترنت یا CDN را بررسی کنید.'); box.classList.add('on'); }
     console.error(e);
     return;
+  }finally{
+    if(velaImportTimer) clearTimeout(velaImportTimer);
   }
 
 
@@ -111,6 +113,14 @@ input{outline:none}
   const STYLE_VALUES = new Set(['candles','bars','line','area','baseline']);
   const CHART_STORAGE_PREFIX = 'MHDI_RATIO_CHART_V2|';
   const DATA_FETCH_TIMEOUT_MS = 20000;
+  const DATA_WORKER_TIMEOUT_MS = 35000;
+  const CHART_OPERATION_TIMEOUT_MS = 45000;
+
+  function withTimeout(promise, ms, message){
+    let timer;
+    const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(Object.assign(new Error(message),{code:'OPERATION_TIMEOUT'})), ms); });
+    return Promise.race([Promise.resolve(promise), timeout]).finally(() => clearTimeout(timer));
+  }
 
   const state = {
     symbols: [],
@@ -142,6 +152,29 @@ input{outline:none}
     controlsObserver: null,
     wheelAttached: false
   };
+
+  function invalidateWorkspaceAfterTimeout(){
+    try{state.controlsObserver?.disconnect?.();}catch(e){}
+    state.controlsObserver = null;
+    const root=$('chart'), controls=$('hostControls'), hostbar=$('hostbar'), app=document.querySelector('.app');
+    if(root && controls && controls.isConnected && root.contains(controls) && hostbar) hostbar.appendChild(controls);
+    controls?.classList?.remove('mounted');
+    if(controls) controls.style.maxWidth='';
+    app?.classList?.remove('toolbar-mounted');
+    try{state.workspace?.destroy?.();}catch(e){}
+    try{root?.replaceChildren?.();}catch(e){}
+    state.workspace = null;
+    state.chart = null;
+    state.defaultRendererConfig = null;
+    state.defaultWorkspaceChart = null;
+  }
+
+  function withChartTimeout(promise, message){
+    return withTimeout(promise,CHART_OPERATION_TIMEOUT_MS,message).catch(error=>{
+      if(error?.code==='OPERATION_TIMEOUT') invalidateWorkspaceAfterTimeout();
+      throw error;
+    });
+  }
 
   // ------------------------------------------------------------
   // DATA WORKER: keeps JSON parsing, adjustment, aggregation and
@@ -226,7 +259,7 @@ input{outline:none}
         adjustedCache.set(id,out); return out;
       }
       function aggregate(bars,tf){
-        const match=/^(\d{1,2})(D|W|M)$/.exec(String(tf||''));
+        const match=/^([0-9]{1,2})(D|W|M)$/.exec(String(tf||''));
         if(!match) throw new Error('تایم‌فریم معتبر نیست: '+tf);
         const count=Number(match[1]), unit=match[2];
         if(unit==='D' && count===1) return bars;
@@ -298,19 +331,22 @@ input{outline:none}
         }
       };
     `;
-    const blob = new Blob([source], {type:'application/javascript'});
-    dataWorkerURL = URL.createObjectURL(blob);
-    dataWorker = new Worker(dataWorkerURL);
-    dataWorker.onmessage = (event) => {
+    try{
+      const blob = new Blob([source], {type:'application/javascript'});
+      dataWorkerURL = URL.createObjectURL(blob);
+      dataWorker = new Worker(dataWorkerURL);
+    }catch(error){
+      if(dataWorkerURL){ try{URL.revokeObjectURL(dataWorkerURL);}catch(_e){} dataWorkerURL=''; }
+      dataWorker = null;
+      throw error;
+    }
+    const workerInstance = dataWorker;
+    workerInstance.onmessage = (event) => {
+      if(dataWorker !== workerInstance) return;
       const msg = event.data || {};
       const pending = dataWorkerPending.get(msg.request);
       if(!pending) return;
-      if(msg.type === 'progress'){
-        if(msg.stage === 'A') setLoading(true, 'دریافت داده‌های ' + state.a?.name + '...');
-        else if(msg.stage === 'B') setLoading(true, 'دریافت داده‌های ' + state.b?.name + '...');
-        else if(msg.stage === 'BUILD') setLoading(true, 'ساخت نمودار نسبت...');
-        return;
-      }
+      if(msg.type === 'progress') return;
       if(msg.type === 'error'){
         dataWorkerPending.delete(msg.request);
         pending.reject(new Error(msg.message || 'خطا در پردازش Worker داده.'));
@@ -320,14 +356,15 @@ input{outline:none}
       dataWorkerPending.delete(msg.request);
       pending.resolve(msg.data);
     };
-    dataWorker.onerror = (event) => {
+    workerInstance.onerror = (event) => {
+      if(dataWorker !== workerInstance) return;
       for(const [id,pending] of dataWorkerPending){
         dataWorkerPending.delete(id);
         pending.reject(new Error(event?.message || 'خطا در پردازش Worker داده.'));
       }
-      try{dataWorker.terminate();}catch(e){}
-      dataWorker = null;
-      if(dataWorkerURL){ URL.revokeObjectURL(dataWorkerURL); dataWorkerURL=''; }
+      try{workerInstance.terminate();}catch(e){}
+      if(dataWorker === workerInstance) dataWorker = null;
+      if(dataWorkerURL){ try{URL.revokeObjectURL(dataWorkerURL);}catch(e){} dataWorkerURL=''; }
     };
     return dataWorker;
   }
@@ -360,25 +397,46 @@ input{outline:none}
   }
 
   function workerBuildRatio(a,b,timeframe,adjusted,version){
-    const worker=ensureDataWorker();
+    let worker;
+    try{worker=ensureDataWorker();}
+    catch(error){console.warn('Worker is unavailable; using safe fallback.',error);return null;}
     if(!worker) return null;
     const request=++dataWorkerRequest;
     const addVersion=(url)=>version ? url + (url.includes('?')?'&':'?') + 'v=' + encodeURIComponent(version) : url;
 
     if(dataWorkerPending.size){
       if(activeFetchController){try{activeFetchController.abort();}catch(e){}}
-      try{worker.postMessage({type:'cancel'});}catch(e){}
       for(const [id,p] of dataWorkerPending){
         dataWorkerPending.delete(id);
-        p.reject(new DOMException('Request superseded','AbortError'));
+        p.reject(Object.assign(new Error('درخواست قبلی جایگزین شد.'),{name:'AbortError'}));
       }
+      try{worker.terminate();}catch(e){}
+      if(dataWorker===worker) dataWorker=null;
+      if(dataWorkerURL){try{URL.revokeObjectURL(dataWorkerURL);}catch(e){} dataWorkerURL='';}
+      try{worker=ensureDataWorker();}
+      catch(error){console.warn('Worker restart failed; using safe fallback.',error);return null;}
+      if(!worker) return null;
     }
 
     activeFetchController=new AbortController();
     const fetchSignal=activeFetchController.signal;
 
     return new Promise((resolve,reject)=>{
-      dataWorkerPending.set(request,{resolve,reject});
+      const timeout=setTimeout(()=>{
+        const pending=dataWorkerPending.get(request);
+        if(!pending) return;
+        dataWorkerPending.delete(request);
+        if(activeFetchController?.signal===fetchSignal){try{activeFetchController.abort();}catch(e){} activeFetchController=null;}
+        const error=Object.assign(new Error('پردازش داده بیش از ۳۵ ثانیه طول کشید؛ برای جلوگیری از هنگ‌کردن، عملیات متوقف شد. صفحه را تازه‌سازی کنید و دوباره تلاش کنید.'),{code:'WORKER_TIMEOUT'});
+        pending.reject(error);
+        try{worker.terminate();}catch(e){}
+        if(dataWorker===worker) dataWorker=null;
+        if(dataWorkerURL){try{URL.revokeObjectURL(dataWorkerURL);}catch(e){} dataWorkerURL='';}
+      },DATA_WORKER_TIMEOUT_MS);
+      dataWorkerPending.set(request,{
+        resolve(value){clearTimeout(timeout);resolve(value);},
+        reject(error){clearTimeout(timeout);reject(error);}
+      });
       (async()=>{
         try{
           const [bufferA,bufferB]=await Promise.all([
@@ -389,13 +447,10 @@ input{outline:none}
           worker.postMessage({type:'build',request,bufferA,bufferB,idA:String(a.id),idB:String(b.id),timeframe,adjusted,version:version||''},[bufferA,bufferB]);
         }catch(e){
           if(e?.name==='AbortError' || fetchSignal.aborted) {
-            if(dataWorkerPending.has(request)){dataWorkerPending.delete(request);reject(new DOMException('Request aborted','AbortError'));}
+            if(dataWorkerPending.has(request)){const pending=dataWorkerPending.get(request);dataWorkerPending.delete(request);pending.reject(Object.assign(new Error('درخواست لغو شد.'),{name:'AbortError'}));}
             return;
           }
-          if(dataWorkerPending.has(request)){
-            dataWorkerPending.delete(request);
-            reject(e);
-          }
+          if(dataWorkerPending.has(request)){const pending=dataWorkerPending.get(request);dataWorkerPending.delete(request);pending.reject(e);}
         }finally{
           if(activeFetchController?.signal===fetchSignal) activeFetchController=null;
         }
@@ -404,29 +459,15 @@ input{outline:none}
   }
 
   async function loadRatioData(a,b,timeframe,adjusted,version){
-    setLoading(true,'دریافت داده‌های ' + a.name + ' و ' + b.name + '...');
     const fast=workerBuildRatio(a,b,timeframe,adjusted,version);
-    if(fast){
-      try{
-        return await fast;
-      }catch(e){
-        if(e?.name==='AbortError') throw e;
-        console.warn('Worker processing failed; using safe main-thread fallback.',e);
-        setLoading(true,'بازیابی امن داده‌ها...');
-      }
-    }
+    if(fast) return await fast;
+    // Main-thread fallback is used only where Web Workers are unavailable/blocked.
     const [rawA,rawB]=await Promise.all([loadRaw(a),loadRaw(b)]);
     const barsA=aggregate(getWorkingBars(a,rawA),timeframe);
     const barsB=aggregate(getWorkingBars(b,rawB),timeframe);
     return buildRatio(barsA,barsB);
   }
-  function setStatus(text){ $('status').textContent = text || ''; }
-
-  function setLoading(on, text){
-    const box = $('loading');
-    box.classList.toggle('on', !!on);
-    if(on) box.firstElementChild.textContent = text || 'در حال بارگذاری...';
-  }
+  function setStatus(text){ const node=$('status'); if(node) node.textContent = text || ''; }
 
   function clearError(){
     $('error').textContent = '';
@@ -507,7 +548,7 @@ input{outline:none}
       const volume = toNumber(row.volume) ?? 0;
       if(time === null || open === null || high === null || low === null || close === null) continue;
       if(![open,high,low,close].every((n) => Number.isFinite(n) && n > 0)) continue;
-      if(high < low) continue;
+      if(high < low || high < open || high < close || low > open || low > close) continue;
       map.set(time, { time, open, high, low, close, volume:Number.isFinite(volume) && volume >= 0 ? volume : 0 });
     }
     const bars = [...map.values()].sort((a,b) => a.time - b.time);
@@ -536,7 +577,11 @@ input{outline:none}
       }
       if(!response.ok) throw new Error('HTTP ' + response.status + ' — ' + url);
       try{return await response.json();}
-      catch(e){throw new Error('پاسخ JSON نامعتبر است.');}
+      catch(e){
+        if(controller.signal.aborted && !(externalSignal?.aborted)) throw new Error('TIMEOUT: دریافت داده بیش از ۲۰ ثانیه طول کشید.');
+        if(e instanceof SyntaxError) throw new Error('پاسخ JSON نامعتبر است.');
+        throw e;
+      }
     } finally {
       if(timer) clearTimeout(timer);
       externalSignal?.removeEventListener('abort', onAbort);
@@ -942,7 +987,15 @@ input{outline:none}
     return {from:bars[0].time,to:bars[bars.length-1].time};
   }
 
+  let chartMutationQueue = Promise.resolve();
+
   async function ensureChart(bars,serial){
+    const task = chartMutationQueue.catch(()=>{}).then(()=>ensureChartInner(bars,serial));
+    chartMutationQueue = task.catch(()=>{});
+    return task;
+  }
+
+  async function ensureChartInner(bars,serial){
     if(typeof VelaWorkspace !== 'function') throw new Error('کتابخانه Vela Workspace بارگذاری نشده است.');
     if(serial !== state.buildSerial) return false;
     if(!bars.length) throw new Error('داده‌ای برای نمودار وجود ندارد.');
@@ -988,7 +1041,7 @@ input{outline:none}
       if(!state.workspace){
         state.workspace = new VelaWorkspace('#chart',chartOptions);
         state.chart = state.workspace.chart;
-        await state.chart.ready();
+        await withChartTimeout(state.chart.ready(),'آماده‌سازی نمودار بیش از ۴۵ ثانیه طول کشید.');
         state.defaultRendererConfig = cloneJSON(state.chart?.renderer?.getConfig?.());
         const freshDoc = safeWorkspaceState();
         state.defaultWorkspaceChart = extractWorkspaceChart(freshDoc?.charts?.[0] || null);
@@ -1025,9 +1078,9 @@ input{outline:none}
           state.controlsObserver.observe($('chart'),{childList:true,subtree:true});
         }
       }else{
-        await state.workspace.chart.setMarket({data:bars,timeframe:state.timeframe,visibleRange:currentVisibleRange(bars)});
+        await withChartTimeout(Promise.resolve(state.workspace.chart.setMarket({data:bars,timeframe:state.timeframe,visibleRange:currentVisibleRange(bars)})),'تعویض داده‌های نمودار بیش از ۴۵ ثانیه طول کشید.');
         state.chart = state.workspace.chart;
-        await state.chart.ready();
+        await withChartTimeout(state.chart.ready(),'آماده‌سازی نمودار بیش از ۴۵ ثانیه طول کشید.');
       }
 
       if(serial !== state.buildSerial) return false;
@@ -1050,7 +1103,6 @@ input{outline:none}
     if(!state.a || !state.b) throw new Error('دو نماد را انتخاب کنید.');
     if(String(state.a.id)===String(state.b.id)) throw new Error('دو نماد باید متفاوت باشند.');
 
-    setLoading(true,'دریافت داده‌های ' + state.a.name + ' و ' + state.b.name + '...');
     try{
       const ratio = await loadRatioData(state.a,state.b,state.timeframe,state.adjusted,state.dataVersion);
       if(serial !== state.buildSerial) return;
@@ -1061,15 +1113,13 @@ input{outline:none}
       updatePairUI();
       updatePairMeta(ratio);
       setStatus(ratio.length.toLocaleString('fa-IR') + ' کندل نسبت');
-      setLoading(false);
       persistState();
       requestAnimationFrame(() => state.chart?.resize?.());
     }catch(e){
-      if(serial !== state.buildSerial) return;
-      setLoading(false);
-      const message = e?.name === 'AbortError' ? 'درخواست قبلی لغو شد.' : (e?.message || 'خطای نامشخص');
+      if(serial !== state.buildSerial || e?.name === 'AbortError') return;
+      const message = e?.message || 'خطای نامشخص';
       showError(message);
-      setStatus('خطا در دریافت یا پردازش داده');
+      setStatus('');
     }
   }
 
@@ -1162,7 +1212,9 @@ input{outline:none}
   });
 
   document.addEventListener('click',(e) => {
-    if(!$('searchBox').contains(e.target) && !$('results').contains(e.target)) closeSearch();
+    const target=e.target;
+    if($('searchBox').contains(target) || $('results').contains(target) || $('slotA').contains(target) || $('slotB').contains(target)) return;
+    closeSearch();
   });
 
   $('timeframe').addEventListener('change',(e) => changeTimeframe(e.target.value));
@@ -1211,7 +1263,7 @@ input{outline:none}
   function extractWorkspaceChart(chartState){
     if(!chartState || typeof chartState!=='object') return null;
     const copy={};
-    for(const key of ['priceStyle','watermark','indicatorTitles','indicators','ext']){
+    for(const key of ['priceStyle','watermark','indicatorTitles','indicators','rendererConfig','drawings','ext']){
       if(Object.prototype.hasOwnProperty.call(chartState,key)) copy[key]=cloneJSON(chartState[key]);
     }
     return copy;
@@ -1252,7 +1304,7 @@ input{outline:none}
       const doc=safeWorkspaceState();
       const current=doc?.charts?.[0];
       if(!doc || !current) return;
-      for(const key of ['priceStyle','watermark','indicatorTitles','indicators','ext']){
+      for(const key of ['priceStyle','watermark','indicatorTitles','indicators','rendererConfig','drawings','ext']){
         if(Object.prototype.hasOwnProperty.call(savedChart,key)) current[key]=cloneJSON(savedChart[key]);
       }
       state.workspace.applyState(doc);
@@ -1385,30 +1437,16 @@ input{outline:none}
     },{capture:true,passive:false});
   }
 
-  function updateIranUtcClock(){
-    const now=new Date();
-    const utc=$('utcTime'), iran=$('iranDate');
-    if(utc) utc.textContent=now.toLocaleTimeString('en-GB',{timeZone:'UTC',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
-    if(iran){
-      try{iran.textContent=new Intl.DateTimeFormat('fa-IR-u-ca-persian',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);}
-      catch(e){iran.textContent=now.toLocaleDateString('fa-IR',{timeZone:'Asia/Tehran'});}
-    }
-  }
-  updateIranUtcClock();
-  setInterval(updateIranUtcClock,1000);
-
   (async function boot(){
     try{
       if(typeof VelaWorkspace !== 'function') throw new Error('کتابخانه Vela Workspace بارگذاری نشده است.');
-      setLoading(true,'در حال بارگذاری فهرست نمادها...');
       await loadDataVersion();
       await loadSymbols();
       readSavedState();
       await buildAndRender();
     }catch(e){
-      setLoading(false);
       showError(e.message || 'خطای نامشخص');
-      setStatus('نیاز به بررسی داده یا مسیر فایل‌ها');
+      setStatus('');
     }
   })();
 })();
