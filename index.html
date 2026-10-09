@@ -8,11 +8,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="color-scheme" content="dark light">
-<title>Bors-Vela — نمودار نسبت نمادها</title>
+<title>Bors-Vela — نمودار نماد و نسبت</title>
 <style>
 :root{color-scheme:dark;--bg:#131722;--panel:#1e222d;--border:#2a2e39;--text:#d1d4dc;--muted:#787b86;--accent:#2962ff;--danger:#ef5350;--hover-bg:rgba(255,255,255,.06);--input-placeholder:#8a8d98;--menu-bg:#1e222d;--menu-hover:#2a2e39;--pair-text:#e5e7eb;--meta-bg:rgba(19,23,34,.62);--meta-border:rgba(255,255,255,.06);--meta-text:#a8adb8;--menu-shadow:rgba(0,0,0,.32)}
 :root[data-theme="light"]{color-scheme:light;--bg:#fff;--panel:#f5f7fa;--border:#d1d4dc;--text:#131722;--muted:#6a6d78;--accent:#2962ff;--danger:#d93025;--hover-bg:rgba(19,23,34,.06);--input-placeholder:#787b86;--menu-bg:#fff;--menu-hover:#eef1f7;--pair-text:#131722;--meta-bg:rgba(255,255,255,.86);--meta-border:rgba(19,23,34,.12);--meta-text:#434651;--menu-shadow:rgba(0,0,0,.16)}
 *{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif;font-size:12px}
 body{touch-action:none;-webkit-tap-highlight-color:transparent}
 button,input,select{font:inherit}
@@ -28,8 +29,7 @@ input{outline:none}
 .mdhi-controls{display:flex;align-items:center;gap:3px;min-width:0;max-width:100%;flex:0 1 auto;white-space:nowrap;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;direction:ltr}
 .mdhi-controls::-webkit-scrollbar{display:none}
 .mdhi-controls.mounted{max-width:min(72vw,1000px);flex:0 1 auto;padding:1px 3px;overflow-x:auto;border-radius:4px;gap:3px}
-#pairMeta{position:absolute;top:45px;left:54px;right:auto;z-index:11900;max-width:min(520px,calc(100% - 120px));padding:4px 7px;border-radius:4px;background:var(--meta-bg);border:1px solid var(--meta-border);pointer-events:none;direction:rtl;color:var(--meta-text);font-size:10px;backdrop-filter:blur(4px);user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@media(max-width:760px){.mdhi-controls.mounted{max-width:calc(100vw - 16px);gap:3px;padding:1px 2px}#pairMeta{left:48px;top:44px;max-width:calc(100% - 95px)}}
+@media(max-width:760px){.mdhi-controls.mounted{max-width:calc(100vw - 16px);gap:3px;padding:1px 2px}}
 .separator{width:1px;height:22px;background:var(--border);margin:0 2px;flex:0 0 auto}
 .search{position:relative;width:156px;height:28px;display:flex;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:4px;flex:0 0 auto}
 .search:focus-within{border-color:#3f6cff;box-shadow:0 0 0 1px rgba(41,98,255,.18)}
@@ -51,6 +51,10 @@ input{outline:none}
 <div class="app">
   <div class="hostbar" id="hostbar">
     <div id="hostControls" class="mdhi-controls">
+      <select id="chartMode" class="control" title="حالت نمودار" aria-label="حالت نمودار">
+        <option value="single">نمودار نماد</option>
+        <option value="ratio" selected>نسبت دو نماد</option>
+      </select>
       <div class="search" id="searchBox">
         <input id="searchInput" type="text" autocomplete="off" spellcheck="false" placeholder="جستجوی نماد..." aria-label="جستجوی نماد">
       </div>
@@ -76,7 +80,6 @@ input{outline:none}
   </div>
   <main class="main">
     <div id="chartWrap"><div id="chart"></div></div>
-    <div id="pairMeta">—</div>
     <div id="error" role="alert" aria-live="polite"></div>
   </main>
 </div>
@@ -107,9 +110,14 @@ input{outline:none}
   const BASE = '/';
   const SYMBOLS_URL = BASE + 'data/symbols.json';
   const VERSION_URL = BASE + 'data/version.json';
-  const STORAGE_KEY = 'MHDI_RATIO_STATE_V2';
+  const STORAGE_KEY = 'MHDI_RATIO_STATE_V3';
+  const LEGACY_STORAGE_KEY = 'MHDI_RATIO_STATE_V2';
+  const WORKSPACE_PREFS_KEY = 'MHDI_VELA_GLOBAL_PREFS_V1';
   const STYLE_VALUES = new Set(['candles','bars','line','area','baseline']);
-  const CHART_STORAGE_PREFIX = 'MHDI_RATIO_CHART_V2|';
+  const CHART_STORAGE_PREFIX = 'MHDI_VELA_CHART_V3|';
+  const CHART_DB_NAME = 'BorsVelaChartState';
+  const CHART_DB_VERSION = 1;
+  let chartDbPromise = null;
   const DATA_FETCH_TIMEOUT_MS = 20000;
   const DATA_WORKER_TIMEOUT_MS = 35000;
   const CHART_OPERATION_TIMEOUT_MS = 45000;
@@ -123,6 +131,7 @@ input{outline:none}
   const state = {
     symbols: [],
     symbolIndex: new Map(),
+    chartMode: 'ratio',
     targetSlot: 'A',
     a: null,
     b: null,
@@ -135,6 +144,7 @@ input{outline:none}
     rawCache: new Map(),
     adjustedCache: new Map(),
     ratioCache: new Map(),
+    seriesCache: new Map(),
     chart: null,
     workspace: null,
     searchResults: [],
@@ -244,8 +254,9 @@ input{outline:none}
         }
         return gaps;
       }
-      function adjusted(id,bars){
-        if(adjustedCache.has(id)) return adjustedCache.get(id);
+      function adjusted(id,bars,version){
+        const cacheKey=String(id)+'|'+String(version||'');
+        if(adjustedCache.has(cacheKey)) return adjustedCache.get(cacheKey);
         const out=bars.map((b)=>({...b}));
         for(let pass=0;pass<8;pass++){
           const gaps=findGaps(out); if(!gaps.length) break;
@@ -254,7 +265,7 @@ input{outline:none}
             for(let j=0;j<idx;j++){out[j].open*=ratio;out[j].high*=ratio;out[j].low*=ratio;out[j].close*=ratio;}
           }
         }
-        adjustedCache.set(id,out); return out;
+        adjustedCache.set(cacheKey,out); return out;
       }
       function aggregate(bars,tf){
         const match=/^([0-9]{1,2})(D|W|M)$/.exec(String(tf||''));
@@ -297,11 +308,16 @@ input{outline:none}
         }
         ratioCache.set(key,out);return out;
       }
+      function processSeries(buffer,m){
+        const bars=parseBuffer(buffer);
+        const working=m.adjusted?adjusted(m.idA,bars,m.version):bars;
+        return aggregate(working,m.timeframe);
+      }
       function processBuffers(bufferA,bufferB,m){
         const a=parseBuffer(bufferA);
         const b=parseBuffer(bufferB);
-        const wa=m.adjusted?adjusted(m.idA,a):a;
-        const wb=m.adjusted?adjusted(m.idB,b):b;
+        const wa=m.adjusted?adjusted(m.idA,a,m.version):a;
+        const wb=m.adjusted?adjusted(m.idB,b,m.version):b;
         const aa=aggregate(wa,m.timeframe);
         const bb=aggregate(wb,m.timeframe);
         const key=[m.idA,m.idB,m.timeframe,m.adjusted?'A':'R',m.version||''].join('|');
@@ -313,14 +329,14 @@ input{outline:none}
           try{activeController?.abort();}catch(_e){}
           return;
         }
-        if(m.type!=='build') return;
+        if(m.type!=='build' && m.type!=='series') return;
         try{activeController?.abort();}catch(_e){}
         const controller=new AbortController();
         activeController=controller;
         try{
           self.postMessage({type:'progress',request:m.request,stage:'PARSE'});
           if(controller.signal.aborted) return;
-          const out=processBuffers(m.bufferA,m.bufferB,m);
+          const out=m.type==='series'?processSeries(m.bufferA,m):processBuffers(m.bufferA,m.bufferB,m);
           if(controller.signal.aborted) return;
           self.postMessage({type:'result',request:m.request,data:out});
         }catch(error){
@@ -394,13 +410,11 @@ input{outline:none}
     }
   }
 
-  function workerBuildRatio(a,b,timeframe,adjusted,version){
+  function workerBuildRequest(type,a,b,timeframe,adjusted,version){
     let worker;
     try{worker=ensureDataWorker();}
     catch(error){console.warn('Worker is unavailable; using safe fallback.',error);return null;}
     if(!worker) return null;
-    const request=++dataWorkerRequest;
-    const addVersion=(url)=>version ? url + (url.includes('?')?'&':'?') + 'v=' + encodeURIComponent(version) : url;
 
     if(dataWorkerPending.size){
       if(activeFetchController){try{activeFetchController.abort();}catch(e){}}
@@ -416,6 +430,8 @@ input{outline:none}
       if(!worker) return null;
     }
 
+    const request=++dataWorkerRequest;
+    const addVersion=(url)=>version ? url + (url.includes('?')?'&':'?') + 'v=' + encodeURIComponent(version) : url;
     activeFetchController=new AbortController();
     const fetchSignal=activeFetchController.signal;
 
@@ -425,7 +441,7 @@ input{outline:none}
         if(!pending) return;
         dataWorkerPending.delete(request);
         if(activeFetchController?.signal===fetchSignal){try{activeFetchController.abort();}catch(e){} activeFetchController=null;}
-        const error=Object.assign(new Error('پردازش داده بیش از ۳۵ ثانیه طول کشید؛ برای جلوگیری از هنگ‌کردن، عملیات متوقف شد. صفحه را تازه‌سازی کنید و دوباره تلاش کنید.'),{code:'WORKER_TIMEOUT'});
+        const error=Object.assign(new Error('پردازش داده بیش از ۳۵ ثانیه طول کشید؛ عملیات برای جلوگیری از هنگ متوقف شد.'),{code:'WORKER_TIMEOUT'});
         pending.reject(error);
         try{worker.terminate();}catch(e){}
         if(dataWorker===worker) dataWorker=null;
@@ -437,12 +453,18 @@ input{outline:none}
       });
       (async()=>{
         try{
-          const [bufferA,bufferB]=await Promise.all([
-            fetchBuffer(addVersion(BASE+'data/raw/'+encodeURIComponent(a.id)+'.json'),fetchSignal),
-            fetchBuffer(addVersion(BASE+'data/raw/'+encodeURIComponent(b.id)+'.json'),fetchSignal)
-          ]);
-          if(fetchSignal.aborted || !dataWorkerPending.has(request)) return;
-          worker.postMessage({type:'build',request,bufferA,bufferB,idA:String(a.id),idB:String(b.id),timeframe,adjusted,version:version||''},[bufferA,bufferB]);
+          if(type==='build'){
+            const [bufferA,bufferB]=await Promise.all([
+              fetchBuffer(addVersion(BASE+'data/raw/'+encodeURIComponent(a.id)+'.json'),fetchSignal),
+              fetchBuffer(addVersion(BASE+'data/raw/'+encodeURIComponent(b.id)+'.json'),fetchSignal)
+            ]);
+            if(fetchSignal.aborted || !dataWorkerPending.has(request)) return;
+            worker.postMessage({type:'build',request,bufferA,bufferB,idA:String(a.id),idB:String(b.id),timeframe,adjusted,version:version||''},[bufferA,bufferB]);
+          }else{
+            const bufferA=await fetchBuffer(addVersion(BASE+'data/raw/'+encodeURIComponent(a.id)+'.json'),fetchSignal);
+            if(fetchSignal.aborted || !dataWorkerPending.has(request)) return;
+            worker.postMessage({type:'series',request,bufferA,idA:String(a.id),timeframe,adjusted,version:version||''},[bufferA]);
+          }
         }catch(e){
           if(e?.name==='AbortError' || fetchSignal.aborted) {
             if(dataWorkerPending.has(request)){const pending=dataWorkerPending.get(request);dataWorkerPending.delete(request);pending.reject(Object.assign(new Error('درخواست لغو شد.'),{name:'AbortError'}));}
@@ -456,6 +478,14 @@ input{outline:none}
     });
   }
 
+  function workerBuildRatio(a,b,timeframe,adjusted,version){
+    return workerBuildRequest('build',a,b,timeframe,adjusted,version);
+  }
+
+  function workerBuildSeries(symbol,timeframe,adjusted,version){
+    return workerBuildRequest('series',symbol,null,timeframe,adjusted,version);
+  }
+
   async function loadRatioData(a,b,timeframe,adjusted,version){
     const fast=workerBuildRatio(a,b,timeframe,adjusted,version);
     if(fast) return await fast;
@@ -463,7 +493,27 @@ input{outline:none}
     const [rawA,rawB]=await Promise.all([loadRaw(a),loadRaw(b)]);
     const barsA=aggregate(getWorkingBars(a,rawA),timeframe);
     const barsB=aggregate(getWorkingBars(b,rawB),timeframe);
-    return buildRatio(barsA,barsB);
+    return buildRatio(barsA,barsB,ratioKey(a,b,timeframe,adjusted));
+  }
+
+  async function loadSingleData(symbol,timeframe,adjusted,version){
+    const cacheKey=[symbol.id,timeframe,adjusted?'A':'R',version||''].join('|');
+    if(state.seriesCache.has(cacheKey)) return await state.seriesCache.get(cacheKey);
+    const fast=workerBuildSeries(symbol,timeframe,adjusted,version);
+    const promise=(async()=>{
+      if(fast) return await fast;
+      const raw=await loadRaw(symbol);
+      return aggregate(adjusted?adjustedBars(String(symbol.id),raw):raw,timeframe);
+    })();
+    state.seriesCache.set(cacheKey,promise);
+    try{
+      const bars=await promise;
+      state.seriesCache.set(cacheKey,bars);
+      return bars;
+    }catch(error){
+      state.seriesCache.delete(cacheKey);
+      throw error;
+    }
   }
   // Status text (including the candle count) is intentionally not shown in the UI.
   function setStatus(_text){}
@@ -481,11 +531,6 @@ input{outline:none}
     if(logToConsole) console.error(safe);
   }
 
-  function showNotice(message){
-    const box=$('error');
-    box.textContent=String(message || 'ورودی را بررسی کنید.');
-    box.classList.add('on','notice');
-  }
 
   function normalizeText(value){
     return String(value ?? '')
@@ -658,8 +703,11 @@ input{outline:none}
     select.value = value;
   }
 
-  function chartStorageKey(a=state.a,b=state.b,tf=state.timeframe,adjusted=state.adjusted){
-    return CHART_STORAGE_PREFIX + [a?.id||'',b?.id||'',tf,adjusted?'A':'R'].join('|');
+  function chartStorageKey(a=state.a,b=state.b,tf=state.timeframe,adjusted=state.adjusted,mode=state.chartMode){
+    const identity=mode==='single'
+      ? ['single',encodeURIComponent(String(a?.id||''))]
+      : ['ratio',encodeURIComponent(String(a?.id||'')),encodeURIComponent(String(b?.id||''))];
+    return CHART_STORAGE_PREFIX + [...identity,tf,adjusted?'A':'R'].join('|');
   }
 
   function applyHostTheme(theme){
@@ -673,9 +721,10 @@ input{outline:none}
 
   function readSavedState(){
     let saved = {};
-    try{saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') || {};}catch(e){}
+    try{saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY) || '{}') || {};}catch(e){}
 
     const params = new URLSearchParams(location.search);
+    const chartMode = params.get('chart') || saved.chartMode;
     const aId = params.get('a') || saved.a;
     const bId = params.get('b') || saved.b;
     const tf = params.get('tf') || saved.tf;
@@ -688,6 +737,7 @@ input{outline:none}
     const first = state.symbols.find((s) => s.name === 'فولاد') || state.symbols[0];
     const second = state.symbols.find((s) => s.name === 'فملی') || state.symbols.find((s) => s.id !== first?.id) || state.symbols[1];
 
+    if(chartMode === 'single' || chartMode === 'ratio') state.chartMode = chartMode;
     state.a = byId(aId) || first;
     state.b = byId(bId) || second;
     if(state.a?.id === state.b?.id) state.b = state.symbols.find((s) => s.id !== state.a.id) || second;
@@ -706,7 +756,7 @@ input{outline:none}
   }
 
   function persistState(){
-    const payload = {a:state.a?.id,b:state.b?.id,tf:state.timeframe,style:state.priceStyle,mode:state.adjusted?'adjusted':'raw',log:state.logScale,theme:state.theme};
+    const payload = {chartMode:state.chartMode,a:state.a?.id,b:state.b?.id,tf:state.timeframe,style:state.priceStyle,mode:state.adjusted?'adjusted':'raw',log:state.logScale,theme:state.theme};
     try{localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));}catch(e){}
   }
 
@@ -728,28 +778,27 @@ input{outline:none}
 
   function syncControls(){
     syncTimeframeControl();
+    $('chartMode').value = state.chartMode;
     $('adjustedBtn').classList.toggle('active', state.adjusted);
     $('rawBtn').classList.toggle('active', !state.adjusted);
     updatePairUI();
   }
 
   function updatePairUI(){
+    const single=state.chartMode==='single';
     const a = state.a?.name || '—';
     const b = state.b?.name || '—';
     $('slotA').textContent = a;
     $('slotB').textContent = b;
+    $('slotB').hidden=single;
+    document.querySelector('.pair-sep').hidden=single;
+    $('swapBtn').hidden=single;
+    $('analyzeBtn').textContent=single?'نمایش نمودار':'تحلیل';
+    $('analyzeBtn').title=single?'نمایش نمودار نماد':'نمایش نسبت دو نماد';
+    $('slotA').title=single?'انتخاب نماد برای نمودار مستقل':'انتخاب نماد اول';
+    $('slotB').title='انتخاب نماد دوم';
     $('slotA').classList.toggle('active', state.targetSlot === 'A');
-    $('slotB').classList.toggle('active', state.targetSlot === 'B');
-  }
-
-  function updatePairMeta(bars){
-    if(!bars?.length){ $('pairMeta').textContent = '—'; return; }
-    const last = bars[bars.length-1];
-    const prev = bars.length > 1 ? bars[bars.length-2] : null;
-    const change = prev && prev.close !== 0 ? ((last.close / prev.close) - 1) * 100 : 0;
-    const sign = change > 0 ? '+' : '';
-    const date = new Date(last.time).toLocaleDateString('fa-IR');
-    $('pairMeta').textContent = 'نسبت آخر: ' + formatValue(last.close) + '  |  تغییر: ' + sign + change.toFixed(2) + '%  |  ' + date;
+    $('slotB').classList.toggle('active', !single && state.targetSlot === 'B');
   }
 
   function formatValue(value){
@@ -770,6 +819,7 @@ input{outline:none}
   }
 
   function openSearch(slot){
+    if(state.chartMode==='single') slot='A';
     state.targetSlot = slot;
     updatePairUI();
     $('searchInput').value = '';
@@ -841,9 +891,10 @@ input{outline:none}
   function chooseSymbolById(id){
     const sym = state.symbolIndex.get(String(id));
     if(!sym) return;
-    // Reject duplicate pairs before saving or changing any chart state.
-    if((state.targetSlot === 'A' && state.b?.id === sym.id) || (state.targetSlot !== 'A' && state.a?.id === sym.id)){
-      showNotice('این نماد در بخش دیگر انتخاب شده است. دو نماد متفاوت وارد کنید. نمودار فعلی بدون تغییر باقی ماند.');
+    // Silently ignore duplicate symbol choices in ratio mode; do not expose a warning.
+    if(state.chartMode==='ratio' && ((state.targetSlot === 'A' && state.b?.id === sym.id) || (state.targetSlot !== 'A' && state.a?.id === sym.id))){
+      closeSearch();
+      $('searchInput').value='';
       return;
     }
     saveCurrentChartState();
@@ -886,6 +937,7 @@ input{outline:none}
     state.rawCache.clear();
     state.adjustedCache.clear();
     state.ratioCache.clear();
+    state.seriesCache.clear();
   }
 
   function findGaps(bars){
@@ -965,12 +1017,12 @@ input{outline:none}
     return out;
   }
 
-  function ratioKey(){
-    return [state.a?.id,state.b?.id,state.timeframe,state.adjusted?'A':'R'].join('|');
+  function ratioKey(a=state.a,b=state.b,tf=state.timeframe,adjusted=state.adjusted){
+    return [a?.id,b?.id,tf,adjusted?'A':'R'].join('|');
   }
 
-  function buildRatio(a,b){
-    const key = ratioKey();
+  function buildRatio(a,b,key=ratioKey()){
+    
     if(state.ratioCache.has(key)) return state.ratioCache.get(key);
 
     const left = new Map(a.map((x) => [x.time,x]));
@@ -1014,8 +1066,7 @@ input{outline:none}
     if(serial !== state.buildSerial) return false;
     if(!bars.length) throw new Error('داده‌ای برای نمودار وجود ندارد.');
 
-    const targetKey = chartStorageKey(state.a,state.b,state.timeframe,state.adjusted);
-    if(state.activeChartKey && state.activeChartKey !== targetKey) saveCurrentChartState();
+    const targetKey = chartStorageKey(state.a,state.b,state.timeframe,state.adjusted,state.chartMode);
     state.isRestoring = true;
     try{
       const chartOptions = {
@@ -1059,11 +1110,13 @@ input{outline:none}
         state.defaultRendererConfig = cloneJSON(state.chart?.renderer?.getConfig?.());
         const freshDoc = safeWorkspaceState();
         state.defaultWorkspaceChart = extractWorkspaceChart(freshDoc?.charts?.[0] || null);
+        saveWorkspacePreferences(freshDoc);
         try{ state.workspace.setTheme(state.theme); }catch(e){}
         attachChartPersistence();
         try{
           state.workspace.on('state:changed',() => {
             if(state.isRestoring) return;
+            saveWorkspacePreferences(safeWorkspaceState());
             syncRendererStateFromWorkspace();
             scheduleChartSave();
           });
@@ -1099,10 +1152,10 @@ input{outline:none}
       }
 
       if(serial !== state.buildSerial) return false;
-      restoreChartState(targetKey,bars);
+      await restoreChartState(targetKey,bars);
+      if(serial !== state.buildSerial) return false;
       state.activeChartKey = targetKey;
       applyRendererChange();
-      try{ state.workspace.setTheme(state.theme); }catch(e){}
       syncControls();
       syncThemeButton();
       mountHostControlsIntoVelaTopbar();
@@ -1115,25 +1168,24 @@ input{outline:none}
   async function buildAndRender(){
     const serial = ++state.buildSerial;
     clearError();
-    if(!state.a || !state.b){
-      showError('دو نماد را انتخاب کنید.');
-      return;
-    }
-    if(String(state.a.id)===String(state.b.id)){
-      showNotice('این دو نماد یکسان‌اند. دو نماد متفاوت انتخاب کنید؛ نمودار فعلی تا انتخاب معتبر حفظ می‌شود.');
-      return;
-    }
-
+    if(!state.a){showError('نمادی برای نمایش انتخاب نشده است.');return;}
     try{
-      const ratio = await loadRatioData(state.a,state.b,state.timeframe,state.adjusted,state.dataVersion);
-      if(serial !== state.buildSerial) return;
-      if(ratio.length<2) throw new Error('هم‌پوشانی زمانی دو نماد برای این تایم‌فریم کافی نیست.');
-      if(!(await ensureChart(ratio,serial))) return;
-      state.lastRatioBars = ratio;
-      state.lastRenderedKey = [state.a.id,state.b.id,state.timeframe,state.adjusted?'A':'R',state.priceStyle,state.logScale].join('|');
+      let bars;
+      if(state.chartMode==='single'){
+        bars=await loadSingleData(state.a,state.timeframe,state.adjusted,state.dataVersion);
+        if(serial!==state.buildSerial) return;
+        if(!bars || bars.length<2) throw new Error('داده کافی برای نمودار این نماد وجود ندارد.');
+      }else{
+        if(!state.b || String(state.a.id)===String(state.b.id)) return; // duplicate pair is intentionally silent
+        bars=await loadRatioData(state.a,state.b,state.timeframe,state.adjusted,state.dataVersion);
+        if(serial !== state.buildSerial) return;
+        if(bars.length<2) throw new Error('هم‌پوشانی زمانی دو نماد برای این تایم‌فریم کافی نیست.');
+      }
+      if(!(await ensureChart(bars,serial))) return;
+      if(serial!==state.buildSerial) return;
+      state.lastRatioBars = bars;
+      state.lastRenderedKey = [state.chartMode,state.a.id,state.chartMode==='single'?'':state.b.id,state.timeframe,state.adjusted?'A':'R',state.priceStyle,state.logScale].join('|');
       updatePairUI();
-      updatePairMeta(ratio);
-      setStatus(ratio.length.toLocaleString('fa-IR') + ' کندل نسبت');
       persistState();
       requestAnimationFrame(() => state.chart?.resize?.());
     }catch(e){
@@ -1142,6 +1194,22 @@ input{outline:none}
       showError(message);
       setStatus('');
     }
+  }
+
+  async function changeChartMode(value){
+    if(value!=='single' && value!=='ratio') return;
+    if(state.chartMode===value) return;
+    saveCurrentChartState();
+    state.chartMode=value;
+    if(value==='single') state.targetSlot='A';
+    else{
+      state.targetSlot='B';
+      if(!state.b || state.b.id===state.a?.id) state.b=state.symbols.find((symbol)=>symbol.id!==state.a?.id) || null;
+    }
+    closeSearch();
+    syncControls();
+    persistState();
+    await buildAndRender();
   }
 
   function syncRendererStateFromWorkspace(){
@@ -1158,8 +1226,6 @@ input{outline:none}
     const patch = {};
     if(state.chart.renderer.supports?.('priceStyle') !== false) patch.priceStyle = state.priceStyle;
     if(state.chart.renderer.supports?.('logScale') !== false) patch.logScale = state.logScale;
-    if(state.chart.renderer.supports?.('upColor') !== false) patch.upColor = '#089981';
-    if(state.chart.renderer.supports?.('downColor') !== false) patch.downColor = '#f23645';
     state.chart.renderer.set(patch);
   }
 
@@ -1184,7 +1250,7 @@ input{outline:none}
   }
 
   function swapSymbols(){
-    if(!state.a || !state.b) return;
+    if(state.chartMode!=='ratio' || !state.a || !state.b) return;
     saveCurrentChartState();
     const temp = state.a; state.a = state.b; state.b = temp;
     state.ratioCache.clear();
@@ -1202,7 +1268,8 @@ input{outline:none}
   }
 
   $('slotA').addEventListener('click',() => openSearch('A'));
-  $('slotB').addEventListener('click',() => openSearch('B'));
+  $('slotB').addEventListener('click',() => {if(state.chartMode==='ratio') openSearch('B');});
+  $('chartMode').addEventListener('change',(e)=>changeChartMode(e.target.value));
   $('swapBtn').addEventListener('click',swapSymbols);
   $('analyzeBtn').addEventListener('click',buildAndRender);
   $('searchInput').addEventListener('input',(e) => renderSearch(e.target.value));
@@ -1261,14 +1328,14 @@ input{outline:none}
 
   document.addEventListener('keydown',(e) => {
     if((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==='k'){
-      e.preventDefault(); openSearch(state.targetSlot);
+      e.preventDefault(); openSearch(state.chartMode==='single'?'A':state.targetSlot);
     }
     if(e.key==='Escape' && state.searchOpen) closeSearch();
   });
 
   // ------------------------------------------------------------
-  // Per-chart persistence: drawing document, renderer settings,
-  // indicators, theme, and viewport are keyed independently.
+  // Per-chart persistence. IndexedDB stores the full workspace snapshot;
+  // localStorage is a synchronous backup and keeps the last open chart.
   // ------------------------------------------------------------
   let chartSaveTimer = null;
 
@@ -1277,38 +1344,116 @@ input{outline:none}
     try{return JSON.parse(JSON.stringify(value));}catch(e){return null;}
   }
 
-  function safeWorkspaceState(){
-    try{return state.workspace?.getState?.() || null;}catch(e){return null;}
+  function openChartDatabase(){
+    if(chartDbPromise) return chartDbPromise;
+    if(!('indexedDB' in window)) return Promise.resolve(null);
+    chartDbPromise=new Promise((resolve)=>{
+      let settled=false;
+      const finish=(value)=>{if(settled)return;settled=true;clearTimeout(openTimer);resolve(value);};
+      const openTimer=setTimeout(()=>finish(null),1200);
+      let request;
+      try{request=indexedDB.open(CHART_DB_NAME,CHART_DB_VERSION);}catch(e){finish(null);return;}
+      request.onupgradeneeded=()=>{
+        const db=request.result;
+        if(!db.objectStoreNames.contains('charts')) db.createObjectStore('charts',{keyPath:'key'});
+      };
+      request.onsuccess=()=>{if(settled){try{request.result?.close?.();}catch(e){};return;}finish(request.result);};
+      request.onerror=()=>finish(null);
+      request.onblocked=()=>finish(null);
+    });
+    return chartDbPromise;
+  }
+
+  function readLocalChartSnapshot(key){
+    try{return JSON.parse(localStorage.getItem(key)||'null');}catch(e){return null;}
+  }
+
+  function writeChartSnapshot(key,snapshot){
+    // Synchronous best-effort backup; indexedDB handles many large chart documents more safely.
+    try{localStorage.setItem(key,JSON.stringify(snapshot));}catch(e){}
+    openChartDatabase().then((db)=>{
+      if(!db) return;
+      try{
+        const tx=db.transaction('charts','readwrite');
+        tx.objectStore('charts').put({key,snapshot,savedAt:snapshot.savedAt||Date.now()});
+      }catch(e){console.warn('Chart persistence fallback active.',e);}
+    }).catch(()=>{});
+  }
+
+  async function readChartSnapshot(key){
+    const local=readLocalChartSnapshot(key);
+    const db=await openChartDatabase();
+    if(!db) return local;
+    try{
+      const record=await new Promise((resolve)=>{
+        const tx=db.transaction('charts','readonly');
+        const request=tx.objectStore('charts').get(key);
+        request.onsuccess=()=>resolve(request.result||null);
+        request.onerror=()=>resolve(null);
+        tx.onabort=()=>resolve(null);
+      });
+      const remote=record?.snapshot||null;
+      return (remote?.savedAt||0) >= (local?.savedAt||0) ? (remote||local) : (local||remote);
+    }catch(e){return local;}
   }
 
   function extractWorkspaceChart(chartState){
     if(!chartState || typeof chartState!=='object') return null;
     const copy={};
-    for(const key of ['priceStyle','watermark','indicatorTitles','indicators','rendererConfig','drawings','ext']){
-      if(Object.prototype.hasOwnProperty.call(chartState,key)) copy[key]=cloneJSON(chartState[key]);
+    // Keep all serializable per-chart settings supported by the active Vela build,
+    // while leaving market identity and live bars to the site's data engine.
+    for(const [key,value] of Object.entries(chartState)){
+      if(['id','symbol','provider','timeframe','bars'].includes(key)) continue;
+      const cloned=cloneJSON(value);
+      if(cloned!==null || value===null) copy[key]=cloned;
     }
     return copy;
+  }
+
+  function saveWorkspacePreferences(doc){
+    if(!doc || typeof doc!=='object') return;
+    const prefs={};
+    for(const key of ['timezone','favorites','timeframeFavorites']){
+      if(Object.prototype.hasOwnProperty.call(doc,key)) prefs[key]=cloneJSON(doc[key]);
+    }
+    if(Object.keys(prefs).length){
+      try{localStorage.setItem(WORKSPACE_PREFS_KEY,JSON.stringify(prefs));}catch(e){}
+    }
+  }
+
+  function applyWorkspacePreferences(doc){
+    if(!doc || typeof doc!=='object') return;
+    let prefs={};
+    try{prefs=JSON.parse(localStorage.getItem(WORKSPACE_PREFS_KEY)||'{}')||{};}catch(e){}
+    for(const key of ['timezone','favorites','timeframeFavorites']){
+      if(Object.prototype.hasOwnProperty.call(prefs,key)) doc[key]=cloneJSON(prefs[key]);
+    }
+  }
+
+  function safeWorkspaceState(){
+    try{return state.workspace?.getState?.() || null;}catch(e){return null;}
   }
 
   function saveCurrentChartState(){
     if(state.isRestoring || !state.chart || !state.activeChartKey) return;
     try{
       const workspaceState = safeWorkspaceState();
+      saveWorkspacePreferences(workspaceState);
       const workspaceChart = extractWorkspaceChart(workspaceState?.charts?.[0] || null);
       const drawings = cloneJSON(state.chart?.drawings?.toJSON?.());
       const rendererConfig = cloneJSON(state.chart?.renderer?.getConfig?.());
       const visibleRange = cloneJSON(state.chart?.getVisibleRange?.());
       const snapshot = {
-        version:2,
+        version:3,
         savedAt:Date.now(),
-        settings:{priceStyle:state.priceStyle,logScale:state.logScale,theme:state.theme},
+        chartMode:state.chartMode,
+        settings:{priceStyle:state.priceStyle,logScale:state.logScale},
         visibleRange,
         drawings,
         rendererConfig,
         workspaceChart
       };
-      localStorage.setItem(state.activeChartKey,JSON.stringify(snapshot));
-      // Keep the general state key for the next visit's initial chart selection.
+      writeChartSnapshot(state.activeChartKey,snapshot);
       persistState();
     }catch(e){console.warn('Chart state could not be saved.',e);}
   }
@@ -1325,9 +1470,8 @@ input{outline:none}
       const doc=safeWorkspaceState();
       const current=doc?.charts?.[0];
       if(!doc || !current) return;
-      for(const key of ['priceStyle','watermark','indicatorTitles','indicators','rendererConfig','drawings','ext']){
-        if(Object.prototype.hasOwnProperty.call(savedChart,key)) current[key]=cloneJSON(savedChart[key]);
-      }
+      for(const [key,value] of Object.entries(savedChart)) current[key]=cloneJSON(value);
+      applyWorkspacePreferences(doc);
       state.workspace.applyState(doc);
       state.chart=state.workspace.chart;
     }catch(e){console.warn('Vela chart settings could not be restored.',e);}
@@ -1340,14 +1484,14 @@ input{outline:none}
     }catch(e){}
   }
 
-  function restoreChartState(key,bars){
-    let saved=null;
-    try{saved=JSON.parse(localStorage.getItem(key)||'null');}catch(e){}
+  async function restoreChartState(key,bars){
+    let saved=await readChartSnapshot(key);
+    if(!saved || typeof saved!=='object') saved=null;
 
     if(saved?.settings){
       if(STYLE_VALUES.has(saved.settings.priceStyle)) state.priceStyle=saved.settings.priceStyle;
       if(typeof saved.settings.logScale==='boolean') state.logScale=saved.settings.logScale;
-      if(saved.settings.theme==='light' || saved.settings.theme==='dark') state.theme=saved.settings.theme;
+      // Website theme is global; per-chart snapshots must not toggle it when switching charts.
     }
 
     applyHostTheme(state.theme);
@@ -1355,6 +1499,7 @@ input{outline:none}
     const wasRestoring=state.isRestoring;
     state.isRestoring=true;
     try{
+      try{state.workspace?.setTheme?.(state.theme);}catch(e){}
       if(saved?.workspaceChart) applyWorkspaceChartFields(saved.workspaceChart);
       else if(state.defaultWorkspaceChart) applyWorkspaceChartFields(state.defaultWorkspaceChart);
 
@@ -1373,7 +1518,9 @@ input{outline:none}
         try{state.chart.renderer.applyConfig(cloneJSON(state.defaultRendererConfig));}catch(e){}
       }
       applyRendererChange();
-      try{state.workspace?.setTheme?.(state.theme);}catch(e){}
+      // A brand-new chart has no personal snapshot yet: re-apply the workspace theme
+      // after baseline defaults. For saved charts, keep its custom renderer config intact.
+      if(!saved){try{state.workspace?.setTheme?.(state.theme);}catch(e){}}
 
       const range=saved?.visibleRange;
       const first=bars?.[0]?.time, last=bars?.[bars.length-1]?.time;
@@ -1390,7 +1537,7 @@ input{outline:none}
   function attachChartPersistence(){
     if(!state.chart) return;
     const onChange=()=>scheduleChartSave();
-    for(const event of ['drawing:created','drawing:edited','drawing:removed','drawing:settings','viewport:changed','indicator:added','indicator:removed']){
+    for(const event of ['drawing:created','drawing:edited','drawing:removed','drawing:settings','drawing:favorites','viewport:changed','indicator:added','indicator:removed','indicator:updated']){
       try{state.chart.on?.(event,onChange);}catch(e){}
     }
     try{state.chart.renderer?.onConfigChanged?.(()=>{if(state.isRestoring)return;syncRendererStateFromWorkspace();scheduleChartSave();});}catch(e){}
